@@ -38,6 +38,7 @@
 ### 6. Commit / Push
 - Web commit: created from the prepared staged files.
 - Web push target: `origin main`
+- Web pushed: true
 - Force push used: false
 - PR created: false, because the user asked to put the project into the target repository directly.
 
