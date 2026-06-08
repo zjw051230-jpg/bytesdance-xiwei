@@ -12,3 +12,4 @@ coverage/
 .cache/
 tianxiwei-bytesdance/
 reporting/*.png
+reporting/vite.log
