@@ -1,0 +1,21 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "url": "http://127.0.0.1:5174",
+  "runId": "RUN-20260608-085904-KZMXT",
+  "assistantMessage": "✦系统澄清刚刚我先按你的描述沉淀一个候选验收口径：有正文时，在文章详情页正文下方展示“本文共 XXX 字，预计阅读 X 分钟”；正文为空或缺失时隐藏该信息，页面不报错，不出现 NaN 或异常时间；本轮不涉及后端字段、数据库或接口变更。还需要确认一个产品口径：预计阅读时间按多少字/分钟计算？如果你没有特别要求，可以先按每分钟 400 个中文字估算。",
+  "containsCandidateAcceptanceCriteria": true,
+  "rawEvpiQuestionExposed": false,
+  "readyForAgent": false,
+  "safetyBoundaryVisible": true,
+  "handoffDecision": "clarify_first",
+  "reportModalOpened": true,
+  "pageVerticalScroll": false,
+  "screenshots": {
+    "main": "F:\\字节比赛\\最终程序\\reporting\\web-ui-skill-driven-l1-main.png",
+    "report": "F:\\字节比赛\\最终程序\\reporting\\web-ui-skill-driven-l1-report.png"
+  },
+  "consoleEntries": [],
+  "pageErrors": [],
+  "error": null
+}

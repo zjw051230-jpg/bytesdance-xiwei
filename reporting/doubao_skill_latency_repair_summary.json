@@ -1,0 +1,102 @@
+{
+  "task": "Task 12.2-I Doubao Skill Turn Latency Repair",
+  "status": "passed",
+  "fixed": {
+    "promptDiet": true,
+    "contextLimited": true,
+    "lightweightOutput": true,
+    "timeoutConfigurable": true,
+    "diagnosticsArtifact": true
+  },
+  "promptDiet": {
+    "previousPromptFileChars": 15840,
+    "latestWebPromptChars": 5931,
+    "latestLayeredL1PromptChars": 4106,
+    "maxPromptCharsTarget": 6000,
+    "contextMessageLimit": 6,
+    "modelMessageCount": 2
+  },
+  "diagnostics": {
+    "runId": "RUN-20260608-172328-8V9VZ",
+    "provider": "doubao_ark",
+    "model": "ep-20260514110933-mzh58",
+    "promptChars": 5931,
+    "systemPromptChars": 51,
+    "userPayloadChars": 5931,
+    "messageCount": 2,
+    "contextMessageCount": 6,
+    "timeoutMs": 90000,
+    "latencyMs": 16515,
+    "status": "passed"
+  },
+  "layeredChecks": {
+    "checkDoubao": {
+      "status": "passed",
+      "latencyMs": 2789,
+      "model": "ep-20260514110933-mzh58"
+    },
+    "checkDoubaoSkillMinimal": {
+      "status": "passed",
+      "runId": "RUN-20260608-172219-2LOIP",
+      "latencyMs": 12499,
+      "promptChars": 3978,
+      "messageCount": 2,
+      "mockUsed": false,
+      "readyForAgent": false
+    },
+    "checkDoubaoSkillL1": {
+      "status": "passed",
+      "runId": "RUN-20260608-172243-919GU",
+      "latencyMs": 14939,
+      "promptChars": 4106,
+      "messageCount": 2,
+      "mockUsed": false,
+      "readyForAgent": false
+    }
+  },
+  "webSmoke": {
+    "attempted": true,
+    "status": "passed",
+    "url": "http://127.0.0.1:9999",
+    "runId": "RUN-20260608-172328-8V9VZ",
+    "provider": "doubao_ark",
+    "model": "ep-20260514110933-mzh58",
+    "sourceMode": "model_generated_real",
+    "mockUsed": false,
+    "readyForAgent": false,
+    "handoffDecision": "clarify_first",
+    "latencyMs": 16515,
+    "promptChars": 5931,
+    "pageVerticalScroll": false,
+    "consoleErrors": false,
+    "pageErrors": false
+  },
+  "regression": {
+    "npmTest": "passed: 6 files, 67 tests",
+    "testServer": "passed: 2 files, 40 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "passed",
+    "verifyRenderUrl": "http://127.0.0.1:9999",
+    "verifyRenderApiHealth": "http://127.0.0.1:9999/api/health"
+  },
+  "screenshots": {
+    "fastSuccess": "F:\\字节比赛\\最终程序\\reporting\\doubao-skill-l1-fast-success.png",
+    "sourceBadge": "F:\\字节比赛\\最终程序\\reporting\\doubao-skill-l1-source-badge.png",
+    "report": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-report.png"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "authorizationLeakage": false,
+    "agentPlanEntered": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false,
+    "mockSuccessUsed": false,
+    "scannedFiles": 10,
+    "dslModified": false,
+    "dslV2CoreRuntimeModified": false
+  },
+  "recommendation": {
+    "reworkRecommended": false
+  }
+}

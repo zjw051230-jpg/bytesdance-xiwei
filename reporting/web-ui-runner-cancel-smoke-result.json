@@ -1,0 +1,17 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "url": "http://127.0.0.1:5174",
+  "runId": "RUN-20260608-085842-AIAY6",
+  "runnerStatus": "cancelled",
+  "cancelButtonVisible": true,
+  "cancelledMessageVisible": true,
+  "cancelledFileWritten": true,
+  "pageVerticalScroll": false,
+  "screenshots": {
+    "cancelled": "F:\\字节比赛\\最终程序\\reporting\\web-ui-runner-cancelled.png"
+  },
+  "consoleEntries": [],
+  "pageErrors": [],
+  "error": null
+}

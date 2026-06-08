@@ -1,0 +1,15 @@
+{
+  "attempted": true,
+  "mode": "l1",
+  "status": "passed",
+  "runId": "RUN-20260608-192145-5JI5D",
+  "provider": "doubao_ark",
+  "model": "ep-20260514110933-mzh58",
+  "latencyMs": 16661,
+  "promptChars": 4106,
+  "messageCount": 2,
+  "mockUsed": false,
+  "readyForAgent": false,
+  "errorCode": "",
+  "error": null
+}

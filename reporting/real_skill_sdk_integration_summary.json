@@ -1,0 +1,72 @@
+{
+  "task": "Task 12.2-F Real Skill SDK Integration",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "implemented": {
+    "openAiSdkClient": true,
+    "readsLocalApiConfig": true,
+    "usesBaseUrl": true,
+    "usesModel": true,
+    "mockOnlyInTest": true,
+    "sourceBadgeClientSdk": true,
+    "skillTurnSdkArtifacts": true
+  },
+  "sdk": {
+    "configPath": "F:\\dsl-v2\\configs\\api_config.local.json",
+    "endpoint": "http://localhost:8317/v1/chat/completions",
+    "baseURL": "http://localhost:8317/v1",
+    "model": "gpt-5.5",
+    "client": "openai_sdk",
+    "realSkillSmokeTimeoutMs": 120000
+  },
+  "sdkHealth": {
+    "attempted": true,
+    "status": "passed",
+    "latencyMs": 3116,
+    "model": "gpt-5.5"
+  },
+  "realSmoke": {
+    "attempted": true,
+    "status": "passed",
+    "runId": "RUN-20260608-115148-LMB2P",
+    "sourceMode": "model_generated_real",
+    "sourceClient": "openai_sdk",
+    "model": "gpt-5.5",
+    "mockUsed": false,
+    "readyForAgent": false,
+    "handoffDecision": "clarify_first",
+    "artifactLeakage": false,
+    "pageVerticalScroll": false,
+    "consoleEntries": 0,
+    "pageErrors": 0
+  },
+  "artifacts": [
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-115148-LMB2P\\skill_turn_input.json",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-115148-LMB2P\\skill_turn_prompt.md",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-115148-LMB2P\\skill_turn_sdk_request.json",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-115148-LMB2P\\skill_turn_sdk_response_raw.json",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-115148-LMB2P\\skill_turn_response_parsed.json"
+  ],
+  "screenshots": {
+    "main": "F:\\字节比赛\\最终程序\\reporting\\real-skill-sdk-l1-main.png",
+    "sourceBadge": "F:\\字节比赛\\最终程序\\reporting\\real-skill-sdk-source-badge.png",
+    "report": "F:\\字节比赛\\最终程序\\reporting\\real-skill-sdk-report.png"
+  },
+  "verification": {
+    "npmTest": "passed: 6 files / 59 tests",
+    "npmRunTestServer": "passed: 2 files / 32 tests",
+    "npmRunBuild": "passed",
+    "npmRunSmoke": "passed",
+    "verifyRender": "passed: 1920x1080 and 1440x900 no page vertical scroll",
+    "checkSkillModelSdk": "passed",
+    "smokeWebUiRealSkillL1": "passed"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "authorizationLeakage": false,
+    "apiConfigReturned": false,
+    "agentPlanEntered": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false
+  }
+}

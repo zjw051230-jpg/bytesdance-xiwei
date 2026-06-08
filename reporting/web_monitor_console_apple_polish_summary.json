@@ -1,0 +1,64 @@
+{
+  "task": "Task 11.1-B Apple-style UI Polish",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "layoutPreserved": true,
+  "pageVerticalScroll": false,
+  "appleStyleApplied": true,
+  "modifiedFiles": [
+    "F:\\字节比赛\\最终程序\\src\\styles.css",
+    "F:\\字节比赛\\最终程序\\reporting\\monitor-console-apple-1920x1080.png",
+    "F:\\字节比赛\\最终程序\\reporting\\monitor-console-apple-1440x900.png",
+    "F:\\字节比赛\\最终程序\\reporting\\browser-apple-verification.json",
+    "F:\\字节比赛\\最终程序\\reporting\\web_monitor_console_apple_polish_report.md",
+    "F:\\字节比赛\\最终程序\\reporting\\web_monitor_console_apple_polish_summary.json"
+  ],
+  "tests": {
+    "npmInstall": "passed; audit found 0 vulnerabilities",
+    "npmTest": "passed; 2 test files, 6 tests",
+    "npmRunBuild": "passed",
+    "npmRunSmoke": "passed",
+    "verifyRender": "passed; 1920x1080 and 1440x900 have hasVerticalPageScroll=false"
+  },
+  "browserVerification": {
+    "url": "http://127.0.0.1:5174/",
+    "browserPluginCheck": "passed",
+    "consoleErrors": 0,
+    "consoleWarnings": 0,
+    "pageErrors": 0,
+    "viewports": [
+      {
+        "viewport": "1920x1080",
+        "hasVerticalPageScroll": false,
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "docClientHeight": 1080
+      },
+      {
+        "viewport": "1440x900",
+        "hasVerticalPageScroll": false,
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "docClientHeight": 900
+      }
+    ]
+  },
+  "screenshots": {
+    "old1920": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1920x1080.png",
+    "old1440": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1440x900.png",
+    "apple1920": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-apple-1920x1080.png",
+    "apple1440": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-apple-1440x900.png"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "envCommitted": false,
+    "npmAuditVulnerabilities": 0
+  },
+  "git": {
+    "repository": false,
+    "checkpoint": "skipped"
+  },
+  "reworkRecommended": false
+}

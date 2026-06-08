@@ -1,0 +1,23 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "firstRunId": "RUN-20260608-085724-7P3QH",
+  "firstStatus": "passed",
+  "firstSystemQuestion": "✦系统澄清刚刚我先按你的描述沉淀一个候选验收口径：有正文时，在文章详情页正文下方展示“本文共 XXX 字，预计阅读 X 分钟”；正文为空或缺失时隐藏该信息，页面不报错，不出现 NaN 或异常时间；本轮不涉及后端字段、数据库或接口变更。还需要确认一个产品口径：预计阅读时间按多少字/分钟计算？如果你没有特别要求，可以先按每分钟 400 个中文字估算。",
+  "secondRunId": "RUN-20260608-085726-PZKUL",
+  "secondStatus": "passed",
+  "pmAnswer": "用户可见现象：进入文章详情页后，在正文下方能看到一行阅读信息，格式类似“本文共 XXX 字，预计阅读 X 分钟”。如果正文为空，就不展示这行信息，页面不报错、不出现 NaN 或 0 分钟这类异常内容。不需要后端保存，也不需要新增数据库字段；只要前端根据当前文章正文实时计算并展示即可。",
+  "secondSystemReply": "✦系统澄清刚刚我先按你的描述沉淀一个候选验收口径：有正文时，在文章详情页正文下方展示“本文共 XXX 字，预计阅读 X 分钟”；正文为空或缺失时隐藏该信息，页面不报错，不出现 NaN 或异常时间；本轮不涉及后端字段、数据库或接口变更。还需要确认一个产品口径：预计阅读时间按多少字/分钟计算？如果你没有特别要求，可以先按每分钟 400 个中文字估算。",
+  "repeatedQuestionAppeared": false,
+  "suggestionCardVisibleAfterSecond": false,
+  "suggestionCardTextAfterSecond": "",
+  "reportModalOpened": true,
+  "naturalSkillReplyShown": true,
+  "screenshots": {
+    "afterAnswer": "F:\\字节比赛\\最终程序\\reporting\\web-ui-l1-dedup-after-answer.png",
+    "report": "F:\\字节比赛\\最终程序\\reporting\\web-ui-l1-dedup-report.png"
+  },
+  "consoleEntries": [],
+  "pageErrors": [],
+  "error": null
+}

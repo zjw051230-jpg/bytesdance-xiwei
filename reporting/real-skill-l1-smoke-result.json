@@ -1,0 +1,39 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "url": "http://127.0.0.1:9999",
+  "runId": "RUN-20260608-192416-M5MLR",
+  "model": "ep-20260514110933-mzh58",
+  "sourceProvider": "doubao_ark",
+  "sourceMode": "model_generated_real",
+  "sourceClient": "doubao_ark",
+  "assistantMessage": "✦系统澄清刚刚我已理解当前需求包含两部分：一是优化现有登录失败提示文案，覆盖账号不存在、密码错误、账户被锁定、网络异常四类场景，密码错误需展示剩余尝试次数；二是在文章详情页正文下方新增前端本地计算的阅读信息提示，格式为「本文共 XXX 字，预计阅读 X 分钟」，无需后端改造和数据持久化，兼容空正文场景避免报错和突兀展示。",
+  "readyForAgent": false,
+  "latencyMs": 16937,
+  "promptChars": 5931,
+  "diagnosticsStatus": "passed",
+  "mockUsed": false,
+  "artifactsGenerated": [
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-192416-M5MLR\\skill_turn_input.json",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-192416-M5MLR\\skill_turn_prompt.md",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-192416-M5MLR\\skill_turn_doubao_request.json",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-192416-M5MLR\\skill_turn_doubao_response_raw.json",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-192416-M5MLR\\skill_turn_diagnostics.json",
+    "F:\\字节比赛\\最终程序\\runs\\RUN-20260608-192416-M5MLR\\skill_turn_response_parsed.json"
+  ],
+  "artifactLeakage": false,
+  "pageVerticalScroll": false,
+  "consoleEntries": [],
+  "pageErrors": [],
+  "screenshots": {
+    "main": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-main.png",
+    "sourceBadge": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-source-badge.png",
+    "report": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-report.png",
+    "externalBlocked": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-error.png",
+    "fastSuccess": "F:\\字节比赛\\最终程序\\reporting\\doubao-skill-l1-fast-success.png",
+    "fastSourceBadge": "F:\\字节比赛\\最终程序\\reporting\\doubao-skill-l1-source-badge.png",
+    "timeoutDiagnostics": "F:\\字节比赛\\最终程序\\reporting\\doubao-skill-l1-timeout-diagnostics.png"
+  },
+  "errorCode": "",
+  "error": null
+}

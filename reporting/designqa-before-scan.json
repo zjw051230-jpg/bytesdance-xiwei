@@ -1,0 +1,318 @@
+[
+  {
+    "viewport": "1920x1080",
+    "screenshotPath": "F:\\字节比赛\\最终程序\\reporting\\designqa-before-1920x1080.png",
+    "metrics": {
+      "innerWidth": 1920,
+      "innerHeight": 1080,
+      "title": "Codex Workbench Monitor",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "hasVerticalPageScroll": false,
+      "hugeText": [],
+      "redThings": [
+        {
+          "tag": "SPAN",
+          "className": "status-dot dot-fail",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 28,
+            "top": 314,
+            "right": 39,
+            "bottom": 325,
+            "width": 11,
+            "height": 11
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "svg",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 27,
+            "top": 693,
+            "right": 43,
+            "bottom": 709,
+            "width": 16,
+            "height": 16
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "circle",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 28,
+            "top": 695,
+            "right": 42,
+            "bottom": 708,
+            "width": 13,
+            "height": 13
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "path",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 33,
+            "top": 699,
+            "right": 37,
+            "bottom": 703,
+            "width": 4,
+            "height": 4
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "path",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 33,
+            "top": 699,
+            "right": 37,
+            "bottom": 703,
+            "width": 4,
+            "height": 4
+          },
+          "isRed": true,
+          "out": false
+        }
+      ],
+      "outOfBounds": [],
+      "positioned": [
+        {
+          "tag": "SPAN",
+          "className": "",
+          "text": "",
+          "fontSize": 18,
+          "color": "rgb(242, 247, 255)",
+          "position": "absolute",
+          "zIndex": "auto",
+          "rect": {
+            "left": 24,
+            "top": 20,
+            "right": 42,
+            "bottom": 38,
+            "width": 18,
+            "height": 18
+          },
+          "isRed": false,
+          "out": false
+        },
+        {
+          "tag": "SPAN",
+          "className": "",
+          "text": "",
+          "fontSize": 18,
+          "color": "rgb(242, 247, 255)",
+          "position": "absolute",
+          "zIndex": "auto",
+          "rect": {
+            "left": 42,
+            "top": 20,
+            "right": 60,
+            "bottom": 38,
+            "width": 18,
+            "height": 18
+          },
+          "isRed": false,
+          "out": false
+        }
+      ],
+      "hasPendingReports": false,
+      "hasTaskInspector": false,
+      "hasModeTabs": false
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "1440x900",
+    "screenshotPath": "F:\\字节比赛\\最终程序\\reporting\\designqa-before-1440x900.png",
+    "metrics": {
+      "innerWidth": 1440,
+      "innerHeight": 900,
+      "title": "Codex Workbench Monitor",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 900,
+      "docClientHeight": 900,
+      "hasVerticalPageScroll": false,
+      "hugeText": [],
+      "redThings": [
+        {
+          "tag": "SPAN",
+          "className": "status-dot dot-fail",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 24,
+            "top": 260,
+            "right": 35,
+            "bottom": 271,
+            "width": 11,
+            "height": 11
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "svg",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 23,
+            "top": 579,
+            "right": 39,
+            "bottom": 595,
+            "width": 16,
+            "height": 16
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "circle",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 24,
+            "top": 581,
+            "right": 38,
+            "bottom": 594,
+            "width": 13,
+            "height": 13
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "path",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 29,
+            "top": 585,
+            "right": 33,
+            "bottom": 589,
+            "width": 4,
+            "height": 4
+          },
+          "isRed": true,
+          "out": false
+        },
+        {
+          "tag": "path",
+          "className": "[object SVGAnimatedString]",
+          "text": "",
+          "fontSize": 16,
+          "color": "rgb(255, 69, 58)",
+          "position": "static",
+          "zIndex": "auto",
+          "rect": {
+            "left": 29,
+            "top": 585,
+            "right": 33,
+            "bottom": 589,
+            "width": 4,
+            "height": 4
+          },
+          "isRed": true,
+          "out": false
+        }
+      ],
+      "outOfBounds": [],
+      "positioned": [
+        {
+          "tag": "SPAN",
+          "className": "",
+          "text": "",
+          "fontSize": 18,
+          "color": "rgb(242, 247, 255)",
+          "position": "absolute",
+          "zIndex": "auto",
+          "rect": {
+            "left": 18,
+            "top": 20,
+            "right": 36,
+            "bottom": 38,
+            "width": 18,
+            "height": 18
+          },
+          "isRed": false,
+          "out": false
+        },
+        {
+          "tag": "SPAN",
+          "className": "",
+          "text": "",
+          "fontSize": 18,
+          "color": "rgb(242, 247, 255)",
+          "position": "absolute",
+          "zIndex": "auto",
+          "rect": {
+            "left": 36,
+            "top": 20,
+            "right": 54,
+            "bottom": 38,
+            "width": 18,
+            "height": 18
+          },
+          "isRed": false,
+          "out": false
+        }
+      ],
+      "hasPendingReports": false,
+      "hasTaskInspector": false,
+      "hasModeTabs": false
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  }
+]

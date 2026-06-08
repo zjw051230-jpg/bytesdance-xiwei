@@ -1,0 +1,66 @@
+{
+  "task": "Task 11.3 Workspace Project Rail",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "implemented": {
+    "projectRail": true,
+    "collapsedState": true,
+    "expandedState": true,
+    "projectSwitching": true,
+    "workspaceOnly": true,
+    "monitorUnaffected": true,
+    "mockOnly": true
+  },
+  "interactions": {
+    "topButtonExpand": true,
+    "collapsedProjectIconExpand": true,
+    "collapseButton": true,
+    "railProjectSwitch": true,
+    "pickerProjectSync": true,
+    "toast": true,
+    "monitorHidesRail": true,
+    "workbenchShowsRail": true
+  },
+  "singleScreenLayout": {
+    "pageVerticalScroll": false,
+    "viewportsVerified": [
+      "1920x1080",
+      "1440x900"
+    ],
+    "details": {
+      "1920x1080": {
+        "collapsedRailWidth": 64,
+        "expandedRailWidth": 284,
+        "hasVerticalPageScroll": false
+      },
+      "1440x900": {
+        "collapsedRailWidth": 60,
+        "expandedRailWidth": 264,
+        "hasVerticalPageScroll": false
+      }
+    }
+  },
+  "tests": {
+    "npmTest": "passed: 2 files, 9 tests",
+    "npmRunBuild": "passed",
+    "npmRunSmoke": "passed",
+    "verifyRender": "passed",
+    "consoleErrors": 0,
+    "pageErrors": 0
+  },
+  "screenshots": [
+    "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-collapsed-1920x1080.png",
+    "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-expanded-1920x1080.png",
+    "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-collapsed-1440x900.png",
+    "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-expanded-1440x900.png"
+  ],
+  "security": {
+    "apiKeyLeakage": false,
+    "envCommitted": false,
+    "realApiConnected": false,
+    "hunterTouched": false,
+    "autoReplyTouched": false,
+    "a3bUsed": false
+  },
+  "reworkRecommended": false
+}

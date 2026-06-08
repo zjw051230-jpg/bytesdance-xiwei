@@ -1,0 +1,67 @@
+{
+  "task": "Task 11.1-C Monitor Console Design QA & UI Rework",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "designIssuesFound": 18,
+  "abnormalOverlayFixed": true,
+  "layoutPreserved": true,
+  "pageVerticalScroll": false,
+  "leftPendingReportsPreserved": true,
+  "rightTaskInspectorPreserved": true,
+  "tests": {
+    "npmTest": "passed",
+    "npmRunBuild": "passed",
+    "npmRunSmoke": "passed",
+    "verifyRender": "passed"
+  },
+  "browserVerification": {
+    "url": "http://127.0.0.1:5174/",
+    "viewports": [
+      {
+        "viewport": "1920x1080",
+        "hasVerticalPageScroll": false,
+        "docScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "consoleErrors": 0,
+        "pageErrors": 0,
+        "abnormalOverlay": false,
+        "hugeTextCount": 0,
+        "outOfBoundsCount": 0
+      },
+      {
+        "viewport": "1440x900",
+        "hasVerticalPageScroll": false,
+        "docScrollHeight": 900,
+        "docClientHeight": 900,
+        "consoleErrors": 0,
+        "pageErrors": 0,
+        "abnormalOverlay": false,
+        "hugeTextCount": 0,
+        "outOfBoundsCount": 0
+      }
+    ]
+  },
+  "screenshots": {
+    "designqa1920": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-designqa-1920x1080.png",
+    "designqa1440": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-designqa-1440x900.png",
+    "old1920": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1920x1080.png",
+    "old1440": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1440x900.png",
+    "apple1920": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-apple-1920x1080.png",
+    "apple1440": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-apple-1440x900.png"
+  },
+  "reports": {
+    "beforeDesignQA": "F:\\字节比赛\\最终程序\\reporting\\ui_design_qa_before_rework.md",
+    "finalReport": "F:\\字节比赛\\最终程序\\reporting\\web_monitor_console_designqa_rework_report.md",
+    "browserVerification": "F:\\字节比赛\\最终程序\\reporting\\browser-designqa-verification.json"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "envCommitted": false,
+    "buildArtifactsCommitted": false
+  },
+  "git": {
+    "repository": false,
+    "checkpoint": "skipped"
+  },
+  "reworkRecommended": false
+}

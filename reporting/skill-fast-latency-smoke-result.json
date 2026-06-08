@@ -1,0 +1,12 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "skillLatencyMs": 26,
+  "runnerStartLatencyMs": 10,
+  "runnerStatusImmediatelyAfterStart": "running",
+  "skillReplyBeforeRunner": true,
+  "slowResponseLatencyMs": 109,
+  "slowResponseMode": "slow_response",
+  "maxSkillLatencyMs": 12000,
+  "error": null
+}

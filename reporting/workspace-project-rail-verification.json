@@ -1,0 +1,270 @@
+[
+  {
+    "viewport": "1920x1080",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "collapsed": "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-collapsed-1920x1080.png",
+      "expanded": "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-expanded-1920x1080.png"
+    },
+    "monitorMetrics": {
+      "hasMonitorView": 1,
+      "hasProjectRail": 0,
+      "monitorPressed": "true",
+      "workbenchPressed": "false",
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "collapsedMetrics": {
+      "hasTitle": true,
+      "railState": "collapsed",
+      "activePickerProject": "true",
+      "projectTriggerVisible": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1920,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "rail": {
+        "top": 56,
+        "left": 0,
+        "width": 64,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "picker": {
+        "top": 56,
+        "left": 64,
+        "width": 1856,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "expandedMetrics": {
+      "railState": "expanded",
+      "hasConduit": true,
+      "hasCodexWorkbench": true,
+      "hasDataPipeline": true,
+      "rail": {
+        "top": 56,
+        "left": 0,
+        "width": 284,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "pickerColumn": {
+        "top": 148,
+        "left": 812,
+        "width": 580,
+        "height": 668,
+        "bottom": 816,
+        "overflowY": "visible"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "interactions": {
+      "railSwitch": {
+        "pickerDataPressed": "true",
+        "railDataPressed": "true",
+        "toast": "已切换到 Data Pipeline"
+      },
+      "pickerSwitch": {
+        "pickerAiPressed": "true",
+        "railAiPressed": "true",
+        "toast": "已选择 AI Agent Framework"
+      },
+      "collapsedAgain": {
+        "railState": "collapsed",
+        "hasProjectTrigger": true,
+        "scroll": {
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 1080,
+          "bodyScrollHeight": 1080,
+          "docClientHeight": 1080,
+          "hasVerticalPageScroll": false
+        }
+      },
+      "collapsedIconExpanded": {
+        "railState": "expanded"
+      },
+      "returnedToMonitor": {
+        "hasMonitorView": 1,
+        "hasProjectRail": 0,
+        "monitorPressed": "true",
+        "workbenchPressed": "false",
+        "scroll": {
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 1080,
+          "bodyScrollHeight": 1080,
+          "docClientHeight": 1080,
+          "hasVerticalPageScroll": false
+        }
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "1440x900",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "collapsed": "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-collapsed-1440x900.png",
+      "expanded": "F:\\字节比赛\\最终程序\\reporting\\workspace-rail-expanded-1440x900.png"
+    },
+    "monitorMetrics": {
+      "hasMonitorView": 1,
+      "hasProjectRail": 0,
+      "monitorPressed": "true",
+      "workbenchPressed": "false",
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "collapsedMetrics": {
+      "hasTitle": true,
+      "railState": "collapsed",
+      "activePickerProject": "true",
+      "projectTriggerVisible": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1440,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "rail": {
+        "top": 56,
+        "left": 0,
+        "width": 60,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "picker": {
+        "top": 56,
+        "left": 60,
+        "width": 1380,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "expandedMetrics": {
+      "railState": "expanded",
+      "hasConduit": true,
+      "hasCodexWorkbench": true,
+      "hasDataPipeline": true,
+      "rail": {
+        "top": 56,
+        "left": 0,
+        "width": 264,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "pickerColumn": {
+        "top": 126,
+        "left": 582,
+        "width": 540,
+        "height": 600,
+        "bottom": 726,
+        "overflowY": "visible"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "interactions": {
+      "railSwitch": {
+        "pickerDataPressed": "true",
+        "railDataPressed": "true",
+        "toast": "已切换到 Data Pipeline"
+      },
+      "pickerSwitch": {
+        "pickerAiPressed": "true",
+        "railAiPressed": "true",
+        "toast": "已选择 AI Agent Framework"
+      },
+      "collapsedAgain": {
+        "railState": "collapsed",
+        "hasProjectTrigger": true,
+        "scroll": {
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 900,
+          "bodyScrollHeight": 900,
+          "docClientHeight": 900,
+          "hasVerticalPageScroll": false
+        }
+      },
+      "collapsedIconExpanded": {
+        "railState": "expanded"
+      },
+      "returnedToMonitor": {
+        "hasMonitorView": 1,
+        "hasProjectRail": 0,
+        "monitorPressed": "true",
+        "workbenchPressed": "false",
+        "scroll": {
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 900,
+          "bodyScrollHeight": 900,
+          "docClientHeight": 900,
+          "hasVerticalPageScroll": false
+        }
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  }
+]

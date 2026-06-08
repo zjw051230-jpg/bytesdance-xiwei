@@ -1,0 +1,128 @@
+[
+  {
+    "viewport": "1920x1080",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshotPath": "F:\\字节比赛\\最终程序\\reporting\\workspace-project-picker-1920x1080.png",
+    "monitorMetrics": {
+      "hasMonitorView": true,
+      "hasWorkbenchView": false,
+      "hasProjectName": true,
+      "monitorPressed": "true",
+      "workbenchPressed": "false",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "hasVerticalPageScroll": false
+    },
+    "workspaceMetrics": {
+      "hasMonitorView": false,
+      "hasWorkbenchView": true,
+      "hasTitle": true,
+      "hasNewProject": true,
+      "projectCardCount": 4,
+      "hasSampleProject": true,
+      "monitorPressed": "false",
+      "workbenchPressed": "true",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "hasVerticalPageScroll": false
+    },
+    "picker": {
+      "top": 56,
+      "left": 0,
+      "width": 1920,
+      "height": 1024,
+      "bottom": 1080,
+      "overflowY": "hidden"
+    },
+    "pickerColumn": {
+      "top": 148,
+      "left": 670,
+      "width": 580,
+      "height": 568,
+      "bottom": 716,
+      "overflowY": "visible"
+    },
+    "interactions": {
+      "selectionText": "已选择 AI Agent Framework",
+      "creationText": "已创建 Research Workspace",
+      "returnedToMonitor": {
+        "hasMonitorView": true,
+        "hasWorkbenchView": false,
+        "monitorPressed": "true",
+        "workbenchPressed": "false"
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "1440x900",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshotPath": "F:\\字节比赛\\最终程序\\reporting\\workspace-project-picker-1440x900.png",
+    "monitorMetrics": {
+      "hasMonitorView": true,
+      "hasWorkbenchView": false,
+      "hasProjectName": true,
+      "monitorPressed": "true",
+      "workbenchPressed": "false",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 900,
+      "bodyScrollHeight": 900,
+      "docClientHeight": 900,
+      "hasVerticalPageScroll": false
+    },
+    "workspaceMetrics": {
+      "hasMonitorView": false,
+      "hasWorkbenchView": true,
+      "hasTitle": true,
+      "hasNewProject": true,
+      "projectCardCount": 4,
+      "hasSampleProject": true,
+      "monitorPressed": "false",
+      "workbenchPressed": "true",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 900,
+      "bodyScrollHeight": 900,
+      "docClientHeight": 900,
+      "hasVerticalPageScroll": false
+    },
+    "picker": {
+      "top": 56,
+      "left": 0,
+      "width": 1440,
+      "height": 844,
+      "bottom": 900,
+      "overflowY": "hidden"
+    },
+    "pickerColumn": {
+      "top": 126,
+      "left": 450,
+      "width": 540,
+      "height": 510,
+      "bottom": 636,
+      "overflowY": "visible"
+    },
+    "interactions": {
+      "selectionText": "已选择 AI Agent Framework",
+      "creationText": "已创建 Research Workspace",
+      "returnedToMonitor": {
+        "hasMonitorView": true,
+        "hasWorkbenchView": false,
+        "monitorPressed": "true",
+        "workbenchPressed": "false"
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  }
+]

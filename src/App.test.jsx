@@ -1,0 +1,768 @@
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { afterEach, vi } from "vitest";
+import App from "./App.jsx";
+import DSLStatusConsole from "./components/DSLStatusConsole.jsx";
+
+describe("monitor console and workspace picker", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("renders the monitor console shell by default", () => {
+    render(<App />);
+
+    expect(screen.getByText("Codex Workbench")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "监控台" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "工作台" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByTestId("monitor-console-view")).toBeInTheDocument();
+    expect(screen.queryByTestId("workspace-project-picker")).not.toBeInTheDocument();
+  });
+
+  it("keeps the requested monitor information architecture", () => {
+    render(<App />);
+
+    expect(screen.getAllByText("conduit-realworld-example-app").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("RUN-20250524-0A7F").length).toBeGreaterThan(0);
+    expect(screen.getByText("Artifacts (4)")).toBeInTheDocument();
+  });
+
+  it("switches 工作台 into the project picker and back to 监控台", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+
+    expect(screen.getByRole("button", { name: "监控台" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "工作台" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("heading", { name: "选择你的项目" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "新建项目" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "conduit-realworld-example-app" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Codex Workbench" })).toBeInTheDocument();
+    expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "collapsed");
+    expect(screen.queryByTestId("monitor-console-view")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "监控台" }));
+
+    expect(screen.getByTestId("monitor-console-view")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "选择你的项目" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("project-rail")).not.toBeInTheDocument();
+  });
+
+  it("selects a project and shows a local toast", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "AI Agent Framework" }));
+
+    expect(screen.getByRole("button", { name: "AI Agent Framework" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("status")).toHaveTextContent("已选择 AI Agent Framework");
+  });
+
+  it("expands, collapses, and switches projects from the project rail", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "collapsed");
+
+    fireEvent.click(screen.getByRole("button", { name: "展开项目切换栏" }));
+
+    expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "expanded");
+    expect(screen.getByRole("button", { name: "切换到 conduit-realworld-example-app" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "切换到 Data Pipeline" }));
+
+    expect(screen.getByRole("button", { name: "切换到 Data Pipeline" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Data Pipeline" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("status")).toHaveTextContent("已切换到 Data Pipeline");
+
+    fireEvent.click(screen.getByRole("button", { name: "收起项目切换栏" }));
+    expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "collapsed");
+  });
+
+  it("syncs project rail selection when the picker card changes", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "展开项目切换栏" }));
+    fireEvent.click(screen.getByRole("button", { name: "AI Agent Framework" }));
+
+    expect(screen.getByRole("button", { name: "AI Agent Framework" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "切换到 AI Agent Framework" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("status")).toHaveTextContent("已选择 AI Agent Framework");
+  });
+
+  it("opens, cancels, and mock-creates a project without filesystem work", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+
+    expect(screen.getByRole("dialog", { name: "新建项目" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "取消" }));
+    expect(screen.queryByRole("dialog", { name: "新建项目" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Research Workspace" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), { target: { value: "F:\\Projects\\Research Workspace" } });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+
+    expect(screen.queryByRole("dialog", { name: "新建项目" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Research Workspace" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("status")).toHaveTextContent("已创建 Research Workspace");
+  });
+
+  it("enters the DSL workbench from the project picker", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
+
+    expect(screen.getByTestId("dsl-workbench")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "需求澄清工作台" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "DSL 状态控制台" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /打开需求报告/ })).toBeInTheDocument();
+  });
+
+  it("labels skill reply source as real, fallback, or mock in the status console", () => {
+    const handlers = {
+      onOpenReport: vi.fn(),
+      onCancelRun: vi.fn(),
+      onRetryRun: vi.fn(),
+      onOpenPartialArtifacts: vi.fn()
+    };
+    const uiState = {
+      dslCompletion: { value: 78 },
+      coverageItems: { covered: [], pending: [] },
+      risks: [],
+      readiness: { ready_for_agent: false, handoff_decision: "clarify_first", source: "skill_safety_boundary" }
+    };
+    const { rerender } = render(
+      <DSLStatusConsole
+        {...handlers}
+        uiState={uiState}
+        runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "done", skillSourceMode: "model_generated_real", skillClient: "openai_sdk", skillModel: "gpt-5.5" }}
+      />
+    );
+
+    expect(screen.getByText("回复来源：Real model · openai_sdk · gpt-5.5")).toBeInTheDocument();
+
+    rerender(
+      <DSLStatusConsole
+        {...handlers}
+        uiState={uiState}
+        runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "fallback", skillSourceMode: "fallback_guardrail" }}
+      />
+    );
+    expect(screen.getByText("回复来源：Fallback guardrail")).toBeInTheDocument();
+
+    rerender(
+      <DSLStatusConsole
+        {...handlers}
+        uiState={uiState}
+        runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "done", skillSourceMode: "mock" }}
+      />
+    );
+    expect(screen.getByText("回复来源：Mock model")).toBeInTheDocument();
+
+    rerender(
+      <DSLStatusConsole
+        {...handlers}
+        uiState={uiState}
+        runState={{ runId: "RUN-source", status: "failed", skillStatus: "failed", skillSourceMode: "external_blocked", skillClient: "openai_sdk", skillModel: "gpt-5.5" }}
+      />
+    );
+    expect(screen.getByText("回复来源：External blocked · openai_sdk · gpt-5.5")).toBeInTheDocument();
+  });
+
+  it("cleans up the DSL workbench bottom input and shows suggestions by interval", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
+
+    expect(screen.getByPlaceholderText("输入 PM 回答或补充需求...")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "发送回答" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "生成 DSL" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "重新生成问题" })).not.toBeInTheDocument();
+    expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
+
+    for (let index = 0; index < 5; index += 1) {
+      fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
+    }
+
+    expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
+
+    expect(screen.getByRole("status")).toHaveTextContent("已追加 PM 回答");
+    expect(screen.getByText("推荐澄清问题")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "采用这个问题" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "换一个" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "暂时跳过" })).toBeInTheDocument();
+  });
+
+  it("supports suggestion skip and report modal controls without persistent engineering actions", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
+
+    for (let index = 0; index < 6; index += 1) {
+      fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
+    }
+
+    expect(screen.getByText("推荐澄清问题")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "暂时跳过" }));
+    expect(screen.getByRole("status")).toHaveTextContent("已暂时跳过");
+    expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /打开需求报告/ }));
+
+    expect(screen.getByRole("dialog", { name: "需求报告（人类可读版）" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "复制报告" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "导出 JSON" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "导出 Markdown" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "复制报告" }));
+    expect(screen.getByRole("status")).toHaveTextContent("已复制报告");
+    fireEvent.click(screen.getByRole("button", { name: "导出 JSON" }));
+    expect(screen.getByRole("status")).toHaveTextContent("已导出 JSON（mock）");
+    fireEvent.click(screen.getByRole("button", { name: "导出 Markdown" }));
+    expect(screen.getByRole("status")).toHaveTextContent("已导出 Markdown（mock）");
+
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: "需求报告（人类可读版）" })).not.toBeInTheDocument();
+  });
+
+  it("sends PM answers through skill orchestration before updating runner status", async () => {
+    const passedJob = {
+      runId: "RUN-test-api",
+      status: "passed",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-test-api",
+      relativeOutputDir: "runs\\RUN-test-api",
+      fullArtifacts: {},
+      uiState: {
+        dslCompletion: { value: 81, source: "real_score" },
+        readiness: {
+          ready_for_agent: false,
+          handoff_decision: "clarify_first",
+          source: "artifact"
+        },
+        risks: [],
+        recommendedQuestion: {
+          title: "Skill suggestion",
+          text: "Should error codes map to user-facing copy?",
+          reason: "Generated by skill orchestration",
+          source: "skill_model"
+        },
+        humanReport: {}
+      }
+    };
+    const skillTurn = {
+      runId: "RUN-skill-ui",
+      status: "skill_turn",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-skill-ui",
+      relativeOutputDir: "runs\\RUN-skill-ui",
+      assistant_message: "Skill generated candidate acceptance criteria: the user sees a clearer login failure hint and understands the next action. Confirm whether each error code maps to specific copy.",
+      risk_boundary: {
+        ready_for_agent: false,
+        can_handoff_to_agent: false,
+        handoff_decision: "clarify_first"
+      },
+      source: { mode: "model_generated_real", client: "openai_sdk", model: "gpt-5.5", skills_used: ["prd_to_dsl", "clarification", "code_context"] },
+      uiState: {
+        dslCompletion: { value: 78, source: "skill_orchestrated_model" },
+        readiness: {
+          ready_for_agent: false,
+          handoff_decision: "clarify_first",
+          source: "skill_safety_boundary"
+        },
+        risks: [],
+        recommendedQuestion: {
+          title: "Skill suggestion",
+          text: "Should error codes map to user-facing copy?",
+          reason: "Generated by skill orchestration",
+          source: "skill_model"
+        },
+        humanReport: {
+          summary: {
+            title: "Login failure hint",
+            text: "Candidate requirement summary",
+            status: "needs clarification",
+            source: "model_generated_real"
+          },
+          scope: { inScope: ["login failure hint"], outOfScope: ["Agent Plan"] },
+          riskCards: [{ title: "Candidate acceptance criteria", points: ["User understands failure reason"] }]
+        }
+      }
+    };
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      const data = target.endsWith("/pm-dsl-turn")
+        ? skillTurn
+        : target.endsWith("/start")
+          ? { ...passedJob, status: "running", elapsedMs: 0 }
+          : passedJob;
+      return {
+        ok: true,
+        status: target.endsWith("/start") ? 202 : 200,
+        statusText: "OK",
+        text: async () => JSON.stringify({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    fireEvent.change(document.querySelector(".chat-input-row input"), {
+      target: { value: "Login failure hint is too vague; PM wants a clearer next action." }
+    });
+    fireEvent.click(document.querySelector(".chat-input-row button"));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/skill/pm-dsl-turn",
+      expect.objectContaining({ method: "POST" })
+    ));
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/dsl/runs/start",
+      expect.objectContaining({ method: "POST" })
+    );
+
+    const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(requestBody.pmMessages.at(-1).content).toBe("Login failure hint is too vague; PM wants a clearer next action.");
+
+    await waitFor(() => expect(screen.getByText("RUN-test-api")).toBeInTheDocument());
+    expect(screen.getByText("快速澄清")).toBeInTheDocument();
+    expect(screen.getByText("完整 DSL artifacts")).toBeInTheDocument();
+    expect(screen.getByText("回复来源：Real model · openai_sdk · gpt-5.5")).toBeInTheDocument();
+    expect(screen.getByText("81%")).toBeInTheDocument();
+    expect(screen.getByText(/candidate acceptance criteria/i)).toBeInTheDocument();
+    expect(screen.queryByText(/DSL draft/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/EVPI-lite/)).not.toBeInTheDocument();
+  });
+
+  it("shows an immediate fast-skill loading state before the skill response resolves", async () => {
+    let resolveSkillTurn;
+    const skillTurnPromise = new Promise((resolve) => {
+      resolveSkillTurn = resolve;
+    });
+    const skillTurn = {
+      runId: "RUN-skill-loading",
+      status: "skill_turn",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-skill-loading",
+      relativeOutputDir: "runs\\RUN-skill-loading",
+      assistant_message: "Candidate acceptance criteria recorded. Confirm whether 400 characters per minute is acceptable.",
+      risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+      source: { mode: "model_generated_real", client: "openai_sdk", model: "gpt-5.5", skills_used: ["prd_to_dsl", "clarification", "code_context"] },
+      uiState: {
+        dslCompletion: { value: 78, source: "skill_orchestrated_model" },
+        readiness: { ready_for_agent: false, handoff_decision: "clarify_first", source: "skill_safety_boundary" },
+        risks: [],
+        recommendedQuestion: { title: "Skill suggestion", text: "Use 400 characters per minute?", reason: "Generated by skill orchestration", source: "skill_model" },
+        humanReport: {}
+      }
+    };
+    const passedJob = {
+      runId: "RUN-runner-after-skill",
+      status: "passed",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-runner-after-skill",
+      relativeOutputDir: "runs\\RUN-runner-after-skill",
+      fullArtifacts: {},
+      uiState: { dslCompletion: { value: 82 }, readiness: { ready_for_agent: false, handoff_decision: "clarify_first", source: "artifact" }, risks: [], humanReport: {} }
+    };
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      if (target.endsWith("/pm-dsl-turn")) {
+        const data = await skillTurnPromise;
+        return { ok: true, status: 200, statusText: "OK", text: async () => JSON.stringify({ ok: true, data, error: null }) };
+      }
+      const data = target.endsWith("/start") ? { ...passedJob, status: "running", elapsedMs: 0 } : passedJob;
+      return {
+        ok: true,
+        status: target.endsWith("/start") ? 202 : 200,
+        statusText: "OK",
+        text: async () => JSON.stringify({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    fireEvent.change(document.querySelector(".chat-input-row input"), {
+      target: { value: "Article details should show reading time." }
+    });
+    fireEvent.click(document.querySelector(".chat-input-row button"));
+
+    expect(screen.getAllByText("正在理解需求并更新 DSL...").length).toBeGreaterThan(0);
+    expect(screen.getByText("understanding")).toBeInTheDocument();
+
+    resolveSkillTurn(skillTurn);
+    await waitFor(() => expect(screen.getByText(/Candidate acceptance criteria/)).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText("RUN-runner-after-skill")).toBeInTheDocument());
+  });
+
+  it("shows a system reply and structured right-panel error when the DSL API fails", async () => {
+    const error = {
+      code: "backend_exception",
+      message: "Forced DSL route exception for empty response regression",
+      details: {
+        runId: "RUN-backend-exception",
+        relativeOutputDir: "runs\\RUN-backend-exception"
+      }
+    };
+    const fetchMock = vi.fn(async (url) => ({
+      ok: true,
+      status: String(url).endsWith("/start") ? 202 : 200,
+      statusText: "OK",
+      text: async () => JSON.stringify({
+        ok: true,
+        data: String(url).endsWith("/start")
+          ? {
+              runId: "RUN-backend-exception",
+              status: "running",
+              outputDir: "F:\\字节比赛\\最终程序\\runs\\RUN-backend-exception",
+              relativeOutputDir: "runs\\RUN-backend-exception",
+              elapsedMs: 0,
+              error: null
+            }
+          : {
+              runId: "RUN-backend-exception",
+              status: "failed",
+              outputDir: "F:\\字节比赛\\最终程序\\runs\\RUN-backend-exception",
+              relativeOutputDir: "runs\\RUN-backend-exception",
+              elapsedMs: 10,
+              error
+            },
+        error: null
+      })
+    }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
+    fireEvent.change(screen.getByLabelText("输入 PM 回答或补充需求"), {
+      target: { value: "文章详情页需要阅读信息提示。" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByText(/完整 DSL artifacts 后台生成失败/)).toBeInTheDocument());
+    expect(screen.getByText("RUN-backend-exception")).toBeInTheDocument();
+    expect(screen.getAllByText(/backend_exception/).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/empty_response/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Unexpected end of JSON input/)).not.toBeInTheDocument();
+  });
+
+  it("keeps fast skill success visible when the background artifacts runner fails", async () => {
+    const skillTurn = {
+      runId: "RUN-skill-done",
+      status: "skill_turn",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-skill-done",
+      relativeOutputDir: "runs\\RUN-skill-done",
+      assistant_message: "快速澄清已完成：先确认登录失败原因映射，不进入 Agent 执行。",
+      risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+      source: { mode: "model_generated_real", provider: "doubao_ark", client: "doubao_ark", model: "ep-20260514110933-mzh58" },
+      uiState: {
+        dslCompletion: { value: 78, source: "skill_orchestrated_model" },
+        readiness: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first", source: "skill_safety_boundary" },
+        risks: [],
+        recommendedQuestion: { title: "Skill suggestion", text: "错误码和用户文案是否一一映射？", reason: "确认验收口径", source: "skill_model" },
+        humanReport: {
+          summary: { title: "登录失败提示优化", text: "草稿：按账号不存在、密码错误、账号锁定、网络异常区分提示。", status: "needs clarification", source: "model_generated_real" },
+          scope: { inScope: ["登录失败提示"], outOfScope: ["Agent Plan", "Agent Handoff", "code execution"] },
+          riskCards: [{ title: "Why no handoff", points: ["ready_for_agent=false", "handoff_decision=clarify_first"] }]
+        }
+      }
+    };
+    const failedJob = {
+      runId: "RUN-full-failed",
+      status: "failed",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-full-failed",
+      relativeOutputDir: "runs\\RUN-full-failed",
+      elapsedMs: 12,
+      artifacts: { available: ["error.json"], partial: true },
+      error: { code: "runner_failed", message: "pm_dsl_runner.py exited with a non-zero status", details: { runId: "RUN-full-failed" } }
+    };
+    const artifactPayload = {
+      runId: "RUN-full-failed",
+      status: "failed",
+      available: ["error.json", "summary.md"],
+      partial: true,
+      artifacts: {
+        "error.json": { exists: true, json: { error: { code: "runner_failed", message: "pm_dsl_runner.py exited with a non-zero status" } } }
+      }
+    };
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      const data = target.endsWith("/pm-dsl-turn")
+        ? skillTurn
+        : target.endsWith("/start")
+          ? { ...failedJob, status: "running", elapsedMs: 0, error: null }
+          : target.endsWith("/artifacts")
+            ? artifactPayload
+            : target.endsWith("/retry")
+              ? { ...failedJob, runId: "RUN-retry-artifacts", originalRunId: "RUN-full-failed", status: "failed" }
+              : target.includes("RUN-retry-artifacts")
+                ? { ...failedJob, runId: "RUN-retry-artifacts", originalRunId: "RUN-full-failed" }
+                : failedJob;
+      return {
+        ok: true,
+        status: target.endsWith("/start") || target.endsWith("/retry") ? 202 : 200,
+        statusText: "OK",
+        text: async () => JSON.stringify({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    fireEvent.change(document.querySelector(".chat-input-row input"), {
+      target: { value: "登录失败文案需要按失败原因区分。" }
+    });
+    fireEvent.click(document.querySelector(".chat-input-row button"));
+
+    await waitFor(() => expect(screen.getByText(/快速澄清已完成，完整 DSL artifacts 后台生成失败/)).toBeInTheDocument());
+    expect(screen.getByText("RUN-full-failed")).toBeInTheDocument();
+    expect(screen.getByText("done")).toBeInTheDocument();
+    expect(screen.getAllByText("failed").length).toBeGreaterThan(0);
+    expect(screen.getByText("not ready")).toBeInTheDocument();
+    expect(screen.getByText("clarify_first")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /打开草稿报告/ })).toBeInTheDocument();
+    expect(screen.queryByText(/本轮 DSL 生成失败/)).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: /打开草稿报告/ }));
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "草稿报告（人类可读版）" })).toBeInTheDocument());
+    expect(screen.getByText("草稿可审阅")).toBeInTheDocument();
+    expect(screen.getByText(/fast skill 草稿/)).toBeInTheDocument();
+    fireEvent.keyDown(window, { key: "Escape" });
+
+    const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length;
+    fireEvent.click(screen.getByRole("button", { name: "重试完整 artifacts" }));
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true));
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length).toBe(skillCallsBeforeRetry);
+  });
+
+  it("shows running run id and lets the PM cancel the current async run", async () => {
+    const fetchMock = vi.fn(async (url) => {
+      const text = async () => JSON.stringify({
+        ok: true,
+        data: String(url).endsWith("/cancel")
+          ? {
+              runId: "RUN-cancel-ui",
+              status: "cancelled",
+              outputDir: "F:\\字节比赛\\最终程序\\runs\\RUN-cancel-ui",
+              relativeOutputDir: "runs\\RUN-cancel-ui",
+              elapsedMs: 50,
+              error: { code: "runner_cancelled", message: "Run was cancelled by user", details: {} }
+            }
+          : {
+              runId: "RUN-cancel-ui",
+              status: "running",
+              outputDir: "F:\\字节比赛\\最终程序\\runs\\RUN-cancel-ui",
+              relativeOutputDir: "runs\\RUN-cancel-ui",
+              elapsedMs: 100,
+              error: null
+            },
+        error: null
+      });
+      return {
+        ok: true,
+        status: String(url).endsWith("/start") ? 202 : 200,
+        statusText: "OK",
+        text
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
+    fireEvent.change(screen.getByLabelText("输入 PM 回答或补充需求"), {
+      target: { value: "需要验证 cancel flow。" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
+
+    await waitFor(() => expect(screen.getByText("RUN-cancel-ui")).toBeInTheDocument());
+    expect(screen.getAllByText("running").length).toBeGreaterThan(0);
+    expect(screen.getByRole("button", { name: "取消本轮" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "取消本轮" }));
+
+    await waitFor(() => expect(screen.getAllByText("cancelled").length).toBeGreaterThan(0));
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/cancel"))).toBe(true);
+    expect(screen.getAllByText(/Run cancelled/).length).toBeGreaterThan(0);
+  });
+
+  it("shows retry and partial artifacts controls after timeout", async () => {
+    const artifactPayload = {
+      runId: "RUN-timeout-ui",
+      status: "timeout",
+      available: ["error.json", "summary.md"],
+      partial: true,
+      artifacts: {
+        "error.json": {
+          exists: true,
+          json: { error: { code: "runner_timeout", message: "runner exceeded 1s" } }
+        },
+        "summary.md": { exists: true, text: "# partial" }
+      }
+    };
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      const data = target.endsWith("/artifacts")
+        ? artifactPayload
+        : target.endsWith("/retry")
+          ? {
+              runId: "RUN-retry-ui",
+              originalRunId: "RUN-timeout-ui",
+              status: "running",
+              outputDir: "F:\\字节比赛\\最终程序\\runs\\RUN-retry-ui",
+              relativeOutputDir: "runs\\RUN-retry-ui",
+              elapsedMs: 0,
+              error: null
+            }
+          : target.includes("RUN-retry-ui")
+            ? {
+                runId: "RUN-retry-ui",
+                originalRunId: "RUN-timeout-ui",
+                status: "running",
+                outputDir: "F:\\瀛楄妭姣旇禌\\鏈€缁堢▼搴廫\runs\\RUN-retry-ui",
+                relativeOutputDir: "runs\\RUN-retry-ui",
+                elapsedMs: 50,
+                error: null
+              }
+          : target.endsWith("/start")
+            ? {
+                runId: "RUN-timeout-ui",
+                status: "running",
+                outputDir: "F:\\字节比赛\\最终程序\\runs\\RUN-timeout-ui",
+                relativeOutputDir: "runs\\RUN-timeout-ui",
+                elapsedMs: 0,
+                error: null
+              }
+            : {
+                runId: "RUN-timeout-ui",
+                status: "timeout",
+                outputDir: "F:\\字节比赛\\最终程序\\runs\\RUN-timeout-ui",
+                relativeOutputDir: "runs\\RUN-timeout-ui",
+                elapsedMs: 1000,
+                error: { code: "runner_timeout", message: "runner exceeded 1s", details: {} }
+              };
+      return {
+        ok: true,
+        status: target.endsWith("/start") || target.endsWith("/retry") ? 202 : 200,
+        statusText: "OK",
+        text: async () => JSON.stringify({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
+    fireEvent.change(screen.getByLabelText("输入 PM 回答或补充需求"), {
+      target: { value: "需要验证 timeout flow。" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
+
+    await waitFor(() => expect(screen.getAllByText("timeout").length).toBeGreaterThan(0));
+    expect(screen.getByRole("button", { name: "重试完整 artifacts" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "查看错误详情" })).toBeInTheDocument();
+    expect(screen.getAllByText(/runner_timeout/).length).toBeGreaterThan(0);
+
+    fireEvent.click(screen.getByRole("button", { name: "查看错误详情" }));
+    await waitFor(() => expect(screen.getByRole("dialog", { name: "partial artifacts" })).toBeInTheDocument());
+    expect(screen.getByText("error.json")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "重试完整 artifacts" }));
+    await waitFor(() => expect(screen.getByText("RUN-retry-ui")).toBeInTheDocument());
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true);
+  });
+
+  it("shows skill-generated L1 assistant message instead of raw EVPI question", async () => {
+    const rawEvpiQuestion = "\u4f60\u5e0c\u671b\u7528\u4ec0\u4e48\u7528\u6237\u53ef\u89c1\u73b0\u8c61\u6216\u6d4b\u8bd5\u7ed3\u679c\u5224\u65ad\u8fd9\u4e2a\u9700\u6c42\u5df2\u7ecf\u5b8c\u6210\uff1f";
+    const l1Input = "\u6587\u7ae0\u8be6\u60c5\u9875\u73b0\u5728\u53ea\u6709\u6b63\u6587\u5185\u5bb9\uff0c\u6211\u5e0c\u671b\u5728\u6b63\u6587\u4e0b\u9762\u52a0\u4e00\u4e2a\u7b80\u5355\u7684\u9605\u8bfb\u4fe1\u606f\u63d0\u793a\uff0c\u6bd4\u5982\u201c\u672c\u6587\u5171 XXX \u5b57\uff0c\u9884\u8ba1\u9605\u8bfb X \u5206\u949f\u201d\u3002\u5148\u53ea\u5728\u524d\u7aef\u6839\u636e\u6587\u7ae0\u6b63\u6587\u8ba1\u7b97\uff0c\u4e0d\u9700\u8981\u6539\u540e\u7aef\uff0c\u4e5f\u4e0d\u9700\u8981\u4fdd\u5b58\u6570\u636e\u3002\u5e0c\u671b\u7a7a\u6b63\u6587\u65f6\u4e0d\u8981\u62a5\u9519\uff0c\u5c55\u793a\u4e0a\u4e5f\u522b\u592a\u7a81\u5140\u3002";
+    const assistantMessage = "\u6211\u5148\u6309\u4f60\u7684\u63cf\u8ff0\u6c89\u6dc0\u4e00\u4e2a\u5019\u9009\u9a8c\u6536\u53e3\u5f84\uff1a\u6709\u6b63\u6587\u65f6\uff0c\u5728\u6587\u7ae0\u8be6\u60c5\u9875\u6b63\u6587\u4e0b\u65b9\u5c55\u793a\u201c\u672c\u6587\u5171 XXX \u5b57\uff0c\u9884\u8ba1\u9605\u8bfb X \u5206\u949f\u201d\uff1b\u6b63\u6587\u4e3a\u7a7a\u6216\u7f3a\u5931\u65f6\u9690\u85cf\u8be5\u4fe1\u606f\uff0c\u9875\u9762\u4e0d\u62a5\u9519\uff0c\u4e0d\u51fa\u73b0 NaN \u6216\u5f02\u5e38\u65f6\u95f4\uff1b\u672c\u8f6e\u4e0d\u6d89\u53ca\u540e\u7aef\u5b57\u6bb5\u3001\u6570\u636e\u5e93\u6216\u63a5\u53e3\u53d8\u66f4\u3002\u8fd8\u9700\u8981\u786e\u8ba4\u4e00\u4e2a\u4ea7\u54c1\u53e3\u5f84\uff1a\u9884\u8ba1\u9605\u8bfb\u65f6\u95f4\u6309\u591a\u5c11\u5b57/\u5206\u949f\u8ba1\u7b97\uff1f\u5982\u679c\u4f60\u6ca1\u6709\u7279\u522b\u8981\u6c42\uff0c\u53ef\u4ee5\u5148\u6309\u6bcf\u5206\u949f 400 \u4e2a\u4e2d\u6587\u5b57\u4f30\u7b97\u3002";
+    const skillTurn = {
+      runId: "RUN-skill-l1",
+      status: "skill_turn",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-skill-l1",
+      relativeOutputDir: "runs\\RUN-skill-l1",
+      assistant_message: assistantMessage,
+      risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+      source: { mode: "model_generated_real", client: "openai_sdk", model: "gpt-5.5", skills_used: ["prd_to_dsl", "clarification", "code_context"] },
+      uiState: {
+        dslCompletion: { value: 78, source: "skill_orchestrated_model" },
+        readiness: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first", source: "skill_safety_boundary" },
+        risks: [{ priority: "P0", key: "test_oracle_unclear", description: "acceptance criteria need PM confirmation", impact: "medium" }],
+        recommendedQuestion: { title: "Skill suggestion", text: "Use 400 Chinese characters per minute?", reason: "Generated by skill orchestration", source: "skill_model" },
+        humanReport: {
+          summary: { title: "Reading information hint", text: "Candidate requirement: show word count and estimated reading time below article body.", status: "needs clarification", source: "model_generated_real" },
+          scope: { inScope: ["frontend reading info", "empty body guard"], outOfScope: ["Agent Plan", "Agent Handoff", "code execution", "backend change"] },
+          riskCards: [
+            { title: "Candidate acceptance criteria", points: ["Show ??? XXX ?????? X ?? when body exists", "Hide reading info for empty body", "No NaN or abnormal time"] },
+            { title: "Why no handoff", points: ["ready_for_agent=false", "handoff_decision=clarify_first"] }
+          ],
+          note: "Generated by Skill-driven model turn."
+        },
+        coverageItems: { covered: ["frontend reading info"], pending: ["confirm 400 chars/minute"] },
+        reportQuality: [],
+        boundaries: { agentPlanGenerated: false, agentHandoffEntered: false, codeExecutionEntered: false, postEvalEntered: false }
+      }
+    };
+    const runnerJob = {
+      runId: "RUN-l1-runner",
+      status: "passed",
+      outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-l1-runner",
+      relativeOutputDir: "runs\\RUN-l1-runner",
+      artifacts: {},
+      fullArtifacts: {},
+      uiState: {
+        dslCompletion: { value: 83, source: "real_score" },
+        readiness: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first", source: "artifact" },
+        risks: [],
+        recommendedQuestion: { title: "EVPI raw signal", text: rawEvpiQuestion, reason: "raw EVPI should stay a signal", source: "EVPI-lite" },
+        humanReport: {}
+      }
+    };
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      const data = target.endsWith("/pm-dsl-turn") ? skillTurn : target.endsWith("/start") ? { ...runnerJob, status: "running", elapsedMs: 0 } : runnerJob;
+      return { ok: true, status: target.endsWith("/start") ? 202 : 200, statusText: "OK", text: async () => JSON.stringify({ ok: true, data, error: null }) };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    fireEvent.change(document.querySelector(".chat-input-row input"), { target: { value: l1Input } });
+    fireEvent.click(document.querySelector(".chat-input-row button"));
+
+    await waitFor(() => expect(screen.getByText(/\u5019\u9009\u9a8c\u6536\u53e3\u5f84/)).toBeInTheDocument());
+    expect(screen.getAllByText(/XXX/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText(/400/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText(rawEvpiQuestion)).not.toBeInTheDocument();
+    expect(screen.getByText("not ready")).toBeInTheDocument();
+    expect(screen.getByText("clarify_first")).toBeInTheDocument();
+    expect(screen.getByText("回复来源：Real model · openai_sdk · gpt-5.5")).toBeInTheDocument();
+
+    await waitFor(() => expect(screen.getByText("RUN-l1-runner")).toBeInTheDocument());
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/pm-dsl-turn"))).toBe(true);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/start"))).toBe(true);
+
+    fireEvent.click(document.querySelector(".report-cta"));
+    await waitFor(() => expect(document.querySelector(".requirement-report-modal")).toBeTruthy());
+    expect(screen.getByText("Candidate acceptance criteria")).toBeInTheDocument();
+    expect(screen.getAllByText(/empty body/).length).toBeGreaterThanOrEqual(2);
+  });
+});

@@ -1,0 +1,81 @@
+{
+  "task": "Task 12.2-B Skill Over-pass and Latency Repair",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "fixed": {
+    "noOverPass": true,
+    "asksKeyQuestion": true,
+    "readyForAgentDefaultFalse": true,
+    "fastSkillTurn": true,
+    "runnerBackground": true,
+    "latencyGuard": true
+  },
+  "cases": {
+    "L1": {
+      "directPass": false,
+      "askedQuestion": true,
+      "readyForAgent": false,
+      "handoffDecision": "clarify_first"
+    },
+    "L2": {
+      "directPass": false,
+      "askedQuestion": true,
+      "readyForAgent": false,
+      "handoffDecision": "clarify_first"
+    },
+    "L3": {
+      "directPass": false,
+      "askedQuestion": true,
+      "readyForAgent": false,
+      "handoffDecision": "clarify_first"
+    }
+  },
+  "performance": {
+    "skillReplyBeforeRunner": true,
+    "maxSkillLatencyMs": 12000,
+    "observedSkillLatencyMs": 25,
+    "observedSlowResponseLatencyMs": 109,
+    "slowResponseMode": "slow_response",
+    "runnerStatusImmediatelyAfterStart": "running"
+  },
+  "ui": {
+    "immediateLoadingMessage": true,
+    "statusSplit": true,
+    "fastClarificationStatus": true,
+    "runnerArtifactsStatus": true,
+    "pageVerticalScroll": false,
+    "viewportsVerified": [
+      "1920x1080",
+      "1440x900"
+    ]
+  },
+  "tests": {
+    "npm test": "passed",
+    "npm run test:server": "passed",
+    "npm run build": "passed",
+    "npm run smoke": "passed",
+    "node scripts\\verify-render.mjs": "passed",
+    "npm run smoke:web-ui-real-dsl": "passed",
+    "npm run smoke:web-ui-l1-dedup": "passed",
+    "npm run smoke:web-ui-empty-response-regression": "passed",
+    "npm run smoke:web-ui-runner-timeout": "passed",
+    "npm run smoke:web-ui-runner-cancel": "passed",
+    "npm run smoke:web-ui-skill-driven-l1": "passed",
+    "npm run smoke:web-ui-skill-l1-l3": "passed",
+    "npm run smoke:skill-fast-latency": "passed"
+  },
+  "screenshots": {
+    "L1": "F:\\字节比赛\\最终程序\\reporting\\skill-l1-not-pass.png",
+    "L2": "F:\\字节比赛\\最终程序\\reporting\\skill-l2-not-pass.png",
+    "L3": "F:\\字节比赛\\最终程序\\reporting\\skill-l3-not-pass.png",
+    "fastReplyRunnerBackground": "F:\\字节比赛\\最终程序\\reporting\\skill-fast-reply-runner-background.png"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "agentPlanEntered": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false,
+    "realExportFilesCreated": false
+  },
+  "recommendRework": false
+}

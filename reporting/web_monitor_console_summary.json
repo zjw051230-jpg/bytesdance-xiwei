@@ -1,0 +1,96 @@
+{
+  "task": "Task 11.1-A Codex-like 监控台首页 UI 实现",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "framework": "Vite + React",
+  "url": "http://127.0.0.1:5174",
+  "status": "passed",
+  "implemented": {
+    "topBar": true,
+    "sidebarProjects": true,
+    "runHistory": true,
+    "pendingReportsQueue": true,
+    "mainProjectOverview": true,
+    "metrics": true,
+    "checkpoints": true,
+    "taskTimeline": true,
+    "taskInspector": true,
+    "mockDataOnly": true,
+    "realRunnerOrApi": false
+  },
+  "singleScreenLayout": {
+    "bodyOverflow": "hidden",
+    "appHeight": "100vh",
+    "desktopGridColumns": "376px minmax(0, 1fr) 388px",
+    "compactGridColumns": "320px minmax(0, 1fr) 340px",
+    "pageVerticalScroll": false,
+    "localCompressionUsed": true
+  },
+  "verification": {
+    "npmInstall": {
+      "status": "passed",
+      "result": "up to date; audit found 0 vulnerabilities"
+    },
+    "npmTest": {
+      "status": "passed",
+      "testFilesPassed": 2,
+      "testsPassed": 6
+    },
+    "npmRunBuild": {
+      "status": "passed"
+    },
+    "npmRunSmoke": {
+      "status": "passed"
+    },
+    "verifyRender": {
+      "status": "passed",
+      "viewports": [
+        {
+          "viewport": "1920x1080",
+          "hasVerticalPageScroll": false,
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 1080,
+          "docClientHeight": 1080,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "screenshot": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1920x1080.png"
+        },
+        {
+          "viewport": "1440x900",
+          "hasVerticalPageScroll": false,
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 900,
+          "docClientHeight": 900,
+          "consoleErrors": 0,
+          "pageErrors": 0,
+          "screenshot": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1440x900.png"
+        }
+      ]
+    },
+    "browserPluginCheck": {
+      "status": "passed",
+      "pageIdentity": true,
+      "notBlank": true,
+      "consoleErrors": 0,
+      "tabInteraction": true,
+      "pageVerticalScroll": false
+    }
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "envFilesFound": 0,
+    "realApiConnected": false,
+    "npmAuditVulnerabilities": 0
+  },
+  "git": {
+    "repository": false,
+    "checkpoint": "skipped"
+  },
+  "reworkRecommended": false,
+  "reports": {
+    "markdown": "F:\\字节比赛\\最终程序\\reporting\\web_monitor_console_report.md",
+    "summaryJson": "F:\\字节比赛\\最终程序\\reporting\\web_monitor_console_summary.json",
+    "browserVerification": "F:\\字节比赛\\最终程序\\reporting\\browser-verification.json"
+  }
+}

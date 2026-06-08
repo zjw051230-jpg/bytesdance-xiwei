@@ -1,0 +1,154 @@
+[
+  {
+    "viewport": "1920x1080",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshotPath": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1920x1080.png",
+    "metrics": {
+      "innerWidth": 1920,
+      "innerHeight": 1080,
+      "title": "Codex Workbench Monitor",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "hasVerticalPageScroll": false,
+      "shell": {
+        "top": 0,
+        "left": 0,
+        "width": 1920,
+        "height": 1080,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "topbar": {
+        "top": 0,
+        "left": 0,
+        "width": 1920,
+        "height": 56,
+        "bottom": 56,
+        "overflowY": "visible"
+      },
+      "layout": {
+        "top": 56,
+        "left": 0,
+        "width": 1920,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "sidebar": {
+        "top": 56,
+        "left": 0,
+        "width": 376,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "main": {
+        "top": 56,
+        "left": 376,
+        "width": 1156,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "inspector": {
+        "top": 56,
+        "left": 1532,
+        "width": 388,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "hasPendingReports": true,
+      "hasTaskInspector": true,
+      "hasModeTabs": true,
+      "notChatUi": true,
+      "bottomMax": 1080
+    },
+    "interaction": {
+      "monitorPressed": "false",
+      "workbenchPressed": "true"
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "1440x900",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshotPath": "F:\\字节比赛\\最终程序\\reporting\\monitor-console-1440x900.png",
+    "metrics": {
+      "innerWidth": 1440,
+      "innerHeight": 900,
+      "title": "Codex Workbench Monitor",
+      "bodyOverflowY": "hidden",
+      "rootOverflowY": "hidden",
+      "docScrollHeight": 900,
+      "bodyScrollHeight": 900,
+      "docClientHeight": 900,
+      "hasVerticalPageScroll": false,
+      "shell": {
+        "top": 0,
+        "left": 0,
+        "width": 1440,
+        "height": 900,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "topbar": {
+        "top": 0,
+        "left": 0,
+        "width": 1440,
+        "height": 56,
+        "bottom": 56,
+        "overflowY": "visible"
+      },
+      "layout": {
+        "top": 56,
+        "left": 0,
+        "width": 1440,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "sidebar": {
+        "top": 56,
+        "left": 0,
+        "width": 320,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "main": {
+        "top": 56,
+        "left": 320,
+        "width": 780,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "inspector": {
+        "top": 56,
+        "left": 1100,
+        "width": 340,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "hasPendingReports": true,
+      "hasTaskInspector": true,
+      "hasModeTabs": true,
+      "notChatUi": true,
+      "bottomMax": 900
+    },
+    "interaction": {
+      "monitorPressed": "false",
+      "workbenchPressed": "true"
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  }
+]

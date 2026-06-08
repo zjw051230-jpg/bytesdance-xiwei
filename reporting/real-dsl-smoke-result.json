@@ -1,0 +1,44 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "pmInput": "登录失败提示太模糊，希望用户知道下一步怎么做。",
+  "runId": "RUN-20260607-160504-JAHR9",
+  "outputDir": "runs\\RUN-20260607-160504-JAHR9",
+  "artifactsGenerated": [
+    "single_case\\00_input.json",
+    "single_case\\01_code_context_packet.json",
+    "single_case\\02_prompt_messages.json",
+    "single_case\\03_api_request.json",
+    "single_case\\04_api_response_raw.json",
+    "single_case\\05_dsl_draft.json",
+    "single_case\\06_risk_activation.json",
+    "single_case\\07_router_schema_activation.json",
+    "single_case\\08_gap_vector.json",
+    "single_case\\09_scoring.json",
+    "single_case\\10_evpi_clarification.json",
+    "single_case\\11_pm_turns.json",
+    "single_case\\12_final_dsl.json",
+    "single_case\\13_case_summary.md",
+    "summary.json",
+    "summary.md"
+  ],
+  "screenshots": {
+    "result": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-result-1920x1080.png",
+    "modal": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-report-modal-1920x1080.png"
+  },
+  "error": null,
+  "scroll": {
+    "docScrollHeight": 1080,
+    "docClientHeight": 1080,
+    "bodyScrollHeight": 1080,
+    "hasVerticalPageScroll": false
+  },
+  "modalScroll": {
+    "docScrollHeight": 1080,
+    "docClientHeight": 1080,
+    "bodyScrollHeight": 1080,
+    "hasVerticalPageScroll": false
+  },
+  "consoleEntries": [],
+  "pageErrors": []
+}

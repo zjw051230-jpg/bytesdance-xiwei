@@ -1,0 +1,15 @@
+{
+  "attempted": true,
+  "mode": "minimal",
+  "status": "passed",
+  "runId": "RUN-20260608-172219-2LOIP",
+  "provider": "doubao_ark",
+  "model": "ep-20260514110933-mzh58",
+  "latencyMs": 12499,
+  "promptChars": 3978,
+  "messageCount": 2,
+  "mockUsed": false,
+  "readyForAgent": false,
+  "errorCode": "",
+  "error": null
+}

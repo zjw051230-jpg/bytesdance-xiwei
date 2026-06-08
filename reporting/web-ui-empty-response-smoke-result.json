@@ -1,0 +1,29 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "url": "http://127.0.0.1:5174",
+  "apiStatus": 500,
+  "apiBodyLength": 294,
+  "apiErrorCode": "backend_exception",
+  "runId": "RUN-20260608-085747-SMXJW",
+  "outputDir": "runs\\RUN-20260608-085747-SMXJW",
+  "errorCode": "backend_exception",
+  "errorMessage": "Forced DSL route exception for empty response regression",
+  "emptyResponseAppeared": false,
+  "systemReplyShown": true,
+  "rightPanelUpdated": true,
+  "serverErrorFileWritten": true,
+  "pageVerticalScroll": false,
+  "screenshots": {
+    "fixed": "F:\\字节比赛\\最终程序\\reporting\\web-ui-empty-response-fixed.png"
+  },
+  "expectedNetworkConsoleEntries": [
+    {
+      "type": "error",
+      "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+    }
+  ],
+  "consoleEntries": [],
+  "pageErrors": [],
+  "error": null
+}

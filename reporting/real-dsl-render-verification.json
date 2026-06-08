@@ -1,0 +1,196 @@
+[
+  {
+    "viewport": "1920x1080",
+    "url": "http://127.0.0.1:9999",
+    "backendUrl": "http://127.0.0.1:8787",
+    "frontendHealthUrl": "http://127.0.0.1:9999/api/health",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "running": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-running-1920x1080.png",
+      "result": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-result-1920x1080.png",
+      "modal": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-report-modal-1920x1080.png"
+    },
+    "initialMetrics": {
+      "hasDslWorkbench": 1,
+      "hasSendAnswer": true,
+      "persistentGenerateDslCount": 0,
+      "persistentRegenerateQuestionCount": 0,
+      "runStatusIdle": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1920,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "workbench": {
+        "top": 56,
+        "left": 64,
+        "width": 1856,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "statusConsole": {
+        "top": 68,
+        "left": 1230,
+        "width": 678,
+        "height": 1000,
+        "bottom": 1068,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "resultMetrics": {
+      "runIdText": "RUN-20260608-192345-2UPGS",
+      "statusPassedVisible": true,
+      "completionVisible": true,
+      "evpiSourceVisible": false,
+      "noAgentPlanText": true,
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "modalMetrics": {
+      "hasDialog": true,
+      "hasRunId": true,
+      "hasBoundary": true,
+      "modal": {
+        "top": 90,
+        "left": 211,
+        "width": 1498,
+        "height": 900,
+        "bottom": 990,
+        "overflowY": "hidden"
+      },
+      "modalBody": {
+        "top": 167,
+        "left": 212,
+        "width": 1496,
+        "height": 822,
+        "bottom": 989,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "1440x900",
+    "url": "http://127.0.0.1:9999",
+    "backendUrl": "http://127.0.0.1:8787",
+    "frontendHealthUrl": "http://127.0.0.1:9999/api/health",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "running": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-running-1440x900.png",
+      "result": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-result-1440x900.png",
+      "modal": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-report-modal-1440x900.png"
+    },
+    "initialMetrics": {
+      "hasDslWorkbench": 1,
+      "hasSendAnswer": true,
+      "persistentGenerateDslCount": 0,
+      "persistentRegenerateQuestionCount": 0,
+      "runStatusIdle": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1440,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "workbench": {
+        "top": 56,
+        "left": 60,
+        "width": 1380,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "statusConsole": {
+        "top": 66,
+        "left": 913,
+        "width": 517,
+        "height": 824,
+        "bottom": 890,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "resultMetrics": {
+      "runIdText": "RUN-20260608-192350-QOIU7",
+      "statusPassedVisible": true,
+      "completionVisible": true,
+      "evpiSourceVisible": false,
+      "noAgentPlanText": true,
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "modalMetrics": {
+      "hasDialog": true,
+      "hasRunId": true,
+      "hasBoundary": true,
+      "modal": {
+        "top": 59,
+        "left": 80,
+        "width": 1280,
+        "height": 783,
+        "bottom": 842,
+        "overflowY": "hidden"
+      },
+      "modalBody": {
+        "top": 128,
+        "left": 81,
+        "width": 1278,
+        "height": 713,
+        "bottom": 841,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  }
+]

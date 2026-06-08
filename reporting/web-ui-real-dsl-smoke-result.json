@@ -1,0 +1,57 @@
+{
+  "attempted": true,
+  "status": "pass",
+  "runnerStatus": "passed",
+  "url": "http://127.0.0.1:9999",
+  "projectName": "conduit-realworld-example-app",
+  "projectPath": "F:\\dsl\\conduit-realworld-example-app",
+  "pmInput": "文章详情页现在只有正文内容，我希望在正文下面加一个简单的阅读信息提示，比如“本文共 XXX 字，预计阅读 X 分钟”。先只在前端根据文章正文计算，不需要改后端，也不需要保存数据。希望空正文时不要报错，展示上也别太突兀。",
+  "runId": "RUN-20260608-183228-LDHVD",
+  "outputDir": "runs\\RUN-20260608-183228-LDHVD",
+  "errorCode": "",
+  "errorMessage": "",
+  "systemReplyShown": true,
+  "systemReplyText": "✦系统澄清刚刚Still generating DSL; waiting for the model response.",
+  "rightPanelUpdated": true,
+  "reportModalOpened": true,
+  "hasJsonParseError": false,
+  "hasAbnormalOverlay": false,
+  "artifactsGenerated": [
+    "single_case\\00_input.json",
+    "single_case\\01_code_context_packet.json",
+    "single_case\\02_prompt_messages.json",
+    "single_case\\03_api_request.json",
+    "single_case\\04_api_response_raw.json",
+    "single_case\\05_dsl_draft.json",
+    "single_case\\06_risk_activation.json",
+    "single_case\\07_router_schema_activation.json",
+    "single_case\\08_gap_vector.json",
+    "single_case\\09_scoring.json",
+    "single_case\\10_evpi_clarification.json",
+    "single_case\\11_pm_turns.json",
+    "single_case\\12_final_dsl.json",
+    "single_case\\13_case_summary.md",
+    "summary.json",
+    "summary.md"
+  ],
+  "screenshots": {
+    "main": "F:\\字节比赛\\最终程序\\reporting\\web-ui-real-dsl-fixed-main.png",
+    "report": "F:\\字节比赛\\最终程序\\reporting\\web-ui-real-dsl-fixed-report.png",
+    "structuredError": "F:\\字节比赛\\最终程序\\reporting\\web-ui-real-dsl-structured-error.png"
+  },
+  "consoleEntries": [],
+  "pageErrors": [],
+  "scroll": {
+    "docScrollHeight": 1080,
+    "docClientHeight": 1080,
+    "bodyScrollHeight": 1080,
+    "hasVerticalPageScroll": false
+  },
+  "modalScroll": {
+    "docScrollHeight": 1080,
+    "docClientHeight": 1080,
+    "bodyScrollHeight": 1080,
+    "hasVerticalPageScroll": false
+  },
+  "error": null
+}

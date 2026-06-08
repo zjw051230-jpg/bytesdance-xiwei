@@ -1,0 +1,284 @@
+[
+  {
+    "viewport": "1920x1080",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "main": "F:\\字节比赛\\最终程序\\reporting\\dsl-workbench-main-1920x1080.png",
+      "modal": "F:\\字节比赛\\最终程序\\reporting\\dsl-workbench-report-modal-1920x1080.png"
+    },
+    "monitorMetrics": {
+      "hasMonitorView": 1,
+      "hasProjectRail": 0,
+      "monitorPressed": "true",
+      "workbenchPressed": "false",
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "mainMetrics": {
+      "hasDslWorkbench": 1,
+      "hasProjectRail": 1,
+      "hasReportButton": true,
+      "hasReadyWarning": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1920,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "workbench": {
+        "top": 56,
+        "left": 64,
+        "width": 1856,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "leftPane": {
+        "top": 68,
+        "left": 76,
+        "width": 1142,
+        "height": 1000,
+        "bottom": 1068,
+        "overflowY": "hidden"
+      },
+      "statusConsole": {
+        "top": 68,
+        "left": 1230,
+        "width": 678,
+        "height": 1000,
+        "bottom": 1068,
+        "overflowY": "hidden"
+      },
+      "chatStream": {
+        "top": 259,
+        "left": 97,
+        "width": 1100,
+        "height": 626,
+        "bottom": 885,
+        "overflowY": "auto"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "modalMetrics": {
+      "hasDialog": true,
+      "hasCopy": true,
+      "hasJson": true,
+      "hasMarkdown": true,
+      "backdrop": {
+        "top": 0,
+        "left": 0,
+        "width": 1920,
+        "height": 1080,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "modal": {
+        "top": 90,
+        "left": 211,
+        "width": 1498,
+        "height": 900,
+        "bottom": 990,
+        "overflowY": "hidden"
+      },
+      "modalBody": {
+        "top": 167,
+        "left": 212,
+        "width": 1496,
+        "height": 822,
+        "bottom": 989,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "interactions": {
+      "sendToast": "已追加 PM 回答",
+      "generatedToast": "已生成 DSL 草稿（mock）",
+      "updatedCompletionVisible": true,
+      "regenToast": "已重新生成澄清问题",
+      "copyToast": "已复制报告",
+      "jsonToast": "已导出 JSON（mock）",
+      "markdownToast": "已导出 Markdown（mock）",
+      "closedByButton": 0,
+      "closedByEscape": 0,
+      "closedByBackdrop": 0,
+      "returnedToMonitor": {
+        "hasMonitorView": 1,
+        "hasProjectRail": 0,
+        "scroll": {
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 1080,
+          "bodyScrollHeight": 1080,
+          "docClientHeight": 1080,
+          "hasVerticalPageScroll": false
+        }
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "1440x900",
+    "url": "http://127.0.0.1:5174",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "main": "F:\\字节比赛\\最终程序\\reporting\\dsl-workbench-main-1440x900.png",
+      "modal": "F:\\字节比赛\\最终程序\\reporting\\dsl-workbench-report-modal-1440x900.png"
+    },
+    "monitorMetrics": {
+      "hasMonitorView": 1,
+      "hasProjectRail": 0,
+      "monitorPressed": "true",
+      "workbenchPressed": "false",
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "mainMetrics": {
+      "hasDslWorkbench": 1,
+      "hasProjectRail": 1,
+      "hasReportButton": true,
+      "hasReadyWarning": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1440,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "workbench": {
+        "top": 56,
+        "left": 60,
+        "width": 1380,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "leftPane": {
+        "top": 66,
+        "left": 70,
+        "width": 833,
+        "height": 824,
+        "bottom": 890,
+        "overflowY": "hidden"
+      },
+      "statusConsole": {
+        "top": 66,
+        "left": 913,
+        "width": 517,
+        "height": 824,
+        "bottom": 890,
+        "overflowY": "hidden"
+      },
+      "chatStream": {
+        "top": 233,
+        "left": 87,
+        "width": 799,
+        "height": 447,
+        "bottom": 680,
+        "overflowY": "auto"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "modalMetrics": {
+      "hasDialog": true,
+      "hasCopy": true,
+      "hasJson": true,
+      "hasMarkdown": true,
+      "backdrop": {
+        "top": 0,
+        "left": 0,
+        "width": 1440,
+        "height": 900,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "modal": {
+        "top": 59,
+        "left": 80,
+        "width": 1280,
+        "height": 783,
+        "bottom": 842,
+        "overflowY": "hidden"
+      },
+      "modalBody": {
+        "top": 128,
+        "left": 81,
+        "width": 1278,
+        "height": 713,
+        "bottom": 841,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "interactions": {
+      "sendToast": "已追加 PM 回答",
+      "generatedToast": "已生成 DSL 草稿（mock）",
+      "updatedCompletionVisible": true,
+      "regenToast": "已重新生成澄清问题",
+      "copyToast": "已复制报告",
+      "jsonToast": "已导出 JSON（mock）",
+      "markdownToast": "已导出 Markdown（mock）",
+      "closedByButton": 0,
+      "closedByEscape": 0,
+      "closedByBackdrop": 0,
+      "returnedToMonitor": {
+        "hasMonitorView": 1,
+        "hasProjectRail": 0,
+        "scroll": {
+          "bodyOverflowY": "hidden",
+          "rootOverflowY": "hidden",
+          "docScrollHeight": 900,
+          "bodyScrollHeight": 900,
+          "docClientHeight": 900,
+          "hasVerticalPageScroll": false
+        }
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  }
+]

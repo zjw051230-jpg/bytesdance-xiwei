@@ -1,0 +1,91 @@
+{
+  "task": "Task 12.2-H Doubao Ark Integration and Web Smoke",
+  "status": "config_missing",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "config": {
+    "path": "F:\\dsl-v2\\configs\\doubao_api_config.local.json",
+    "exists": false,
+    "provider": "doubao_ark",
+    "endpointIdPresent": false,
+    "apiKeyPresent": false,
+    "apiKeyPrinted": false
+  },
+  "implementation": {
+    "doubaoClientAdded": true,
+    "skillTurnUsesDoubaoByDefault": true,
+    "legacySdkStillSupportedWhenExplicit": true,
+    "checkDoubaoScriptAdded": true,
+    "mockOnlyInTestOrExplicitMock": true
+  },
+  "requestFormat": {
+    "baseURL": "https://ark.cn-beijing.volces.com/api/v3",
+    "path": "/chat/completions",
+    "method": "POST",
+    "modelSource": "endpoint_id",
+    "authHeaderRedacted": true,
+    "provider": "doubao_ark"
+  },
+  "healthCheck": {
+    "attempted": true,
+    "command": "npm run check:doubao",
+    "exitCode": 1,
+    "status": "config_missing",
+    "errorCode": "doubao_config_missing",
+    "latencyMs": 1,
+    "provider": "doubao_ark",
+    "model": ""
+  },
+  "webSmoke": {
+    "attempted": true,
+    "command": "npm run smoke:web-ui-real-skill-l1",
+    "exitCode": 1,
+    "status": "external_blocked",
+    "runId": "RUN-20260608-131902-FK6MT",
+    "url": "http://127.0.0.1:9999",
+    "provider": "doubao_ark",
+    "client": "doubao_ark",
+    "model": "",
+    "errorCode": "doubao_config_missing",
+    "mockUsed": false,
+    "readyForAgent": false,
+    "pageVerticalScroll": false,
+    "pageErrors": [],
+    "console503FromExternalBlocked": true
+  },
+  "regression": {
+    "npmTest": "passed: 6 files, 64 tests",
+    "testServer": "passed: 2 files, 37 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "passed",
+    "verifyRenderUrl": "http://127.0.0.1:9999",
+    "verifyRenderApiHealth": "http://127.0.0.1:9999/api/health",
+    "verifyRenderPageVerticalScroll": false,
+    "verifyRenderConsoleErrors": false
+  },
+  "screenshots": {
+    "main": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-main.png",
+    "sourceBadge": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-source-badge.png",
+    "report": "",
+    "externalBlocked": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-error.png"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "authorizationLeakage": false,
+    "apiConfigReturned": false,
+    "agentPlanEntered": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false,
+    "mockSuccessUsed": false,
+    "dslModified": false,
+    "dslV2CoreRuntimeModified": false
+  },
+  "recommendation": {
+    "codeReworkRecommended": false,
+    "configurationActionRequired": true,
+    "nextCommands": [
+      "npm run check:doubao",
+      "npm run smoke:web-ui-real-skill-l1"
+    ]
+  }
+}

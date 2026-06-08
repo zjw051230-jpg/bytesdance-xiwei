@@ -1,0 +1,62 @@
+{
+  "task": "Task 12.2-J Background Runner Doubao Fix",
+  "status": "passed",
+  "rootCause": "The full pm_dsl_runner loaded api_config.local.json with provider=doubao_ark and endpoint_id only, but runtime defaults kept OpenAI base_url=https://api.openai.com/v1 and model=gpt-4.1-mini. The runner sent the Ark key to the OpenAI endpoint and failed with HTTP 401.",
+  "inspectedFailedRuns": [
+    "RUN-20260608-182043-3ZDHK",
+    "RUN-20260608-173945-AKV7H"
+  ],
+  "fastSkill": {
+    "status": "done",
+    "provider": "doubao_ark",
+    "model": "ep-20260514110933-mzh58",
+    "mockUsed": false
+  },
+  "fullRunner": {
+    "status": "passed",
+    "errorCode": "",
+    "retrySupported": true,
+    "passedRunId": "RUN-20260608-183228-LDHVD",
+    "requestUrl": "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    "model": "ep-20260514110933-mzh58"
+  },
+  "ui": {
+    "stateSplitCorrect": true,
+    "draftReportAvailable": true,
+    "readyForAgent": false,
+    "handoffDecision": "clarify_first",
+    "retryFullArtifactsDoesNotCallSkillTurn": true
+  },
+  "runtimeChanges": {
+    "dslV2RuntimeModified": true,
+    "doubaoArkDefaults": true,
+    "endpointIdFallbackToModel": true,
+    "arkRedaction": true
+  },
+  "tests": {
+    "runtimePytest": "21 passed",
+    "npmTest": "68 passed",
+    "serverTest": "40 passed",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "passed",
+    "checkDoubao": "passed",
+    "checkDoubaoSkillL1": "passed",
+    "smokeWebUiRealSkillL1": "passed",
+    "smokeRealDsl": "passed"
+  },
+  "screenshots": {
+    "runnerFailedSkillDone": "F:\\字节比赛\\最终程序\\reporting\\runner-failed-skill-done.png",
+    "runnerFailedDraftReport": "F:\\字节比赛\\最终程序\\reporting\\runner-failed-draft-report.png",
+    "doubaoFullRunnerPassed": "F:\\字节比赛\\最终程序\\reporting\\doubao-full-runner-passed.png"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "authorizationLeakage": false,
+    "agentPlanEntered": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false,
+    "fDslModified": false,
+    "mockUsedForDoubaoChecks": false
+  }
+}

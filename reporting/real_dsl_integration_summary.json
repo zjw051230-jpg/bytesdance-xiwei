@@ -1,0 +1,89 @@
+{
+  "task": "Task 12.1 Real PM-to-DSL Runner Web Integration",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "dslRuntimeRoot": "F:\\dsl-v2",
+  "implemented": {
+    "nodeBackend": true,
+    "runnerInvocation": true,
+    "artifactReader": true,
+    "redaction": true,
+    "frontendApiClient": true,
+    "dslStatusFromArtifacts": true,
+    "humanReportFromArtifacts": true
+  },
+  "realSmoke": {
+    "attempted": true,
+    "status": "passed",
+    "runId": "RUN-20260607-160504-JAHR9",
+    "outputDir": "runs\\RUN-20260607-160504-JAHR9",
+    "artifactsGenerated": [
+      "single_case\\00_input.json",
+      "single_case\\01_code_context_packet.json",
+      "single_case\\02_prompt_messages.json",
+      "single_case\\03_api_request.json",
+      "single_case\\04_api_response_raw.json",
+      "single_case\\05_dsl_draft.json",
+      "single_case\\06_risk_activation.json",
+      "single_case\\07_router_schema_activation.json",
+      "single_case\\08_gap_vector.json",
+      "single_case\\09_scoring.json",
+      "single_case\\10_evpi_clarification.json",
+      "single_case\\11_pm_turns.json",
+      "single_case\\12_final_dsl.json",
+      "single_case\\13_case_summary.md",
+      "summary.json",
+      "summary.md"
+    ]
+  },
+  "verification": {
+    "npmTest": {
+      "status": "passed",
+      "testFiles": 4,
+      "tests": 19
+    },
+    "testServer": {
+      "status": "passed",
+      "testFiles": 2,
+      "tests": 6
+    },
+    "npmRunBuild": {
+      "status": "passed",
+      "modulesTransformed": 1728
+    },
+    "npmRunSmoke": {
+      "status": "passed"
+    },
+    "verifyRender": {
+      "status": "passed",
+      "viewportsVerified": [
+        "1920x1080",
+        "1440x900"
+      ],
+      "pageVerticalScroll": false,
+      "modalVerticalPageScroll": false,
+      "consoleEntries": 0,
+      "pageErrors": 0
+    }
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "authorizationLeakage": false,
+    "apiConfigReturnedToFrontend": false,
+    "envCommitted": false,
+    "runsCommitted": false,
+    "realApiConnected": true
+  },
+  "boundaries": {
+    "agentPlanGenerated": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false,
+    "postEvalEntered": false
+  },
+  "screenshots": {
+    "running": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-running-1920x1080.png",
+    "result": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-result-1920x1080.png",
+    "modal": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-report-modal-1920x1080.png"
+  },
+  "recommendRework": false
+}

@@ -1,0 +1,21 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "url": "http://127.0.0.1:5174",
+  "runId": "RUN-20260608-085817-AK0CU",
+  "runnerStatus": "timeout",
+  "timeoutErrorVisible": true,
+  "retryVisible": true,
+  "partialArtifactsVisible": true,
+  "partialArtifactsDialogVisible": true,
+  "pageVerticalScroll": false,
+  "screenshots": {
+    "running": "F:\\字节比赛\\最终程序\\reporting\\web-ui-runner-running.png",
+    "longRunning": "F:\\字节比赛\\最终程序\\reporting\\web-ui-runner-long-running.png",
+    "timeout": "F:\\字节比赛\\最终程序\\reporting\\web-ui-runner-timeout.png",
+    "partialArtifacts": "F:\\字节比赛\\最终程序\\reporting\\web-ui-runner-partial-artifacts.png"
+  },
+  "consoleEntries": [],
+  "pageErrors": [],
+  "error": null
+}

@@ -1,0 +1,85 @@
+{
+  "task": "Task 12.2-H2 Read Doubao Config from api_config.local.json",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "rootCause": {
+    "previousPath": "F:\\dsl-v2\\configs\\doubao_api_config.local.json",
+    "actualPath": "F:\\dsl-v2\\configs\\api_config.local.json",
+    "issue": "previous Doubao config path was wrong"
+  },
+  "config": {
+    "path": "F:\\dsl-v2\\configs\\api_config.local.json",
+    "exists": true,
+    "provider": "doubao_ark",
+    "modelPresent": false,
+    "endpointIdPresent": true,
+    "apiKeyPresent": true,
+    "baseUrlPresent": false,
+    "chatCompletionsPathPresent": false,
+    "defaultBaseURL": "https://ark.cn-beijing.volces.com/api/v3",
+    "defaultChatCompletionsPath": "/chat/completions",
+    "modelPriority": ["model", "endpoint_id"]
+  },
+  "healthCheck": {
+    "attempted": true,
+    "command": "npm run check:doubao",
+    "status": "passed",
+    "provider": "doubao_ark",
+    "baseURL": "https://ark.cn-beijing.volces.com/api/v3",
+    "model": "ep-20260514110933-mzh58",
+    "apiKeyPresent": true,
+    "latencyMs": 1757,
+    "errorCode": ""
+  },
+  "webSmoke": {
+    "attempted": true,
+    "command": "npm run smoke:web-ui-real-skill-l1",
+    "status": "passed",
+    "url": "http://127.0.0.1:9999",
+    "runId": "RUN-20260608-135316-5B7FE",
+    "sourceMode": "model_generated_real",
+    "provider": "doubao_ark",
+    "client": "doubao_ark",
+    "model": "ep-20260514110933-mzh58",
+    "mockUsed": false,
+    "readyForAgent": false,
+    "canHandoffToAgent": false,
+    "handoffDecision": "clarify_first",
+    "pageVerticalScroll": false,
+    "consoleErrors": false,
+    "pageErrors": false
+  },
+  "regression": {
+    "npmTest": "passed: 6 files, 65 tests",
+    "testServer": "passed: 2 files, 38 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "passed",
+    "verifyRenderUrl": "http://127.0.0.1:9999",
+    "verifyRenderApiHealth": "http://127.0.0.1:9999/api/health",
+    "verifyRenderPageVerticalScroll": false,
+    "verifyRenderConsoleErrors": false
+  },
+  "screenshots": {
+    "main": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-main.png",
+    "sourceBadge": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-source-badge.png",
+    "report": "F:\\字节比赛\\最终程序\\reporting\\doubao-l1-report.png"
+  },
+  "security": {
+    "apiKeyPrinted": false,
+    "apiKeyWrittenToReport": false,
+    "apiKeyReturnedToFrontend": false,
+    "authorizationLeakage": false,
+    "artifactLeakage": false,
+    "scannedFiles": 7,
+    "agentPlanEntered": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false,
+    "mockSuccessUsed": false,
+    "dslModified": false,
+    "dslV2CoreRuntimeModified": false
+  },
+  "recommendation": {
+    "reworkRecommended": false
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "attempted": true,
+  "status": "passed",
+  "endpoint": "http://localhost:8317/v1/chat/completions",
+  "baseURL": "http://localhost:8317/v1",
+  "model": "gpt-5.5",
+  "latencyMs": 3116,
+  "errorCode": "",
+  "error": null
+}
