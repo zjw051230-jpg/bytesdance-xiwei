@@ -904,6 +904,80 @@ describe("DSL backend API", () => {
     expect(payload.error.details.client).toBe("doubao_ark");
   });
 
+  it("serves agent readiness from agent(1) inventory without enabling real writes", async () => {
+    const baseUrl = await startTestServer({ runnerMode: "mock" });
+
+    const response = await fetch(`${baseUrl}/api/agent/readiness`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        targetRepoPath: "F:\\safe-preview-target"
+      })
+    });
+    const payload = await response.json();
+    const text = JSON.stringify(payload);
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.data.status).toBe("ready");
+    expect(payload.data.canRunDryRun).toBe(true);
+    expect(payload.data.canRealWrite).toBe(false);
+    expect(payload.data.boundaries).toContain("default dry-run only");
+    expect(payload.data.entrypoints).toEqual(expect.arrayContaining(["agent/agent_core/main.py"]));
+    expect(text).not.toMatch(/api_key|Authorization|Bearer|sk-/i);
+  });
+
+  it("creates agent dry-run artifacts and keeps realWritePerformed false", async () => {
+    const baseUrl = await startTestServer({ runnerMode: "mock" });
+
+    const response = await fetch(`${baseUrl}/api/agent/run`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        taskTitle: "Agent integration test",
+        dryRun: true
+      })
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.data.runId).toMatch(/^RUN-/);
+    expect(payload.data.dryRun).toBe(true);
+    expect(payload.data.realWritePerformed).toBe(false);
+    expect(payload.data.plan.mode).toBe("agent1_preview_adapter");
+    expect(payload.data.review.status).toBe("needs_review");
+    expect(payload.data.prDraft.title).toBeTruthy();
+    expect(payload.data.artifacts["agent_context.json"].exists).toBe(true);
+
+    const artifactsResponse = await fetch(`${baseUrl}/api/agent/runs/${payload.data.runId}/artifacts`);
+    const artifactsPayload = await artifactsResponse.json();
+    expect(artifactsResponse.status).toBe(200);
+    expect(artifactsPayload.data.review.changedFiles.length).toBeGreaterThan(0);
+    expect(artifactsPayload.data.prDraft.checklist).toContain("No API keys or local configs committed");
+  });
+
+  it("blocks requested agent real writes instead of calling the external writer", async () => {
+    const baseUrl = await startTestServer({ runnerMode: "mock" });
+
+    const response = await fetch(`${baseUrl}/api/agent/run`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        dryRun: false
+      })
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.ok).toBe(false);
+    expect(payload.error.code).toBe("agent_real_write_blocked");
+    expect(JSON.stringify(payload)).not.toMatch(/AGENT_REPO_CONFIRM=YES|api_key|Authorization|Bearer|sk-/i);
+  });
+
   it("returns health without leaking API config secrets", async () => {
     const baseUrl = await startTestServer({ runnerMode: "mock" });
 

@@ -1,0 +1,1787 @@
+{
+  "generatedAt": "2026-06-09T10:13:33.321Z",
+  "root": "F:\\字节比赛\\最终程序\\agent(1)\\agent",
+  "type": "mixed_python_agent_runtime_and_node_context_service",
+  "fileTreeSummary": {
+    "count": 267,
+    "byExt": {
+      ".py": 135,
+      ".json": 61,
+      ".md": 30,
+      ".jsonl": 1,
+      ".js": 38,
+      ".ps1": 1,
+      ".sh": 1
+    },
+    "topLevel": [
+      "agent"
+    ]
+  },
+  "entrypoints": [
+    "agent/agent_core/main.py",
+    "agent/agent_core/scripts/llm_smoke.py",
+    "agent/context-service-handoff/context-service-handoff/code/backend/package.json",
+    "agent/context-service-handoff/context-service-handoff/code/backend/src/server.js"
+  ],
+  "dependencies": {
+    "python": true,
+    "node": true,
+    "packageJson": [
+      "agent/context-service-handoff/context-service-handoff/code/backend/package.json"
+    ],
+    "requirementsTxt": [],
+    "pyprojectToml": []
+  },
+  "config": {
+    "env": [
+      "AGENT_LLM_PROVIDER",
+      "DOUBAO_API_KEY",
+      "DOUBAO_ENDPOINT",
+      "DOUBAO_BASE_URL",
+      "AGENT_USE_LLM_PLANNER",
+      "AGENT_USE_LLM_CODER",
+      "AGENT_REPO_MODE",
+      "AGENT_REPO_ROOT",
+      "AGENT_REPO_APPLY",
+      "AGENT_REPO_CONFIRM",
+      "USE_CONTEXT_HTTP",
+      "CONTEXT_SERVICE_URL"
+    ],
+    "targetRepoPath": "TARGET_REPO_PATH is required by the workbench adapter; agent(1) uses AGENT_REPO_ROOT internally.",
+    "apiConfigPath": "API_CONFIG_PATH is used by the final program; agent(1) uses provider-specific env vars."
+  },
+  "inputFormat": {
+    "pythonCli": "stdin text requirement",
+    "workbenchAdapter": "RequirementDSL/current planning task plus project metadata"
+  },
+  "outputFormat": {
+    "pythonRuntime": "state JSON under agent_core/storage/states plus CLI summary",
+    "contextService": "HTTP JSON context/events/trace payloads",
+    "workbenchAdapter": "dry-run plan, review summary, PR draft, artifacts JSON"
+  },
+  "invocation": {
+    "pythonCli": "python agent_core/main.py",
+    "contextService": "npm start from context-service-handoff/.../code/backend",
+    "workbench": "POST /api/agent/readiness and POST /api/agent/run"
+  },
+  "safetyRisks": {
+    "canWriteFiles": true,
+    "canExecuteShell": true,
+    "canAccessTargetRepo": true,
+    "dependsOnExternalDslV2": false,
+    "dependsOnApiKey": true,
+    "findings": [
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/actions/apply_patch.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/actions/registry.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/agent_core/storage/states/demo_task.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/agent_core/storage/states/unknown_tool_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/agents/executor_agent.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/agents/fake_agent.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/docs/adapter_reference.md"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/agent_core/docs/adapter_reference.md"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/agent_core/docs/architecture.md"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/docs/architecture.md"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/agent_core/docs/architecture.md"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/docs/integration_guide.md"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/agent_core/docs/integration_guide.md"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/agent_core/docs/README.md"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/docs/README.md"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/agent_core/docs/README.md"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/hooks/dangerous_edit_guard.py"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/agent_core/interfaces/llm_adapter.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/interfaces/repo_adapter.py"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/agent_core/interfaces/repo_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/agent_core/interfaces/repo_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/agent_core/interfaces/test_adapter.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/orchestrator/runtime_controller.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/orchestrator/state.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/context_event_flow_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/danger_edit_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/demo_task.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/memory_integration_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/preview_state_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/repo_flow_check.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/safe_edit_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/verify_preview_ready_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/verify_preview_state_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/storage/states/verify_result_flow_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/agent_core/tools/tool_registry.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/codex-verify/test_executor_agent.py"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/codex-verify/test_llm_adapter.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/codex-verify/test_locator_agent.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/codex-verify/test_locator_agent.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/codex-verify/test_repo_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/codex-verify/test_repo_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/codex-verify/test_test_adapter.py"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/privacyFilter.js"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/privacyFilter.js"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/agentContextBuilder.test.js"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/agentContextBuilder.test.js"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextEvalRunner.test.js"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.integration.test.js"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.security.test.js"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.security.test.js"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/privacyFilter.test.js"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/privacyFilter.test.js"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/redactionManifest.test.js"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/routes/pythonAgentContextHttp.integration.test.js"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/context-service-handoff/context-service-handoff/code/backend/src/routes/pythonAgentContextHttp.integration.test.js"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/apply_patch.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/registry.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agent_core/storage/states/demo_task.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agent_core/storage/states/unknown_tool_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/executor_agent.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/fake_agent.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/adapter_reference.md"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/adapter_reference.md"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/integration_guide.md"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/integration_guide.md"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/integration_guide.md"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/integration_guide.md"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/dangerous_edit_guard.py"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/llm_adapter.py"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/llm_adapter.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/repo_adapter.py"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/repo_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/repo_adapter.py"
+      },
+      {
+        "type": "shellExecution",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/test_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/test_adapter.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/orchestrator/runtime_controller.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/orchestrator/state.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/context_event_flow_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/danger_edit_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/demo_task.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/memory_integration_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/repo_flow_check.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/safe_edit_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/verify_result_flow_test.json"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/tools/tool_registry.py"
+      },
+      {
+        "type": "apiKeyReference",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_llm_adapter.py"
+      },
+      {
+        "type": "bearerReference",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_llm_adapter.py"
+      },
+      {
+        "type": "repoWrite",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_repo_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_repo_adapter.py"
+      },
+      {
+        "type": "targetRepoAccess",
+        "file": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_test_adapter.py"
+      }
+    ]
+  },
+  "reusableModules": [
+    "agent_core/docs/* as contract documentation",
+    "agent_core/interfaces/repo_adapter.py safety gates",
+    "agent_core/storage/states/*.json as example artifacts",
+    "context-service-handoff HTTP contract docs"
+  ],
+  "doNotDirectlyIntegrate": [
+    "node_modules",
+    "__pycache__",
+    "raw storage states as production state",
+    "real_repo_apply mode",
+    "AGENT_REPO_CONFIRM=YES path",
+    "context-service backend as embedded source without dependency review"
+  ],
+  "files": [
+    {
+      "relativePath": "agent/agent_core/actions/__init__.py",
+      "length": 136,
+      "lastWriteTime": "2026-06-06T18:00:30.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/analyze_requirement.py",
+      "length": 128,
+      "lastWriteTime": "2026-06-06T18:00:32.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/apply_patch.py",
+      "length": 124,
+      "lastWriteTime": "2026-06-06T18:00:46.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/execute_patch.py",
+      "length": 126,
+      "lastWriteTime": "2026-06-07T15:16:32.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/finish.py",
+      "length": 104,
+      "lastWriteTime": "2026-06-06T18:00:48.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/generate_patch.py",
+      "length": 135,
+      "lastWriteTime": "2026-06-07T15:10:18.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/locate_files.py",
+      "length": 150,
+      "lastWriteTime": "2026-06-07T15:06:44.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/make_plan.py",
+      "length": 124,
+      "lastWriteTime": "2026-06-06T18:00:42.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/registry.py",
+      "length": 713,
+      "lastWriteTime": "2026-06-07T15:53:06.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/review_patch.py",
+      "length": 129,
+      "lastWriteTime": "2026-06-07T15:13:52.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/select_skill.py",
+      "length": 124,
+      "lastWriteTime": "2026-06-06T18:00:36.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/actions/verify_result.py",
+      "length": 145,
+      "lastWriteTime": "2026-06-07T15:53:06.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agent_core/storage/states/cwd_test.json",
+      "length": 324,
+      "lastWriteTime": "2026-06-07T14:58:40.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agent_core/storage/states/demo_task.json",
+      "length": 3558,
+      "lastWriteTime": "2026-06-06T18:02:38.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agent_core/storage/states/path_regression_test.json",
+      "length": 336,
+      "lastWriteTime": "2026-06-07T15:00:12.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agent_core/storage/states/unknown_tool_test.json",
+      "length": 1947,
+      "lastWriteTime": "2026-06-06T18:02:50.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/__init__.py",
+      "length": 80,
+      "lastWriteTime": "2026-06-06T17:35:14.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/coder_agent.py",
+      "length": 8248,
+      "lastWriteTime": "2026-06-08T12:33:08.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/executor_agent.py",
+      "length": 4500,
+      "lastWriteTime": "2026-06-08T10:40:02.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/fake_agent.py",
+      "length": 3426,
+      "lastWriteTime": "2026-06-07T15:53:06.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/locator_agent.py",
+      "length": 6190,
+      "lastWriteTime": "2026-06-08T10:23:14.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/planner_agent.py",
+      "length": 7454,
+      "lastWriteTime": "2026-06-08T12:32:20.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/reviewer_agent.py",
+      "length": 3781,
+      "lastWriteTime": "2026-06-07T15:25:02.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/agents/verifier_agent.py",
+      "length": 2948,
+      "lastWriteTime": "2026-06-08T12:53:34.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/adapter_reference.md",
+      "length": 2971,
+      "lastWriteTime": "2026-06-07T16:29:36.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/agent_pipeline.md",
+      "length": 2024,
+      "lastWriteTime": "2026-06-07T16:29:36.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/architecture.md",
+      "length": 5550,
+      "lastWriteTime": "2026-06-09T09:17:54.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/context_http_contract.md",
+      "length": 3230,
+      "lastWriteTime": "2026-06-07T16:23:16.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/integration_guide.md",
+      "length": 2061,
+      "lastWriteTime": "2026-06-07T16:29:36.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/project_status.md",
+      "length": 1027,
+      "lastWriteTime": "2026-06-07T16:29:36.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/README.md",
+      "length": 8108,
+      "lastWriteTime": "2026-06-09T09:17:54.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/docs/roadmap.md",
+      "length": 4253,
+      "lastWriteTime": "2026-06-09T09:17:54.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/__init__.py",
+      "length": 243,
+      "lastWriteTime": "2026-06-06T17:39:02.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/base.py",
+      "length": 137,
+      "lastWriteTime": "2026-06-06T17:39:08.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/dangerous_edit_guard.py",
+      "length": 1656,
+      "lastWriteTime": "2026-06-06T17:58:02.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/empty_observation_guard.py",
+      "length": 305,
+      "lastWriteTime": "2026-06-06T17:47:52.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/hook_runner.py",
+      "length": 914,
+      "lastWriteTime": "2026-06-06T17:58:08.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/loop_guard.py",
+      "length": 836,
+      "lastWriteTime": "2026-06-06T17:55:56.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/max_step_guard.py",
+      "length": 285,
+      "lastWriteTime": "2026-06-06T17:39:10.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/tool_failure_guard.py",
+      "length": 421,
+      "lastWriteTime": "2026-06-06T17:47:56.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/hooks/unknown_tool_guard.py",
+      "length": 487,
+      "lastWriteTime": "2026-06-06T18:01:46.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/__init__.py",
+      "length": 1354,
+      "lastWriteTime": "2026-06-07T16:19:58.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/context_adapter.py",
+      "length": 3314,
+      "lastWriteTime": "2026-06-08T13:52:16.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/context_http_adapter.py",
+      "length": 8710,
+      "lastWriteTime": "2026-06-08T13:52:02.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/event_adapter.py",
+      "length": 4511,
+      "lastWriteTime": "2026-06-08T14:05:28.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/llm_adapter.py",
+      "length": 6098,
+      "lastWriteTime": "2026-06-08T12:31:48.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/memory_adapter.py",
+      "length": 1628,
+      "lastWriteTime": "2026-06-07T15:31:40.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/repo_adapter.py",
+      "length": 17491,
+      "lastWriteTime": "2026-06-08T10:39:16.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/interfaces/test_adapter.py",
+      "length": 3570,
+      "lastWriteTime": "2026-06-08T12:51:54.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/main.py",
+      "length": 5356,
+      "lastWriteTime": "2026-06-08T12:52:30.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/orchestrator/__init__.py",
+      "length": 107,
+      "lastWriteTime": "2026-06-06T17:35:08.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/orchestrator/agent_loop.py",
+      "length": 2992,
+      "lastWriteTime": "2026-06-07T16:10:38.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/orchestrator/model_router.py",
+      "length": 1521,
+      "lastWriteTime": "2026-06-06T17:54:00.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/orchestrator/runtime_controller.py",
+      "length": 2384,
+      "lastWriteTime": "2026-06-07T15:00:20.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/orchestrator/state.py",
+      "length": 3959,
+      "lastWriteTime": "2026-06-07T16:10:24.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/prompts/__init__.py",
+      "length": 93,
+      "lastWriteTime": "2026-06-07T15:26:34.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/prompts/action_prompt_builder.py",
+      "length": 2064,
+      "lastWriteTime": "2026-06-07T16:12:06.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/scripts/__init__.py",
+      "length": 1,
+      "lastWriteTime": "2026-06-08T12:33:52.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/scripts/llm_smoke.py",
+      "length": 1376,
+      "lastWriteTime": "2026-06-08T12:44:36.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/skills/__init__.py",
+      "length": 92,
+      "lastWriteTime": "2026-06-07T15:01:46.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/skills/about_me_tab.json",
+      "length": 193,
+      "lastWriteTime": "2026-06-07T15:01:58.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/skills/article_word_stats.json",
+      "length": 239,
+      "lastWriteTime": "2026-06-07T15:01:54.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/skills/cover_image.json",
+      "length": 169,
+      "lastWriteTime": "2026-06-07T15:02:04.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/skills/registry.py",
+      "length": 1747,
+      "lastWriteTime": "2026-06-08T09:32:46.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/runtime/pause_task.control.json",
+      "length": 17,
+      "lastWriteTime": "2026-06-06T17:52:46.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/runtime/runtime_append.control.json",
+      "length": 26,
+      "lastWriteTime": "2026-06-06T17:52:22.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/runtime/stop_task.control.json",
+      "length": 16,
+      "lastWriteTime": "2026-06-06T17:53:00.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/context_event_flow_test.json",
+      "length": 38135,
+      "lastWriteTime": "2026-06-08T14:05:50.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/danger_edit_test.json",
+      "length": 1613,
+      "lastWriteTime": "2026-06-06T17:59:16.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/demo_task.json",
+      "length": 58184,
+      "lastWriteTime": "2026-06-09T09:12:18.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/loop_test.json",
+      "length": 2946,
+      "lastWriteTime": "2026-06-06T17:57:16.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/memory_integration_test.json",
+      "length": 3506,
+      "lastWriteTime": "2026-06-08T14:05:50.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/pause_task.json",
+      "length": 450,
+      "lastWriteTime": "2026-06-06T17:52:46.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/preview_state_test.json",
+      "length": 45364,
+      "lastWriteTime": "2026-06-08T14:05:50.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/repo_flow_check.json",
+      "length": 30280,
+      "lastWriteTime": "2026-06-07T15:35:58.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/runtime_append.json",
+      "length": 2286,
+      "lastWriteTime": "2026-06-06T17:52:22.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/safe_edit_test.json",
+      "length": 2867,
+      "lastWriteTime": "2026-06-06T17:59:10.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/skill_smoke.json",
+      "length": 635,
+      "lastWriteTime": "2026-06-07T15:03:04.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/stop_task.json",
+      "length": 501,
+      "lastWriteTime": "2026-06-06T17:53:00.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/verify_preview_ready_test.json",
+      "length": 41371,
+      "lastWriteTime": "2026-06-08T14:05:50.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/verify_preview_state_test.json",
+      "length": 41367,
+      "lastWriteTime": "2026-06-08T14:05:50.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/storage/states/verify_result_flow_test.json",
+      "length": 46423,
+      "lastWriteTime": "2026-06-08T14:05:50.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/tools/__init__.py",
+      "length": 61,
+      "lastWriteTime": "2026-06-06T17:35:20.000Z"
+    },
+    {
+      "relativePath": "agent/agent_core/tools/tool_registry.py",
+      "length": 9367,
+      "lastWriteTime": "2026-06-08T10:46:02.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_coder_agent.py",
+      "length": 4228,
+      "lastWriteTime": "2026-06-08T12:38:26.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_context_event_adapters.py",
+      "length": 6810,
+      "lastWriteTime": "2026-06-08T14:05:40.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_context_http_adapter.py",
+      "length": 9071,
+      "lastWriteTime": "2026-06-08T13:54:16.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_executor_agent.py",
+      "length": 6483,
+      "lastWriteTime": "2026-06-08T10:41:14.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_finish_summary.py",
+      "length": 1517,
+      "lastWriteTime": "2026-06-07T15:19:28.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_llm_adapter.py",
+      "length": 1832,
+      "lastWriteTime": "2026-06-08T12:33:52.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_locator_agent.py",
+      "length": 3512,
+      "lastWriteTime": "2026-06-08T10:23:34.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_main_cli.py",
+      "length": 2293,
+      "lastWriteTime": "2026-06-08T09:37:44.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_memory_adapter.py",
+      "length": 1369,
+      "lastWriteTime": "2026-06-07T15:30:10.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_memory_integration.py",
+      "length": 1774,
+      "lastWriteTime": "2026-06-07T15:32:14.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_planner_agent.py",
+      "length": 2781,
+      "lastWriteTime": "2026-06-08T12:35:50.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_repo_adapter.py",
+      "length": 17852,
+      "lastWriteTime": "2026-06-08T10:41:32.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_reviewer_agent.py",
+      "length": 1360,
+      "lastWriteTime": "2026-06-07T15:14:02.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_skill_registry.py",
+      "length": 1275,
+      "lastWriteTime": "2026-06-07T15:01:28.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_state_paths.py",
+      "length": 872,
+      "lastWriteTime": "2026-06-07T14:59:52.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_test_adapter.py",
+      "length": 7469,
+      "lastWriteTime": "2026-06-08T12:54:02.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test_test.py",
+      "length": 199,
+      "lastWriteTime": "2026-06-06T17:28:04.000Z"
+    },
+    {
+      "relativePath": "agent/codex-verify/test.py",
+      "length": 33,
+      "lastWriteTime": "2026-06-06T17:28:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_2d72277a-adbc-4d86-ac9e-2ffb30d9d93a.json",
+      "length": 1638,
+      "lastWriteTime": "2026-06-09T09:12:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_3db3c5a2-d98f-4851-bde4-2ac2bf3513b9.json",
+      "length": 4374,
+      "lastWriteTime": "2026-06-09T09:10:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_44974324-6b03-4e46-b733-7c8de1243ef0.json",
+      "length": 2711,
+      "lastWriteTime": "2026-06-09T09:10:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_61cf2593-2525-4749-8cb1-a6987e1a7805.json",
+      "length": 2766,
+      "lastWriteTime": "2026-06-09T09:10:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_7810a95a-2448-482c-b8f1-06a0fcc033e3.json",
+      "length": 4228,
+      "lastWriteTime": "2026-06-09T09:12:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_a712e2cf-e19d-4ec0-9808-57352b8d045c.json",
+      "length": 632,
+      "lastWriteTime": "2026-06-09T09:10:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_ba0d1e56-c825-437f-98b0-66baf26ef565.json",
+      "length": 1490,
+      "lastWriteTime": "2026-06-09T09:12:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_def7d79a-b9c4-40ab-ae52-0da28389cea3.json",
+      "length": 4560,
+      "lastWriteTime": "2026-06-09T09:12:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/context_cache/ctx_fd1e81d0-6407-41f1-b938-f52b8bd68d15.json",
+      "length": 1638,
+      "lastWriteTime": "2026-06-09T09:10:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/events.jsonl",
+      "length": 16258,
+      "lastWriteTime": "2026-06-09T09:12:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/projection_report.json",
+      "length": 166,
+      "lastWriteTime": "2026-06-09T09:13:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/.ai-runs/context/tasks/demo_task/trace_view.json",
+      "length": 16002,
+      "lastWriteTime": "2026-06-09T09:13:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/package-lock.json",
+      "length": 30261,
+      "lastWriteTime": "2026-06-09T09:12:38.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/package.json",
+      "length": 317,
+      "lastWriteTime": "2026-06-09T09:04:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/agentContextBuilder.js",
+      "length": 11110,
+      "lastWriteTime": "2026-06-07T11:37:22.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/compactSummarizer.js",
+      "length": 8315,
+      "lastWriteTime": "2026-06-07T07:54:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/CONTEXT_SERVICE_ADAPTER_FAQ.md",
+      "length": 6830,
+      "lastWriteTime": "2026-06-08T01:58:10.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/CONTEXT_SERVICE_DELIVERY.md",
+      "length": 6917,
+      "lastWriteTime": "2026-06-07T15:45:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/CONTEXT_SERVICE_PERFORMANCE_BASELINE.md",
+      "length": 1347,
+      "lastWriteTime": "2026-06-07T15:45:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/CONTEXT_SERVICE_SUMMARY_ZH.md",
+      "length": 2270,
+      "lastWriteTime": "2026-06-08T13:18:38.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/CONTEXT_SERVICE_TESTING_PLAN.md",
+      "length": 2771,
+      "lastWriteTime": "2026-06-07T15:45:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/contextBenchmark.js",
+      "length": 2862,
+      "lastWriteTime": "2026-06-07T12:53:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/contextBudgetManager.js",
+      "length": 5491,
+      "lastWriteTime": "2026-06-07T11:44:16.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/contextEvalRunner.js",
+      "length": 12346,
+      "lastWriteTime": "2026-06-07T12:55:02.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/contextEventMapper.js",
+      "length": 11768,
+      "lastWriteTime": "2026-06-08T11:10:10.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/contextRetrieval.test.js",
+      "length": 1682,
+      "lastWriteTime": "2026-06-07T06:49:58.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/CONTRACTS.md",
+      "length": 5609,
+      "lastWriteTime": "2026-06-08T01:57:22.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/eventStore.js",
+      "length": 5901,
+      "lastWriteTime": "2026-06-07T12:53:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/index.js",
+      "length": 528,
+      "lastWriteTime": "2026-06-07T15:13:42.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/privacyFilter.js",
+      "length": 3687,
+      "lastWriteTime": "2026-06-07T11:42:50.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/README.md",
+      "length": 7510,
+      "lastWriteTime": "2026-06-08T11:13:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/redactionManifest.js",
+      "length": 4039,
+      "lastWriteTime": "2026-06-07T12:46:40.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/repositoryIndexer.js",
+      "length": 2403,
+      "lastWriteTime": "2026-06-07T06:49:58.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/retriever.js",
+      "length": 2247,
+      "lastWriteTime": "2026-06-07T06:49:58.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/agentContextBuilder.test.js",
+      "length": 8843,
+      "lastWriteTime": "2026-06-07T11:38:46.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/compactSummarizer.test.js",
+      "length": 6586,
+      "lastWriteTime": "2026-06-07T07:54:02.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextBenchmark.test.js",
+      "length": 4507,
+      "lastWriteTime": "2026-06-07T12:54:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextBudgetManager.test.js",
+      "length": 2537,
+      "lastWriteTime": "2026-06-07T11:38:46.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextEvalRunner.test.js",
+      "length": 9477,
+      "lastWriteTime": "2026-06-07T12:54:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextEventMapper.test.js",
+      "length": 5788,
+      "lastWriteTime": "2026-06-08T11:11:50.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.contract.test.js",
+      "length": 6746,
+      "lastWriteTime": "2026-06-07T15:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.failureModes.test.js",
+      "length": 8388,
+      "lastWriteTime": "2026-06-07T15:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.integration.test.js",
+      "length": 9963,
+      "lastWriteTime": "2026-06-07T15:30:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.invariants.test.js",
+      "length": 10333,
+      "lastWriteTime": "2026-06-07T15:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.performance.test.js",
+      "length": 5493,
+      "lastWriteTime": "2026-06-07T15:45:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.quality.test.js",
+      "length": 3620,
+      "lastWriteTime": "2026-06-07T15:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/contextService.security.test.js",
+      "length": 8372,
+      "lastWriteTime": "2026-06-07T15:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/eventStore.test.js",
+      "length": 6021,
+      "lastWriteTime": "2026-06-07T12:54:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/privacyFilter.test.js",
+      "length": 3022,
+      "lastWriteTime": "2026-06-07T11:38:46.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/redactionManifest.test.js",
+      "length": 5180,
+      "lastWriteTime": "2026-06-07T12:47:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/traceGraphStore.test.js",
+      "length": 6047,
+      "lastWriteTime": "2026-06-07T07:54:02.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/tests/traceProjector.test.js",
+      "length": 17495,
+      "lastWriteTime": "2026-06-08T01:56:50.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/traceGraphStore.js",
+      "length": 5767,
+      "lastWriteTime": "2026-06-07T07:54:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/ai/context/traceProjector.js",
+      "length": 20860,
+      "lastWriteTime": "2026-06-08T01:56:08.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/contextServiceServer.js",
+      "length": 473,
+      "lastWriteTime": "2026-06-09T09:04:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/routes/contextHttpRoutes.js",
+      "length": 6982,
+      "lastWriteTime": "2026-06-08T11:10:56.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/routes/contextHttpRoutes.test.js",
+      "length": 7042,
+      "lastWriteTime": "2026-06-08T11:12:38.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/routes/pythonAgentContextHttp.integration.test.js",
+      "length": 7813,
+      "lastWriteTime": "2026-06-08T12:16:36.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/code/backend/src/server.js",
+      "length": 1369,
+      "lastWriteTime": "2026-06-08T11:11:06.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/EVENT_MAPPING.md",
+      "length": 1829,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/examples/curl_smoke_test.ps1",
+      "length": 3314,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/examples/curl_smoke_test.sh",
+      "length": 2984,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/examples/minimal_event_chain.json",
+      "length": 3378,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/HTTP_CONTRACT.md",
+      "length": 3145,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/__init__.py",
+      "length": 136,
+      "lastWriteTime": "2026-06-06T18:00:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/analyze_requirement.py",
+      "length": 128,
+      "lastWriteTime": "2026-06-06T18:00:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/apply_patch.py",
+      "length": 124,
+      "lastWriteTime": "2026-06-06T18:00:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/execute_patch.py",
+      "length": 126,
+      "lastWriteTime": "2026-06-07T15:16:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/finish.py",
+      "length": 104,
+      "lastWriteTime": "2026-06-06T18:00:46.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/generate_patch.py",
+      "length": 135,
+      "lastWriteTime": "2026-06-07T15:10:16.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/locate_files.py",
+      "length": 150,
+      "lastWriteTime": "2026-06-07T15:06:42.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/make_plan.py",
+      "length": 124,
+      "lastWriteTime": "2026-06-06T18:00:40.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/registry.py",
+      "length": 713,
+      "lastWriteTime": "2026-06-07T15:53:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/review_patch.py",
+      "length": 129,
+      "lastWriteTime": "2026-06-07T15:13:50.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/select_skill.py",
+      "length": 124,
+      "lastWriteTime": "2026-06-06T18:00:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/actions/verify_result.py",
+      "length": 145,
+      "lastWriteTime": "2026-06-07T15:53:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agent_core/storage/states/cwd_test.json",
+      "length": 324,
+      "lastWriteTime": "2026-06-07T14:58:38.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agent_core/storage/states/demo_task.json",
+      "length": 3558,
+      "lastWriteTime": "2026-06-06T18:02:36.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agent_core/storage/states/path_regression_test.json",
+      "length": 336,
+      "lastWriteTime": "2026-06-07T15:00:10.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agent_core/storage/states/unknown_tool_test.json",
+      "length": 1947,
+      "lastWriteTime": "2026-06-06T18:02:48.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/__init__.py",
+      "length": 80,
+      "lastWriteTime": "2026-06-06T17:35:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/coder_agent.py",
+      "length": 2921,
+      "lastWriteTime": "2026-06-07T15:10:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/executor_agent.py",
+      "length": 2353,
+      "lastWriteTime": "2026-06-08T12:16:10.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/fake_agent.py",
+      "length": 3426,
+      "lastWriteTime": "2026-06-07T15:53:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/locator_agent.py",
+      "length": 2413,
+      "lastWriteTime": "2026-06-07T15:06:36.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/planner_agent.py",
+      "length": 3633,
+      "lastWriteTime": "2026-06-07T15:05:08.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/reviewer_agent.py",
+      "length": 3781,
+      "lastWriteTime": "2026-06-07T15:25:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/agents/verifier_agent.py",
+      "length": 1062,
+      "lastWriteTime": "2026-06-08T12:16:26.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/adapter_reference.md",
+      "length": 2971,
+      "lastWriteTime": "2026-06-07T16:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/agent_pipeline.md",
+      "length": 2024,
+      "lastWriteTime": "2026-06-07T16:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/architecture.md",
+      "length": 3480,
+      "lastWriteTime": "2026-06-07T16:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/context_http_contract.md",
+      "length": 3203,
+      "lastWriteTime": "2026-06-08T11:47:30.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/integration_guide.md",
+      "length": 2609,
+      "lastWriteTime": "2026-06-08T12:40:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/project_status.md",
+      "length": 1027,
+      "lastWriteTime": "2026-06-07T16:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/docs/README.md",
+      "length": 2834,
+      "lastWriteTime": "2026-06-07T16:29:34.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/__init__.py",
+      "length": 243,
+      "lastWriteTime": "2026-06-06T17:39:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/base.py",
+      "length": 137,
+      "lastWriteTime": "2026-06-06T17:39:06.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/dangerous_edit_guard.py",
+      "length": 1656,
+      "lastWriteTime": "2026-06-06T17:58:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/empty_observation_guard.py",
+      "length": 305,
+      "lastWriteTime": "2026-06-06T17:47:50.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/hook_runner.py",
+      "length": 914,
+      "lastWriteTime": "2026-06-06T17:58:06.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/loop_guard.py",
+      "length": 836,
+      "lastWriteTime": "2026-06-06T17:55:54.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/max_step_guard.py",
+      "length": 285,
+      "lastWriteTime": "2026-06-06T17:39:08.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/tool_failure_guard.py",
+      "length": 421,
+      "lastWriteTime": "2026-06-06T17:47:54.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/hooks/unknown_tool_guard.py",
+      "length": 487,
+      "lastWriteTime": "2026-06-06T18:01:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/__init__.py",
+      "length": 1526,
+      "lastWriteTime": "2026-06-08T12:40:16.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/context_adapter.py",
+      "length": 3081,
+      "lastWriteTime": "2026-06-08T11:43:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/context_http_adapter.py",
+      "length": 6716,
+      "lastWriteTime": "2026-06-08T11:43:56.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/event_adapter.py",
+      "length": 3754,
+      "lastWriteTime": "2026-06-08T11:43:46.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/llm_adapter.py",
+      "length": 7481,
+      "lastWriteTime": "2026-06-08T12:39:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/memory_adapter.py",
+      "length": 1628,
+      "lastWriteTime": "2026-06-07T15:31:38.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/repo_adapter.py",
+      "length": 6423,
+      "lastWriteTime": "2026-06-08T12:14:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/interfaces/test_adapter.py",
+      "length": 3273,
+      "lastWriteTime": "2026-06-08T12:14:52.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/main.py",
+      "length": 2741,
+      "lastWriteTime": "2026-06-07T15:55:50.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/orchestrator/__init__.py",
+      "length": 107,
+      "lastWriteTime": "2026-06-06T17:35:06.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/orchestrator/agent_loop.py",
+      "length": 2992,
+      "lastWriteTime": "2026-06-07T16:10:36.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/orchestrator/model_router.py",
+      "length": 1521,
+      "lastWriteTime": "2026-06-06T17:53:58.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/orchestrator/runtime_controller.py",
+      "length": 2384,
+      "lastWriteTime": "2026-06-07T15:00:18.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/orchestrator/state.py",
+      "length": 3959,
+      "lastWriteTime": "2026-06-07T16:10:22.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/prompts/__init__.py",
+      "length": 93,
+      "lastWriteTime": "2026-06-07T15:26:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/prompts/action_prompt_builder.py",
+      "length": 2064,
+      "lastWriteTime": "2026-06-07T16:12:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/skills/__init__.py",
+      "length": 92,
+      "lastWriteTime": "2026-06-07T15:01:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/skills/about_me_tab.json",
+      "length": 193,
+      "lastWriteTime": "2026-06-07T15:01:56.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/skills/article_word_stats.json",
+      "length": 239,
+      "lastWriteTime": "2026-06-07T15:01:52.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/skills/cover_image.json",
+      "length": 169,
+      "lastWriteTime": "2026-06-07T15:02:02.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/skills/registry.py",
+      "length": 1104,
+      "lastWriteTime": "2026-06-07T15:01:48.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/runtime/pause_task.control.json",
+      "length": 17,
+      "lastWriteTime": "2026-06-06T17:52:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/runtime/runtime_append.control.json",
+      "length": 26,
+      "lastWriteTime": "2026-06-06T17:52:20.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/runtime/stop_task.control.json",
+      "length": 16,
+      "lastWriteTime": "2026-06-06T17:52:58.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/context_event_flow_test.json",
+      "length": 36483,
+      "lastWriteTime": "2026-06-08T12:44:16.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/danger_edit_test.json",
+      "length": 1613,
+      "lastWriteTime": "2026-06-06T17:59:14.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/demo_task.json",
+      "length": 26987,
+      "lastWriteTime": "2026-06-07T15:56:32.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/loop_test.json",
+      "length": 2946,
+      "lastWriteTime": "2026-06-06T17:57:14.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/memory_integration_test.json",
+      "length": 3509,
+      "lastWriteTime": "2026-06-08T12:44:16.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/pause_task.json",
+      "length": 450,
+      "lastWriteTime": "2026-06-06T17:52:44.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/repo_flow_check.json",
+      "length": 30280,
+      "lastWriteTime": "2026-06-07T15:35:56.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/runtime_append.json",
+      "length": 2286,
+      "lastWriteTime": "2026-06-06T17:52:20.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/safe_edit_test.json",
+      "length": 2867,
+      "lastWriteTime": "2026-06-06T17:59:08.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/skill_smoke.json",
+      "length": 635,
+      "lastWriteTime": "2026-06-07T15:03:02.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/stop_task.json",
+      "length": 501,
+      "lastWriteTime": "2026-06-06T17:52:58.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/storage/states/verify_result_flow_test.json",
+      "length": 44771,
+      "lastWriteTime": "2026-06-08T12:44:16.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/tools/__init__.py",
+      "length": 61,
+      "lastWriteTime": "2026-06-06T17:35:18.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/agent_core/tools/tool_registry.py",
+      "length": 8942,
+      "lastWriteTime": "2026-06-07T16:11:10.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_coder_agent.py",
+      "length": 1417,
+      "lastWriteTime": "2026-06-07T15:10:24.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_context_event_adapters.py",
+      "length": 3094,
+      "lastWriteTime": "2026-06-07T16:13:08.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_context_http_adapter.py",
+      "length": 6793,
+      "lastWriteTime": "2026-06-08T11:44:24.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_executor_agent.py",
+      "length": 1052,
+      "lastWriteTime": "2026-06-07T15:16:36.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_finish_summary.py",
+      "length": 1517,
+      "lastWriteTime": "2026-06-07T15:19:26.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_llm_adapter.py",
+      "length": 3514,
+      "lastWriteTime": "2026-06-08T12:40:04.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_locator_agent.py",
+      "length": 1311,
+      "lastWriteTime": "2026-06-07T15:07:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_memory_adapter.py",
+      "length": 1369,
+      "lastWriteTime": "2026-06-07T15:30:08.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_memory_integration.py",
+      "length": 1774,
+      "lastWriteTime": "2026-06-07T15:32:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_planner_agent.py",
+      "length": 1183,
+      "lastWriteTime": "2026-06-07T15:04:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_repo_adapter.py",
+      "length": 2695,
+      "lastWriteTime": "2026-06-08T12:15:08.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_reviewer_agent.py",
+      "length": 1360,
+      "lastWriteTime": "2026-06-07T15:14:00.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_skill_registry.py",
+      "length": 1275,
+      "lastWriteTime": "2026-06-07T15:01:26.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_state_paths.py",
+      "length": 872,
+      "lastWriteTime": "2026-06-07T14:59:50.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_test_adapter.py",
+      "length": 2896,
+      "lastWriteTime": "2026-06-08T12:15:24.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test_test.py",
+      "length": 199,
+      "lastWriteTime": "2026-06-06T17:28:02.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/integration-fixture/python-agent/codex-verify/test.py",
+      "length": 33,
+      "lastWriteTime": "2026-06-06T17:28:02.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/MEMORY_ADAPTER_GUIDE.md",
+      "length": 3488,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/QUICK_START.md",
+      "length": 1968,
+      "lastWriteTime": "2026-06-09T09:05:12.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/README_HANDOFF.md",
+      "length": 2329,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/SMOKE_TEST_CHECKLIST.md",
+      "length": 975,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/TEST_REPORT.md",
+      "length": 1038,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    },
+    {
+      "relativePath": "agent/context-service-handoff/context-service-handoff/TROUBLESHOOTING.md",
+      "length": 1924,
+      "lastWriteTime": "2026-06-08T13:25:28.000Z"
+    }
+  ]
+}

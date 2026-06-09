@@ -250,6 +250,8 @@ async function verifyDesignPlanningViewport(width, height) {
     hasExecutionFeedback: text.includes("执行摘要 / 最新进展"),
     hasProgressPanel: text.includes("总体进度"),
     hasRiskPanel: text.includes("风险 / 阻塞项"),
+    hasAgentExecutionPanel: await page.getByText("Agent Execution Orchestrator").isVisible(),
+    hasAgentContextButton: await page.locator(".agent-action-row button").first().isVisible(),
     shell: await pickMetrics(page, ".workspace-shell"),
     workbench: await pickMetrics(page, ".design-planning-workbench"),
     rightPanel: await pickMetrics(page, ".planning-right-panel"),
@@ -260,6 +262,9 @@ async function verifyDesignPlanningViewport(width, height) {
 
   if (metrics.dslStatusConsoleCount !== 0) {
     throw new Error("Design planning page must not render DSL 状态控制台");
+  }
+  if (!metrics.hasAgentExecutionPanel || !metrics.hasAgentContextButton) {
+    throw new Error("Design planning page must render Agent execution entry controls.");
   }
   if (metrics.scroll.hasVerticalPageScroll) {
     throw new Error(`Design planning page has vertical page scroll at ${width}x${height}`);

@@ -1,0 +1,45 @@
+{
+  "status": "passed",
+  "webUrl": "http://127.0.0.1:9999",
+  "backendUrl": "http://127.0.0.1:8787",
+  "screenshots": {
+    "designPlanningEntry": "F:\\字节比赛\\最终程序\\reporting\\agent-design-planning-entry.png",
+    "contextPreview": "F:\\字节比赛\\最终程序\\reporting\\agent-context-preview.png",
+    "reviewCheck": "F:\\字节比赛\\最终程序\\reporting\\agent-review-check-page.png",
+    "prPage": "F:\\字节比赛\\最终程序\\reporting\\agent-pr-page.png"
+  },
+  "scroll": {
+    "entry": {
+      "hasVerticalPageScroll": false,
+      "docScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "innerHeight": 1080
+    },
+    "context": {
+      "hasVerticalPageScroll": false,
+      "docScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "innerHeight": 1080
+    },
+    "review": {
+      "hasVerticalPageScroll": false,
+      "docScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "innerHeight": 1080
+    },
+    "pr": {
+      "hasVerticalPageScroll": false,
+      "docScrollHeight": 1080,
+      "docClientHeight": 1080,
+      "bodyScrollHeight": 1080,
+      "innerHeight": 1080
+    }
+  },
+  "consoleEntries": [],
+  "pageErrors": [],
+  "dryRunOnly": true,
+  "realWritePerformed": false
+}

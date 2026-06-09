@@ -17,6 +17,8 @@
       "hasExecutionFeedback": true,
       "hasProgressPanel": true,
       "hasRiskPanel": true,
+      "hasAgentExecutionPanel": true,
+      "hasAgentContextButton": true,
       "shell": {
         "top": 56,
         "left": 0,
@@ -70,6 +72,8 @@
       "hasExecutionFeedback": true,
       "hasProgressPanel": true,
       "hasRiskPanel": true,
+      "hasAgentExecutionPanel": true,
+      "hasAgentContextButton": true,
       "shell": {
         "top": 56,
         "left": 0,

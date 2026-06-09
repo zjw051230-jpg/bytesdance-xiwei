@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sendBackendException, sendError, sendOk } from "./httpEnvelope.js";
 import { handleArtifacts } from "./routes/artifacts.js";
+import { handleAgentExecutionRoutes } from "./routes/agentExecution.js";
 import { defaultConfig, getHealth } from "./services/runnerService.js";
 import { handleDslRuns } from "./routes/dslRuns.js";
 import { handleSkillRoutes } from "./routes/skill.js";
@@ -22,6 +23,7 @@ export function createAppServer(config = {}) {
       }
       if (url.pathname.startsWith("/api/dsl/runs") && await handleDslRuns(request, response, merged)) return;
       if (await handleSkillRoutes(request, response, merged)) return;
+      if (await handleAgentExecutionRoutes(request, response, merged)) return;
       if (await handleArtifacts(request, response, merged)) return;
       sendError(response, 404, "not_found", "Route not found");
     } catch (error) {

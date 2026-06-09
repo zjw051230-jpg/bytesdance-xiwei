@@ -65,13 +65,119 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("heading", { name: "DSL 状态控制台" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "审阅检查" }));
-    expect(screen.getByTestId("review-placeholder")).toBeInTheDocument();
+    expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "审阅检查" })).toBeInTheDocument();
-    expect(screen.getByText("即将开放")).toBeInTheDocument();
+    expect(screen.getByText("Agent 修改摘要")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "PR 页面" }));
-    expect(screen.getByTestId("pr-placeholder")).toBeInTheDocument();
+    expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "PR 页面" })).toBeInTheDocument();
+    expect(screen.getByText("PR 摘要")).toBeInTheDocument();
+  });
+
+  it("runs the agent dry-run workflow from design planning into review and PR pages", async () => {
+    const readiness = {
+      status: "ready",
+      canRunDryRun: true,
+      canRealWrite: false,
+      entrypoints: ["agent/agent_core/main.py"],
+      boundaries: ["default dry-run only"]
+    };
+    const run = {
+      runId: "RUN-agent-ui",
+      status: "completed",
+      dryRun: true,
+      realWritePerformed: false,
+      latestReturn: "Dry-run plan generated; no target repo writes performed.",
+      context: {
+        projectId: "conduit-realworld-example-app",
+        boundary: "dry-run preview only",
+        agent1EntryPoints: ["agent/agent_core/main.py"]
+      },
+      plan: {
+        mode: "agent1_preview_adapter",
+        steps: [
+          { name: "Analyze RequirementDSL", owner: "planner_agent", output: "implementation intent" },
+          { name: "Generate patch preview", owner: "coder_agent", output: "diff preview only" }
+        ]
+      },
+      review: {
+        status: "needs_review",
+        summary: "Agent dry-run prepared a human-reviewable patch plan.",
+        changedFiles: [
+          {
+            file: "src/components/LoginForm.jsx",
+            changeSummary: "Add clearer login failure copy.",
+            why: "Maps to RequirementDSL acceptance criteria.",
+            requirementPoint: "Login failure guidance",
+            risk: "Copy must match backend error codes."
+          }
+        ],
+        tests: [{ command: "npm test", status: "planned" }],
+        manualConfirmations: ["Confirm backend error-code taxonomy."]
+      },
+      prDraft: {
+        title: "Improve login failure guidance",
+        summary: ["Adds clearer user-facing login failure messaging."],
+        changedFiles: ["src/components/LoginForm.jsx"],
+        tests: [{ command: "npm test", status: "planned" }],
+        risks: ["Copy must match backend error codes."],
+        checklist: ["Dry-run artifacts reviewed", "No API keys or local configs committed"]
+      },
+      artifacts: {
+        "agent_context.json": { exists: true }
+      }
+    };
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      const data = target.endsWith("/readiness") ? readiness : run;
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelectorAll(".workspace-top-tab")[1]);
+
+    expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument();
+    expect(screen.getByText("Agent Execution Orchestrator")).toBeInTheDocument();
+    expect(screen.getByText("Awaiting readiness check")).toBeInTheDocument();
+
+    fireEvent.click(document.querySelectorAll(".agent-action-row button")[0]);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/agent/readiness",
+      expect.objectContaining({ method: "POST" })
+    ));
+    expect(screen.getByTestId("agent-context-preview")).toHaveTextContent("dry-run preview only");
+    expect(screen.getByText("Ready for dry-run preview")).toBeInTheDocument();
+
+    fireEvent.click(document.querySelectorAll(".agent-action-row button")[1]);
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/agent/run",
+      expect.objectContaining({ method: "POST" })
+    ));
+    await waitFor(() => expect(screen.getByText("Analyze RequirementDSL")).toBeInTheDocument());
+    expect(screen.getByText("Dry-run plan generated; no target repo writes performed.")).toBeInTheDocument();
+    expect(screen.getByText("diff preview only")).toBeInTheDocument();
+    const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body);
+    expect(runBody.dryRun).toBe(true);
+
+    fireEvent.click(document.querySelectorAll(".agent-action-row button")[3]);
+    expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();
+    expect(screen.getByText("src/components/LoginForm.jsx")).toBeInTheDocument();
+    expect(screen.getByText("Agent dry-run prepared a human-reviewable patch plan.")).toBeInTheDocument();
+
+    fireEvent.click(document.querySelector(".review-side button"));
+    expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
+    expect(screen.getByText("RUN-agent-ui")).toBeInTheDocument();
+    expect(screen.getByText("Improve login failure guidance")).toBeInTheDocument();
+    expect(screen.getByText("No API keys or local configs committed")).toBeInTheDocument();
   });
 
   it("selects a project and shows a local toast", () => {
