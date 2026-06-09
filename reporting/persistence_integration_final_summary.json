@@ -33,9 +33,9 @@
   },
   "git": {
     "branch": "main",
-    "finalCommit": "pending_until_commit_exists",
-    "pushed": false,
-    "aheadStatus": "before final commit: 2 ahead, 0 behind origin/main"
+    "finalCommit": "11dd47f5054bc58cfaa23f2af0bbdf9ccc0ab9f9",
+    "pushed": true,
+    "aheadStatus": "after push: 0 ahead, 0 behind origin/main"
   },
   "artifacts": {
     "latestRunId": "RUN-20260609-190415-LXO0C",

@@ -89,11 +89,11 @@
 - force_push_used: false.
 
 ### 8. Git / Push 结果
-- final_commit: pending until the self-referential integration commit exists; exact SHA is reported after commit/push.
-- pushed: pending at report write time.
+- final_commit: `11dd47f5054bc58cfaa23f2af0bbdf9ccc0ab9f9` (`feat: persist workbench state and standalone artifacts`).
+- pushed: true.
 - branch: `main`.
 - remote: `origin`.
-- ahead_status: before final commit, local `main` was 2 ahead and 0 behind `origin/main`.
+- ahead_status: after push, local `main` was 0 ahead and 0 behind `origin/main`.
 
 ### 9. 人工验收路径
 1. 启动后端和前端。
