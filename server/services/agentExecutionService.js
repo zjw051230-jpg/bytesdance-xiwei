@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
-import { persistAgentDryRun } from "./persistence/workbenchPersistenceAdapter.js";
+import { persistAgentDryRun, withPersistence } from "./persistence/workbenchPersistenceAdapter.js";
 
 const agentRoot = path.resolve("agent(1)", "agent");
 const pythonCoreRoot = path.join(agentRoot, "agent_core");
@@ -168,7 +168,13 @@ export async function startAgentRun(request = {}, config = {}) {
   return { ok: true, data: run, error: null };
 }
 
-export function getAgentRun(runId) {
+export function getAgentRun(runId, config = {}) {
+  const persisted = readPersistedAgentRun(runId, config);
+  if (persisted?.error) return persisted.error;
+  if (persisted?.run) {
+    const memoryRun = agentRuns.get(runId);
+    return { ok: true, data: mergeAgentRun(memoryRun, persisted.run), error: null };
+  }
   const run = agentRuns.get(runId);
   if (!run) return errorResult("agent_run_not_found", "Agent run not found", { runId });
   return { ok: true, data: run, error: null };
@@ -183,7 +189,11 @@ export function cancelAgentRun(runId) {
   return { ok: true, data: run, error: null };
 }
 
-export function getAgentArtifacts(runId) {
+export function getAgentArtifacts(runId, config = {}) {
+  const persisted = readPersistedAgentArtifacts(runId, config);
+  if (persisted?.error) return persisted.error;
+  if (persisted?.run) return { ok: true, data: persisted, error: null };
+
   const run = agentRuns.get(runId);
   if (!run) return errorResult("agent_run_not_found", "Agent run not found", { runId });
   return {
@@ -197,6 +207,95 @@ export function getAgentArtifacts(runId) {
       prDraft: run.prDraft
     },
     error: null
+  };
+}
+
+function readPersistedAgentRun(runId, config = {}) {
+  try {
+    return withPersistence(config, (service) => ({ run: service.agentRuns.get(runId) }));
+  } catch (error) {
+    return { error: errorResult("db_error", "Database request failed", dbErrorDetails(error)) };
+  }
+}
+
+function readPersistedAgentArtifacts(runId, config = {}) {
+  try {
+    return withPersistence(config, (service) => {
+      const run = service.agentRuns.get(runId);
+      if (!run) return {};
+      const artifactList = service.agentArtifacts.list(runId);
+      const reviewItems = service.reviewItems.listByRun(runId);
+      const prDraft = run.requirementId ? service.prDrafts.getByRequirement(run.requirementId) : null;
+      const activity = service.activity.listByRun(runId);
+      return {
+        run,
+        runId,
+        artifactList,
+        artifacts: Object.fromEntries(artifactList.map((artifact) => [artifact.name, {
+          id: artifact.id,
+          exists: true,
+          type: artifact.type,
+          path: artifact.path,
+          summary: artifact.summary,
+          createdAt: artifact.createdAt
+        }])),
+        review: reviewFromItems(reviewItems, run),
+        prDraft: prDraft ? prDraftForWorkbench(prDraft) : null,
+        activity
+      };
+    });
+  } catch (error) {
+    return { error: errorResult("db_error", "Database request failed", dbErrorDetails(error)) };
+  }
+}
+
+function mergeAgentRun(memoryRun, persistedRun) {
+  return {
+    ...(memoryRun || {}),
+    ...persistedRun,
+    id: persistedRun.id,
+    runId: persistedRun.runId || persistedRun.id,
+    latestReturn: persistedRun.resultSummary || memoryRun?.latestReturn || "",
+    context: memoryRun?.context || persistedRun.contextSnapshot || {},
+    plan: memoryRun?.plan || persistedRun.planJson || {},
+    progress: memoryRun?.progress || []
+  };
+}
+
+function reviewFromItems(reviewItems = [], run = {}) {
+  return {
+    status: reviewItems.length ? "needs_review" : "empty",
+    summary: run.resultSummary || "Persisted agent review items.",
+    changedFiles: reviewItems.map((item) => ({
+      file: item.filePath,
+      changeSummary: item.changeSummary,
+      why: item.reason,
+      requirementPoint: item.requirementMapping,
+      risk: item.riskLevel,
+      humanStatus: item.humanStatus,
+      humanComment: item.humanComment
+    })),
+    tests: [],
+    manualConfirmations: []
+  };
+}
+
+function prDraftForWorkbench(prDraft) {
+  return {
+    ...prDraft,
+    summary: prDraft.summary ? prDraft.summary.split("\n").filter(Boolean) : [],
+    checklist: prDraft.checklistJson || [],
+    changedFiles: [],
+    tests: [],
+    risks: [],
+    sourceRun: prDraft.runId
+  };
+}
+
+function dbErrorDetails(error) {
+  return {
+    name: String(error?.name || "Error"),
+    code: String(error?.code || "")
   };
 }
 

@@ -1,0 +1,54 @@
+{
+  "task": "Task 13.6-B Persistent Backend APIs",
+  "status": "implemented",
+  "apiEnvelope": {
+    "success": { "ok": true, "data": {}, "error": null },
+    "failure": { "ok": false, "data": null, "error": { "code": "string", "message": "string", "details": {} } }
+  },
+  "databaseBackedApis": {
+    "projects": true,
+    "requirements": true,
+    "clarifications": true,
+    "designPlans": true,
+    "planningTasks": true,
+    "agentRuns": true,
+    "agentArtifacts": true,
+    "runEvents": true,
+    "reviewItems": true,
+    "prDrafts": true,
+    "activityLogs": true
+  },
+  "errorCodes": {
+    "bad_request": true,
+    "not_found": true,
+    "validation_failed": true,
+    "project_not_found": true,
+    "requirement_not_found": true,
+    "design_plan_not_found": true,
+    "task_not_found": true,
+    "agent_run_not_found": true,
+    "review_item_not_found": true,
+    "pr_draft_not_found": true,
+    "db_error": true
+  },
+  "tests": {
+    "testServer": "passed: 57 tests",
+    "dbSmoke": "passed",
+    "smokePersistence": "passed",
+    "npmTest": "blocked by frontend tests in src/ outside Task 13.6-B edit scope"
+  },
+  "safety": {
+    "apiKeyCommitted": false,
+    "localConfigCommitted": false,
+    "localDatabaseCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "forcePush": false
+  },
+  "git": {
+    "commitMessage": "feat: persist backend workbench APIs",
+    "pushed": false
+  },
+  "reworkRecommended": false
+}

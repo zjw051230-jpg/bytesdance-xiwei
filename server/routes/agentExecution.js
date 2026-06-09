@@ -46,9 +46,9 @@ export async function handleAgentExecutionRoutes(request, response, config = {})
     const result = action === "cancel" && request.method === "POST"
       ? cancelAgentRun(runId)
       : action === "artifacts" && request.method === "GET"
-        ? getAgentArtifacts(runId)
+        ? getAgentArtifacts(runId, config)
         : !action && request.method === "GET"
-          ? getAgentRun(runId)
+          ? getAgentRun(runId, config)
           : null;
     if (!result) {
       sendError(response, 404, "not_found", "Agent route not found", { runId, action });
