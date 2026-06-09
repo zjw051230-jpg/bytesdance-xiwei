@@ -5,8 +5,9 @@ export const projectConfigPath = path.resolve("configs", "api_config.local.json"
 export const externalDslV2ConfigPath = "F:\\dsl-v2\\configs\\api_config.local.json";
 export const externalDslV2Warning = "External F:\\dsl-v2 config fallback used. Standalone mode should use configs/api_config.local.json.";
 
-export async function resolveStandaloneConfigPath({ allowExternalFallback = true } = {}) {
+export async function resolveStandaloneConfigPath({ allowExternalFallback = true, configPath = "" } = {}) {
   const candidates = [
+    { source: "explicit", value: configPath },
     { source: "API_CONFIG_PATH", value: process.env.API_CONFIG_PATH },
     { source: "project_local", value: projectConfigPath },
     { source: "project_relative", value: path.resolve("configs", "api_config.local.json") }
@@ -38,7 +39,8 @@ export async function resolveStandaloneConfigPath({ allowExternalFallback = true
 
 export async function loadStandaloneConfig(options = {}) {
   const resolved = await resolveStandaloneConfigPath({
-    allowExternalFallback: options.allowExternalFallback !== false
+    allowExternalFallback: options.allowExternalFallback !== false,
+    configPath: options.configPath
   });
   let raw;
   try {

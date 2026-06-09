@@ -35,8 +35,7 @@ async function startTestServer(options) {
 }
 
 async function ensureStandaloneServerFixtures(runtimeRoot, apiConfigPath) {
-  await fs.mkdir(path.join(runtimeRoot, "runtime"), { recursive: true });
-  await fs.writeFile(path.join(runtimeRoot, "runtime", "pm_dsl_runner.py"), "# test runner availability marker\n", "utf8");
+  await fs.mkdir(runtimeRoot, { recursive: true });
   await fs.mkdir(path.dirname(apiConfigPath), { recursive: true });
   await fs.writeFile(apiConfigPath, JSON.stringify({
     provider: "doubao_ark",
@@ -90,6 +89,36 @@ async function waitForJob(baseUrl, runId, terminalStatuses = ["passed", "failed"
     await new Promise((resolve) => setTimeout(resolve, 25));
   }
   throw new Error(`Timed out waiting for ${runId}; latest=${JSON.stringify(latest)}`);
+}
+
+async function fakeStandaloneArtifactModel({ label }) {
+  if (label === "pm_to_requirement_dsl") {
+    return {
+      content: JSON.stringify({
+        title: "Login failure guidance",
+        summary: "Improve visible login failure guidance without backend writes.",
+        requirements: ["Show clearer login failure copy", "Keep safe dry-run boundary"],
+        acceptance_criteria: ["User can see a clear next action", "No Agent real write happens"],
+        risks: ["Backend error-code mapping still needs confirmation"],
+        ready_for_agent: false,
+        handoff_decision: "clarify_first"
+      }),
+      latencyMs: 1
+    };
+  }
+  if (label === "context_readiness") {
+    return {
+      content: JSON.stringify({
+        ready: false,
+        reasons: ["PM confirmation is still required"],
+        safe_to_write: false,
+        recommended_files: ["src/components/LoginForm.jsx"],
+        test_commands: ["npm test"]
+      }),
+      latencyMs: 1
+    };
+  }
+  throw new Error(`unexpected_fake_standalone_label:${label}`);
 }
 
 afterEach(async () => {
@@ -902,6 +931,68 @@ describe("DSL backend API", () => {
     expect(payload.error.code).toBe("doubao_config_missing");
     expect(payload.error.details.provider).toBe("doubao_ark");
     expect(payload.error.details.client).toBe("doubao_ark");
+  });
+
+  it("routes full DSL artifacts through standalone runner without legacy runtime dependency", async () => {
+    const baseUrl = await startTestServer({
+      runnerMode: "real",
+      artifactModelClient: fakeStandaloneArtifactModel
+    });
+
+    const startResponse = await fetch(`${baseUrl}/api/dsl/runs/start`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        pmMessages: [{ role: "pm", content: "Login failure copy needs clearer next actions." }]
+      })
+    });
+    const started = await startResponse.json();
+    expect(startResponse.status).toBe(202);
+    expect(started.ok).toBe(true);
+
+    const finished = await waitForJob(baseUrl, started.data.runId);
+
+    expect(finished.status).toBe("passed");
+    expect(finished.artifactStatus).toBe("done");
+    expect(finished.runner.adapter).toBe("standalone_artifact_runner");
+    expect(finished.realLlmCalls).toBe(2);
+    expect(finished.mockLlmUsed).toBe(false);
+    expect(finished.realWritePerformed).toBe(false);
+    expect(finished.fullArtifacts["12_final_dsl.json"].exists).toBe(true);
+    expect(finished.fullArtifacts["13_case_summary.md"].exists).toBe(true);
+    expect(JSON.stringify(finished)).not.toMatch(/pm_dsl_runner|runner_missing|F:\\dsl-v2|api_key|Authorization|Bearer|sk-/i);
+  });
+
+  it("returns standalone_artifact_failed details instead of legacy runner_missing when standalone generation fails", async () => {
+    const failingModel = async () => {
+      throw new Error("standalone test failure");
+    };
+    const baseUrl = await startTestServer({
+      runnerMode: "real",
+      artifactModelClient: failingModel
+    });
+
+    const startResponse = await fetch(`${baseUrl}/api/dsl/runs/start`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        pmMessages: [{ role: "pm", content: "Force standalone artifact failure." }]
+      })
+    });
+    const started = await startResponse.json();
+    const failed = await waitForJob(baseUrl, started.data.runId, ["failed"]);
+
+    expect(failed.status).toBe("failed");
+    expect(failed.error.code).toBe("standalone_artifact_failed");
+    expect(failed.error.message).toContain("standalone test failure");
+    expect(JSON.stringify(failed)).not.toMatch(/pm_dsl_runner|runner_missing|F:\\dsl-v2|api_key|Authorization|Bearer|sk-/i);
+
+    const artifactsResponse = await fetch(`${baseUrl}/api/dsl/runs/${started.data.runId}/artifacts`);
+    const artifactsPayload = await artifactsResponse.json();
+    expect(artifactsResponse.status).toBe(200);
+    expect(artifactsPayload.data.artifacts["error.json"].json.error.code).toBe("standalone_artifact_failed");
   });
 
   it("serves agent readiness from agent(1) inventory without enabling real writes", async () => {

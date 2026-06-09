@@ -50,8 +50,9 @@
       }
     },
     "resultMetrics": {
-      "runIdText": "RUN-20260609-100941-273RV",
+      "runIdText": "RUN-20260609-113812-9B2HW",
       "statusPassedVisible": true,
+      "artifactsDoneVisible": true,
       "completionVisible": true,
       "evpiSourceVisible": false,
       "noAgentPlanText": true,
@@ -147,8 +148,9 @@
       }
     },
     "resultMetrics": {
-      "runIdText": "RUN-20260609-100945-5NOO7",
+      "runIdText": "RUN-20260609-113817-2R4VW",
       "statusPassedVisible": true,
+      "artifactsDoneVisible": true,
       "completionVisible": true,
       "evpiSourceVisible": false,
       "noAgentPlanText": true,

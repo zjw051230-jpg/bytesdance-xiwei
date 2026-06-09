@@ -18,7 +18,7 @@ export default function DSLStatusConsole({
   };
   const runStatus = runState?.status ?? "idle";
   const skillStatus = runState?.skillStatus || (runStatus === "skill_turn" ? "done" : "idle");
-  const artifactsStatus = runStatus === "skill_turn" ? "syncing" : runStatus;
+  const artifactsStatus = runState?.artifactStatus || formatArtifactStatus(runStatus);
   const skillSourceMode = runState?.skillSourceMode || "";
   const skillSourceLabel = formatSkillSourceLabel(skillSourceMode, runState?.skillModel, runState?.skillClient);
   const skillSourceTone = sourceTone(skillSourceMode);
@@ -163,6 +163,14 @@ function sourceTone(sourceMode) {
   if (sourceMode === "mock") return "mock";
   if (sourceMode === "external_blocked") return "blocked";
   return "fallback";
+}
+
+function formatArtifactStatus(runStatus) {
+  if (runStatus === "skill_turn") return "running";
+  if (["passed", "completed"].includes(runStatus)) return "done";
+  if (["queued", "running"].includes(runStatus)) return "running";
+  if (["failed", "timeout", "cancelled"].includes(runStatus)) return "failed";
+  return "idle";
 }
 
 function getGlobalNumber(name, fallback = 0) {

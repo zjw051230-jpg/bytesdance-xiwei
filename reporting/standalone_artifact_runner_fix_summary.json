@@ -1,0 +1,59 @@
+{
+  "task": "Task 13.5 Replace Legacy pm_dsl_runner with Standalone E2E Artifact Runner",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "implemented": {
+    "removedLegacyPmDslRunnerRequirement": true,
+    "addedStandaloneArtifactRunnerService": true,
+    "routedDslArtifactsThroughStandaloneRunner": true,
+    "uiArtifactStatusSupportsDoneFailed": true,
+    "retryUsesDslRunRetryEndpoint": true,
+    "mockLlmPretendingSuccess": false,
+    "realTargetRepoWriteInArtifactStage": false
+  },
+  "standaloneRunner": {
+    "configPath": "configs/api_config.local.json",
+    "externalDslV2Required": false,
+    "artifactStatus": "done",
+    "outputDirPattern": "runs\\RUN-*",
+    "lastVerifiedRunId": "RUN-20260609-115233-EMSP2",
+    "mockUsed": false
+  },
+  "verification": {
+    "npmTest": "passed",
+    "testServer": "passed",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "passed",
+    "checkStandalone": "passed",
+    "smokeE2eRealDryRun": "passed",
+    "smokeStandaloneArtifacts": "passed",
+    "browserInAppCheck": "passed"
+  },
+  "ui": {
+    "quickClarificationDone": true,
+    "fullDslArtifactsDone": true,
+    "legacyRunnerMissingVisible": false,
+    "pageVerticalScroll": false,
+    "consoleErrors": 0,
+    "retryPageLevelExercised": false,
+    "retryUnitCovered": true
+  },
+  "screenshots": {
+    "done": "F:\\字节比赛\\最终程序\\reporting\\standalone-artifacts-done.png",
+    "retry": "F:\\字节比赛\\最终程序\\reporting\\standalone-artifacts-retry.png"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localJsonCommitted": false,
+    "envCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "agentHandoffEntered": false,
+    "codeExecutionEntered": false,
+    "hunterAutoReplyA3BTouched": false,
+    "forcePush": false
+  },
+  "recommendRework": false
+}

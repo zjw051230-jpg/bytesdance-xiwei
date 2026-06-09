@@ -29,6 +29,7 @@
     "smoke:web-ui-real-skill-l1": "node scripts/smoke-real-skill-l1.mjs",
     "smoke:e2e-real": "node scripts/smoke-e2e-real.mjs",
     "smoke:e2e-real:dry-run": "node scripts/smoke-e2e-real.mjs --dry-run",
+    "smoke:standalone-artifacts": "node scripts/smoke-standalone-artifacts.mjs",
     "smoke:agent-integration": "node scripts/smoke-agent-integration.mjs",
     "verify": "node scripts/verify-render.mjs"
   },

@@ -1,0 +1,22 @@
+{
+  "status": "passed",
+  "webUrl": "http://127.0.0.1:9999",
+  "backendUrl": "http://127.0.0.1:8787",
+  "quickClarificationStatus": "快速澄清\ndone",
+  "artifactStatus": "完整 DSL artifacts\ndone",
+  "runId": "RUN-20260609-115233-EMSP2",
+  "outputDirVisible": true,
+  "sourceProviderVisible": true,
+  "realModelVisible": true,
+  "mockUsed": false,
+  "retryExercised": false,
+  "retryRunId": "",
+  "oldRunnerMissingVisible": false,
+  "pageVerticalScroll": false,
+  "consoleErrors": [],
+  "pageErrors": [],
+  "screenshots": {
+    "done": "F:\\字节比赛\\最终程序\\reporting\\standalone-artifacts-done.png",
+    "retry": "F:\\字节比赛\\最终程序\\reporting\\standalone-artifacts-retry.png"
+  }
+}

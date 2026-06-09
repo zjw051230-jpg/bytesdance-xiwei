@@ -97,7 +97,7 @@ function assertPortAvailable(port) {
 }
 
 async function enterWorkbench(page) {
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(url, { waitUntil: "commit", timeout: 60_000 });
   await page.getByRole("button", { name: "监控台" }).waitFor();
   await page.getByRole("button", { name: "工作台" }).click();
   await page.getByRole("button", { name: "DSL 澄清台" }).waitFor();
@@ -111,7 +111,7 @@ async function enterWorkbench(page) {
 }
 
 async function enterDesignPlanning(page) {
-  await page.goto(url, { waitUntil: "networkidle" });
+  await page.goto(url, { waitUntil: "commit", timeout: 60_000 });
   await page.getByRole("button", { name: "监控台" }).waitFor();
   await page.getByRole("button", { name: "工作台" }).click();
   await page.getByRole("button", { name: "设计规划" }).click();
@@ -120,7 +120,11 @@ async function enterDesignPlanning(page) {
 }
 
 async function verifyViewport(width, height) {
-  const browser = await chromium.launch({ headless: true, executablePath });
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath,
+    args: ["--headless=new", "--no-proxy-server", "--disable-gpu"]
+  });
   const page = await browser.newPage({ viewport: { width, height } });
   const consoleEntries = [];
   const pageErrors = [];
@@ -166,6 +170,7 @@ async function verifyViewport(width, height) {
   const resultMetrics = {
     runIdText: await page.locator(".run-status-panel code").textContent(),
     statusPassedVisible: await page.locator(".run-state-pill.passed").first().isVisible(),
+    artifactsDoneVisible: await page.locator(".status-split-grid .run-state-pill.done").isVisible(),
     completionVisible: await page.getByText("81%").isVisible(),
     evpiSourceVisible: await page.getByText("来源：EVPI-lite").isVisible(),
     noAgentPlanText: (await page.textContent("body")).includes("不会交给 Agent 执行"),
@@ -214,7 +219,11 @@ async function verifyViewport(width, height) {
 }
 
 async function verifyDesignPlanningViewport(width, height) {
-  const browser = await chromium.launch({ headless: true, executablePath });
+  const browser = await chromium.launch({
+    headless: true,
+    executablePath,
+    args: ["--headless=new", "--no-proxy-server", "--disable-gpu"]
+  });
   const page = await browser.newPage({ viewport: { width, height } });
   const consoleEntries = [];
   const pageErrors = [];

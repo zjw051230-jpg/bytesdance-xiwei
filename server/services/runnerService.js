@@ -1,4 +1,3 @@
-import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { artifactsToUiState } from "../../src/adapters/dslArtifactAdapter.js";
@@ -15,8 +14,9 @@ import {
   setJobRuntime,
   updateJob
 } from "./jobStore.js";
-import { redactSecrets, redactString } from "./redactionService.js";
+import { redactSecrets } from "./redactionService.js";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
+import { checkStandaloneArtifactRunner, runStandaloneArtifactRunner } from "./standaloneArtifactRunner.js";
 
 export const defaultConfig = {
   dslRuntimeRoot: path.resolve("e2e"),
@@ -31,11 +31,14 @@ export const defaultConfig = {
 export async function getHealth(config = {}) {
   const merged = { ...defaultConfig, ...config };
   const mockRunnerAvailable = ["mock", "mock-fail"].includes(merged.runnerMode);
+  const standalone = await checkStandaloneArtifactRunner(merged);
   return {
     service: "codex-workbench-web",
     dslRuntimeRoot: merged.dslRuntimeRoot,
-    runnerAvailable: mockRunnerAvailable || await exists(path.join(merged.dslRuntimeRoot, "runtime", "pm_dsl_runner.py")),
-    apiConfigExists: await exists(merged.apiConfigPath)
+    runnerAvailable: mockRunnerAvailable || standalone.available,
+    standaloneRunnerAvailable: standalone.available,
+    standaloneMissingFiles: standalone.missingFiles,
+    apiConfigExists: mockRunnerAvailable || standalone.apiConfigExists
   };
 }
 
@@ -47,7 +50,7 @@ export async function createDslRun(requestBody, config = {}) {
   }
 
   const health = await getHealth(merged);
-  if (!health.runnerAvailable) return errorPayload("runner_missing", "pm_dsl_runner.py not found", health);
+  if (!health.runnerAvailable) return errorPayload("standalone_runner_missing", "Standalone artifact runner not found", health);
   if (!health.apiConfigExists && merged.runnerMode !== "mock") {
     return errorPayload("config_missing", "api_config.local.json not found", health);
   }
@@ -64,12 +67,16 @@ export async function createDslRun(requestBody, config = {}) {
     } else if (merged.runnerMode === "mock-fail") {
       throw new RunnerError("runner_failed", "Mock runner failure", { stderr: "api_key=***REDACTED***" });
     } else {
-      await invokePythonRunner({
+      const standaloneResult = await runStandaloneArtifactRunner({
+        runId,
         outputDir,
         pmText: mergedPmText,
-        codeContextPath,
-        config: merged
-      });
+        pmMessages,
+        codeContextPath
+      }, merged);
+      if (standaloneResult.error) {
+        throw new RunnerError(standaloneResult.error.code, standaloneResult.error.message, standaloneResult.error.details);
+      }
     }
 
     const { artifacts, caseDir } = await readRunArtifacts(outputDir);
@@ -86,8 +93,13 @@ export async function createDslRun(requestBody, config = {}) {
         caseDir,
         artifacts,
         uiState,
+        artifactStatus: "done",
+        realLlmCalls: merged.runnerMode === "mock" ? 0 : 2,
+        mockLlmUsed: merged.runnerMode === "mock",
+        realWritePerformed: false,
         runner: {
           mode: merged.runnerMode,
+          adapter: merged.runnerMode === "mock" ? "mock" : "standalone_artifact_runner",
           maxRoundsIgnored: requestBody?.maxRounds !== undefined,
           scope: "pm_to_dsl_only_no_agent_plan_no_handoff"
         }
@@ -194,7 +206,7 @@ async function createRunContext(requestBody, config, options = {}) {
 
   const health = await getHealth(merged);
   if (!health.runnerAvailable) {
-    return { ok: false, payload: errorPayload("runner_missing", "pm_dsl_runner.py not found", health) };
+    return { ok: false, payload: errorPayload("standalone_runner_missing", "Standalone artifact runner not found", health) };
   }
   if (!health.apiConfigExists && merged.runnerMode !== "mock" && merged.runnerMode !== "mock-fail") {
     return { ok: false, payload: errorPayload("config_missing", "api_config.local.json not found", health) };
@@ -227,14 +239,19 @@ async function executeAsyncJob(context) {
     } else if (context.merged.runnerMode === "mock-fail") {
       await runMockJob(context, "failed");
     } else {
-      await invokePythonRunner({
+      updateJob(context.runId, {
+        lastMessage: "Running standalone artifact runner"
+      });
+      const standaloneResult = await runStandaloneArtifactRunner({
+        runId: context.runId,
         outputDir: context.outputDir,
         pmText: context.pmText,
-        codeContextPath: context.codeContextPath,
-        config: context.merged,
-        timeoutMs: context.timeoutMs,
-        runId: context.runId
-      });
+        pmMessages: context.pmMessages,
+        codeContextPath: context.codeContextPath
+      }, context.merged);
+      if (standaloneResult.error) {
+        throw new RunnerError(standaloneResult.error.code, standaloneResult.error.message, standaloneResult.error.details);
+      }
     }
 
     if (isTerminalJob(context.runId)) return;
@@ -251,8 +268,13 @@ async function executeAsyncJob(context) {
       uiState,
       runner: {
         mode: context.merged.runnerMode,
+        adapter: context.merged.runnerMode === "mock" ? "mock" : "standalone_artifact_runner",
         scope: "pm_to_dsl_only_no_agent_plan_no_handoff"
       },
+      artifactStatus: "done",
+      realLlmCalls: context.merged.runnerMode === "mock" ? 0 : 2,
+      mockLlmUsed: context.merged.runnerMode === "mock",
+      realWritePerformed: false,
       lastMessage: `DSL runner finished with ${status}`
     });
   } catch (error) {
@@ -361,110 +383,6 @@ function mergePmText(pmMessages) {
       return `${label}\n${message.content}`;
     })
     .join("\n\n");
-}
-
-async function invokePythonRunner({ outputDir, pmText, codeContextPath, config, timeoutMs, runId }) {
-  const args = [
-    "-m",
-    "runtime.pm_dsl_runner",
-    "--config",
-    config.apiConfigPath,
-    "--pm-text",
-    pmText,
-    "--code-context",
-    codeContextPath,
-    "--output-dir",
-    outputDir
-  ];
-  const env = {
-    ...process.env,
-    PYTHONPATH: `${config.dslRuntimeRoot};${path.join(config.dslRuntimeRoot, "core")}`
-  };
-  const result = await runProcess("python", args, {
-    cwd: config.dslRuntimeRoot,
-    env,
-    timeoutMs: timeoutMs || Number(config.timeoutSeconds || 180) * 1000,
-    runId: runId || "",
-    command: "python",
-    args
-  });
-  if (result.timedOut) {
-    throw new RunnerError("runner_timeout", `runner exceeded ${config.timeoutSeconds}s`, result);
-  }
-  if (result.exitCode !== 0) {
-    throw new RunnerError("runner_failed", "pm_dsl_runner.py exited with a non-zero status", result);
-  }
-}
-
-function runProcess(command, args, { cwd, env, timeoutMs, runId }) {
-  return new Promise((resolve) => {
-    const processContext = redactSecrets({
-      command,
-      args,
-      cwd
-    });
-    const child = spawn(command, args, {
-      cwd,
-      env,
-      windowsHide: true,
-      stdio: ["ignore", "pipe", "pipe"]
-    });
-    let stdout = "";
-    let stderr = "";
-    let settled = false;
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      killProcessTree(child.pid).finally(() => {
-        resolve({
-          exitCode: null,
-          timedOut: true,
-          ...processContext,
-          stdout: redactString(stdout),
-          stderr: redactString(stderr)
-        });
-      });
-    }, timeoutMs);
-
-    if (runId) {
-      updateJob(runId, { pid: child.pid });
-      setJobRuntime(runId, {
-        clear: () => clearTimeout(timer),
-        cancel: () => killProcessTree(child.pid)
-      });
-    }
-
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk.toString("utf8");
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString("utf8");
-    });
-    child.on("error", (error) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve({
-        exitCode: null,
-        timedOut: false,
-        ...processContext,
-        stdout: redactString(stdout),
-        stderr: redactString(`${stderr}\n${error.message}`)
-      });
-    });
-    child.on("close", (exitCode) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      resolve({
-        exitCode,
-        timedOut: false,
-        ...processContext,
-        stdout: redactString(stdout),
-        stderr: redactString(stderr)
-      });
-    });
-  });
 }
 
 async function writeMockArtifacts({ runId, outputDir, pmText, codeContextPath }) {
@@ -598,26 +516,6 @@ function normalizeTimeoutMs(requestBody, config) {
     return Math.max(1, Math.min(requested, Number(config.timeoutSeconds || 180) * 1000));
   }
   return Number(config.timeoutSeconds || 180) * 1000;
-}
-
-function killProcessTree(pid) {
-  if (!pid) return Promise.resolve();
-  if (process.platform !== "win32") {
-    try {
-      process.kill(pid, "SIGTERM");
-    } catch {
-      // The process may have exited between polling and cancellation.
-    }
-    return Promise.resolve();
-  }
-  return new Promise((resolve) => {
-    const killer = spawn("taskkill", ["/PID", String(pid), "/T", "/F"], {
-      windowsHide: true,
-      stdio: "ignore"
-    });
-    killer.on("close", resolve);
-    killer.on("error", resolve);
-  });
 }
 
 function errorPayload(code, message, details) {

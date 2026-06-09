@@ -76,16 +76,16 @@ describe("createDslRun", () => {
         ok: false,
         data: null,
         error: {
-          code: "runner_failed",
-          message: "pm_dsl_runner.py exited with a non-zero status"
+          code: "standalone_artifact_failed",
+          message: "standalone artifact runner failed"
         }
       })
     })));
 
     await expect(createDslRun(samplePayload)).rejects.toMatchObject({
-      message: "pm_dsl_runner.py exited with a non-zero status",
+      message: "standalone artifact runner failed",
       payload: {
-        error: { code: "runner_failed" }
+        error: { code: "standalone_artifact_failed" }
       }
     });
   });

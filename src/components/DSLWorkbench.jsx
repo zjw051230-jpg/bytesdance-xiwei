@@ -453,6 +453,10 @@ function jobToRunState(job) {
     lastMessage: job.lastMessage || "",
     originalRunId: job.originalRunId || "",
     artifacts: job.fullArtifacts || job.artifacts || {},
+    artifactStatus: job.artifactStatus || "",
+    realLlmCalls: job.realLlmCalls ?? null,
+    mockLlmUsed: job.mockLlmUsed ?? null,
+    realWritePerformed: job.realWritePerformed ?? null,
     realDslEnabled: true,
     error: job.error || null
   };

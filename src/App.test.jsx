@@ -618,8 +618,29 @@ describe("monitor console and workspace picker", () => {
       outputDir: "F:\\byte-contest\\final-app\\runs\\RUN-full-failed",
       relativeOutputDir: "runs\\RUN-full-failed",
       elapsedMs: 12,
+      artifactStatus: "failed",
       artifacts: { available: ["error.json"], partial: true },
-      error: { code: "runner_failed", message: "pm_dsl_runner.py exited with a non-zero status", details: { runId: "RUN-full-failed" } }
+      error: { code: "standalone_artifact_failed", message: "standalone artifact runner failed", details: { runId: "RUN-full-failed" } }
+    };
+    const retryPassedJob = {
+      ...failedJob,
+      runId: "RUN-retry-artifacts",
+      originalRunId: "RUN-full-failed",
+      status: "passed",
+      artifactStatus: "done",
+      error: null,
+      artifacts: { available: ["12_final_dsl.json", "13_case_summary.md"], partial: false },
+      fullArtifacts: {
+        "12_final_dsl.json": { exists: true, json: { title: "Login failure guidance" } },
+        "13_case_summary.md": { exists: true, text: "standalone artifact runner passed" }
+      },
+      uiState: {
+        dslCompletion: { value: 82, source: "real_score" },
+        readiness: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first", source: "artifact" },
+        risks: [],
+        recommendedQuestion: { title: "Skill suggestion", text: "Confirm acceptance result?", reason: "standalone runner", source: "EVPI-lite" },
+        humanReport: {}
+      }
     };
     const artifactPayload = {
       runId: "RUN-full-failed",
@@ -627,7 +648,7 @@ describe("monitor console and workspace picker", () => {
       available: ["error.json", "summary.md"],
       partial: true,
       artifacts: {
-        "error.json": { exists: true, json: { error: { code: "runner_failed", message: "pm_dsl_runner.py exited with a non-zero status" } } }
+        "error.json": { exists: true, json: { error: { code: "standalone_artifact_failed", message: "standalone artifact runner failed" } } }
       }
     };
     const fetchMock = vi.fn(async (url) => {
@@ -639,9 +660,9 @@ describe("monitor console and workspace picker", () => {
           : target.endsWith("/artifacts")
             ? artifactPayload
             : target.endsWith("/retry")
-              ? { ...failedJob, runId: "RUN-retry-artifacts", originalRunId: "RUN-full-failed", status: "failed" }
+              ? { ...retryPassedJob, status: "running", elapsedMs: 0, error: null }
               : target.includes("RUN-retry-artifacts")
-                ? { ...failedJob, runId: "RUN-retry-artifacts", originalRunId: "RUN-full-failed" }
+                ? retryPassedJob
                 : failedJob;
       return {
         ok: true,
@@ -665,6 +686,9 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText("RUN-full-failed")).toBeInTheDocument();
     expect(screen.getByText("done")).toBeInTheDocument();
     expect(screen.getAllByText("failed").length).toBeGreaterThan(0);
+    await waitFor(() => expect(document.body.textContent).toContain("standalone_artifact_failed"));
+    expect(document.body.textContent).not.toContain("pm_dsl_runner");
+    expect(document.body.textContent).not.toContain("runner_missing");
     expect(screen.getByText("not ready")).toBeInTheDocument();
     expect(screen.getByText("clarify_first")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /打开草稿报告/ })).toBeInTheDocument();
@@ -679,6 +703,8 @@ describe("monitor console and workspace picker", () => {
     const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length;
     fireEvent.click(screen.getByRole("button", { name: "重试完整 artifacts" }));
     await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true));
+    await waitFor(() => expect(screen.getByText("RUN-retry-artifacts")).toBeInTheDocument());
+    await waitFor(() => expect(screen.getAllByText("done").length).toBeGreaterThanOrEqual(2));
     expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length).toBe(skillCallsBeforeRetry);
   });
 
