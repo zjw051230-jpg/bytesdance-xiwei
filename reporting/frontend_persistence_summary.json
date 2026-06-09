@@ -1,0 +1,79 @@
+{
+  "task": "Task 13.6-C Frontend Persistence Wiring",
+  "status": "passed",
+  "backend_p0_ready": true,
+  "modified_areas": [
+    "src/api",
+    "src/components",
+    "reporting"
+  ],
+  "pages": {
+    "project_picker": {
+      "list_api": "GET /api/projects",
+      "create_api": "POST /api/projects",
+      "persistent_after_restart": true,
+      "empty_state": true
+    },
+    "dsl_clarification": {
+      "history_read_api": "GET /api/requirements/:requirementId/clarifications",
+      "pm_save_api": "POST /api/requirements/:requirementId/clarifications",
+      "system_save_api": "POST /api/requirements/:requirementId/clarifications",
+      "requirement_state_api": "GET/PATCH /api/requirements/:requirementId",
+      "persistent_after_restart": true
+    },
+    "design_planning": {
+      "plan_read_api": "GET /api/requirements/:requirementId/design-plan",
+      "task_read_api": "GET /api/design-plans/:planId/tasks",
+      "task_patch_api": "PATCH /api/planning-tasks/:taskId",
+      "persistent_after_restart": true
+    },
+    "review_check": {
+      "review_read_api": "GET /api/agent/runs/:runId/review",
+      "review_patch_api": "PATCH /api/review-items/:reviewItemId",
+      "persistent_after_restart": true
+    },
+    "pr_page": {
+      "draft_read_api": "GET /api/requirements/:requirementId/pr-draft",
+      "draft_save_api": "POST /api/requirements/:requirementId/pr-draft",
+      "checklist_persistent": true,
+      "persistent_after_restart": true
+    },
+    "agent_orchestration": {
+      "run_api": "GET /api/agent/runs/:runId",
+      "artifacts_api": "GET /api/agent/runs/:runId/artifacts",
+      "dry_run_default_preserved": true,
+      "frontend_real_file_write": false
+    }
+  },
+  "manual_restart_verification": {
+    "db_path": "F:\\OpenClaw\\tmp\\task13_6c_restart_verify.sqlite",
+    "project_id": "project-cc90ec57-de0e-44a6-a124-7c8936ab8a18",
+    "requirement_id": "req-4d846d41-c46d-43ae-a9f9-54d8b3b84f8d",
+    "clarification_turns": 2,
+    "task_status": "done",
+    "run_id": "RUN-20260609-181317-L82G7",
+    "review_status": "approved",
+    "pr_title": "Task 13.6C persisted PR draft",
+    "checklist_saved": true,
+    "backend_restarted": true,
+    "data_restored_after_restart": true
+  },
+  "tests": {
+    "npm_test": "passed",
+    "npm_run_build": "passed",
+    "npm_run_smoke": "passed",
+    "verify_render": "passed"
+  },
+  "security": {
+    "api_keys_committed": false,
+    "local_config_committed": false,
+    "env_committed": false,
+    "sqlite_or_db_committed": false,
+    "runs_committed": false,
+    "node_modules_committed": false,
+    "dist_committed": false,
+    "pushed": false,
+    "force_pushed": false
+  },
+  "recommend_rework": false
+}

@@ -13,18 +13,24 @@ export default function AppShell() {
   const [mode, setMode] = useState("monitor");
   const [projectList, setProjectList] = useState(initialProjects);
   const [activeProjectId, setActiveProjectId] = useState(initialProjects[0]?.id);
+  const [projectLoadState, setProjectLoadState] = useState({ loading: true, error: "" });
   const [workspacePage, setWorkspacePage] = useState("picker");
   const [workspaceToast, setWorkspaceToast] = useState("");
 
   useEffect(() => {
     let active = true;
+    setProjectLoadState({ loading: true, error: "" });
     listProjects()
       .then((projects) => {
-        if (!active || !Array.isArray(projects) || projects.length === 0) return;
+        if (!active || !Array.isArray(projects)) return;
         setProjectList(projects);
-        setActiveProjectId((current) => current || projects[0]?.id);
+        setActiveProjectId((current) => projects.some((project) => project.id === current) ? current : projects[0]?.id);
+        setProjectLoadState({ loading: false, error: "" });
       })
-      .catch(() => {});
+      .catch((error) => {
+        if (!active) return;
+        setProjectLoadState({ loading: false, error: error.message || "项目 API 加载失败" });
+      });
     return () => {
       active = false;
     };
@@ -40,27 +46,32 @@ export default function AppShell() {
     }
   };
 
-  const createProject = ({ name, localPath }) => {
+  const createProject = async ({ name, localPath }) => {
     const draft = {
-      id: `mock-${Date.now()}`,
       name,
-      description: localPath ? `本地路径：${localPath}` : "刚刚创建的 mock 项目",
+      description: localPath ? `本地路径：${localPath}` : "刚刚创建的项目",
       railSubtitle: localPath || "刚刚创建",
       status: "current",
       icon: "folder"
     };
-    const createdProject = draft;
-    setProjectList((currentProjects) => [createdProject, ...currentProjects]);
-    setActiveProjectId(createdProject.id);
-    createPersistedProject(draft)
-      .then((persistedProject) => {
-        setProjectList((currentProjects) => currentProjects.map((project) =>
-          project.id === createdProject.id ? persistedProject : project
-        ));
-        setActiveProjectId((current) => current === createdProject.id ? persistedProject.id : current);
-      })
-      .catch(() => {});
+    const optimisticProject = {
+      ...draft,
+      id: `pending-${Date.now()}`
+    };
+    setProjectList((currentProjects) => [optimisticProject, ...currentProjects]);
+    setActiveProjectId(optimisticProject.id);
     setWorkspaceToast(`已创建 ${name}`);
+    try {
+      const createdProject = await createPersistedProject(draft);
+      setProjectList((currentProjects) => [
+        createdProject,
+        ...currentProjects.filter((project) => project.id !== optimisticProject.id && project.id !== createdProject.id)
+      ]);
+      setActiveProjectId((current) => current === optimisticProject.id ? createdProject.id : current);
+      setWorkspaceToast(`已创建 ${createdProject.name}`);
+    } catch (error) {
+      setWorkspaceToast(`项目创建失败：${error.message || "Persistence API request failed"}`);
+    }
   };
 
   const handleModeChange = (nextMode) => {
@@ -102,6 +113,7 @@ export default function AppShell() {
           onWorkspacePageChange={setWorkspacePage}
           toast={workspaceToast}
           onToast={setWorkspaceToast}
+          projectLoadState={projectLoadState}
         />
       )}
     </div>

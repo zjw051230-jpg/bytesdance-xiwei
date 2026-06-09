@@ -9,18 +9,35 @@ import {
   startDslRun
 } from "../api/dslClient.js";
 import { fallbackUiState } from "../adapters/dslArtifactAdapter.js";
-import { listClarifications, listRequirements } from "../api/persistenceClient.js";
+import {
+  createClarification,
+  createRequirement,
+  getRequirement,
+  listClarifications,
+  listRequirements,
+  upsertDesignPlan,
+  updateRequirement
+} from "../api/persistenceClient.js";
 import ClarificationChat from "./ClarificationChat.jsx";
 import DSLStatusConsole from "./DSLStatusConsole.jsx";
 import RequirementReportModal from "./RequirementReportModal.jsx";
-import { clarificationMessages, dslTask } from "../data/dslWorkbenchData.js";
+import { dslTask } from "../data/dslWorkbenchData.js";
 import {
   applyClarificationDedupToUiState,
   normalizeQuestionKey
 } from "../utils/clarificationDedup.js";
 
-export default function DSLWorkbench({ activeProject, toast, onToast }) {
-  const [messages, setMessages] = useState(clarificationMessages);
+export default function DSLWorkbench({
+  activeProject,
+  activeRequirement,
+  onRequirementChange,
+  requirementError,
+  toast,
+  onToast
+}) {
+  const [messages, setMessages] = useState([]);
+  const [loadedRequirement, setLoadedRequirement] = useState(activeRequirement || null);
+  const [historyError, setHistoryError] = useState("");
   const [uiState, setUiState] = useState(() => fallbackUiState());
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isPartialOpen, setIsPartialOpen] = useState(false);
@@ -50,11 +67,27 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
     if (!projectId) return () => {
       active = false;
     };
-    listRequirements(projectId)
+    const requirementPromise = activeRequirement?.id
+      ? getRequirement(activeRequirement.id)
+      : listRequirements(projectId).then((requirements) => Array.isArray(requirements) && requirements[0]?.id
+        ? getRequirement(requirements[0].id)
+        : null);
+
+    setHistoryError("");
+    requirementPromise
       .then(async (requirements) => {
-        if (!active || !Array.isArray(requirements) || requirements.length === 0) return;
-        const latest = requirements[0];
-        const turns = await listClarifications(latest.id).catch(() => []);
+        if (!active) return;
+        const latest = requirements;
+        setLoadedRequirement(latest);
+        onRequirementChange?.(latest);
+        if (!latest?.id) {
+          setMessages([]);
+          return;
+        }
+        const turns = await listClarifications(latest.id).catch((error) => {
+          setHistoryError(error.message || "澄清历史加载失败");
+          return [];
+        });
         if (!active) return;
         if (Array.isArray(turns) && turns.length > 0) {
           setMessages(turns.map((turn, index) => ({
@@ -66,27 +99,19 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
             persisted: true,
             order: index
           })));
+        } else {
+          setMessages([]);
         }
-        setUiState((current) => ({
-          ...current,
-          dslCompletion: {
-            ...(current.dslCompletion || {}),
-            value: latest.completionPercent || current.dslCompletion?.value || 0,
-            source: "persistent_database"
-          },
-          readiness: {
-            ...(current.readiness || {}),
-            ready_for_agent: Boolean(latest.readyForAgent),
-            handoff_decision: latest.handoffDecision || "clarify_first",
-            source: "persistent_database"
-          }
-        }));
+        setUiState((current) => requirementToUiState(current, latest));
       })
-      .catch(() => {});
+      .catch((error) => {
+        if (!active) return;
+        setHistoryError(error.message || "需求 API 加载失败");
+      });
     return () => {
       active = false;
     };
-  }, [activeProject?.id]);
+  }, [activeProject?.id, activeRequirement?.id]);
 
   const stopPolling = () => {
     pollRef.current = "";
@@ -101,16 +126,8 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
       text
     };
     const nextMessages = [...messages, pmMessage];
-    const requestPayload = {
-      projectId: activeProject?.id ?? "conduit-realworld-example-app",
-      pmMessages: messagesToRunnerPayload(nextMessages),
-      codeContextPath: "e2e\\context\\default_code_context_packet.json",
-      maxRounds: 3
-    };
-    const testTimeoutMs = getGlobalNumber("__DSL_TEST_TIMEOUT_MS__");
-    if (testTimeoutMs > 0) requestPayload.timeoutMs = testTimeoutMs;
     const loadingId = `system-loading-${Date.now()}-${messages.length}`;
-    const loadingMessage = systemMessage("正在理解需求并更新 DSL...", nextMessages.length, {
+    const loadingMessage = systemMessage("正在生成 DSL draft...", nextMessages.length, {
       id: loadingId,
       kind: "skill_loading"
     });
@@ -128,15 +145,63 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
       error: null
     }));
 
+    let requirement = loadedRequirement;
+    let createdRequirementForTurn = false;
+    if (!requirement?.id) {
+      try {
+        const createdRequirement = await createRequirement(activeProject?.id ?? "conduit-realworld-example-app", {
+          title: inferRequirementTitle(text),
+          rawPmInput: text,
+          dslJson: {},
+          readinessStatus: "clarify_first",
+          readyForAgent: false,
+          handoffDecision: "clarify_first",
+          completionPercent: 0
+        });
+        requirement = hasRequirementId(createdRequirement)
+          ? createdRequirement
+          : localRequirement(activeProject?.id, text);
+        createdRequirementForTurn = hasRequirementId(createdRequirement);
+        setLoadedRequirement(requirement);
+        if (hasRequirementId(createdRequirement)) onRequirementChange?.(requirement);
+      } catch (error) {
+        requirement = localRequirement(activeProject?.id, text);
+        setLoadedRequirement(requirement);
+        setHistoryError(`需求创建失败：${error.message || "Persistence API request failed"}；本轮仍会继续，但刷新后可能无法恢复。`);
+      }
+    }
+
+    const requestPayload = {
+      projectId: activeProject?.id ?? "conduit-realworld-example-app",
+      requirementId: requirement.id,
+      pmMessages: messagesToRunnerPayload(nextMessages),
+      codeContextPath: "e2e\\context\\default_code_context_packet.json",
+      maxRounds: 3
+    };
+    const testTimeoutMs = getGlobalNumber("__DSL_TEST_TIMEOUT_MS__");
+    if (testTimeoutMs > 0) requestPayload.timeoutMs = testTimeoutMs;
+
+    createClarification(requirement.id, {
+      role: "pm",
+      content: text,
+      source: "pm_input"
+    }).catch((error) => setHistoryError(`PM 输入保存失败：${error.message || "Persistence API request failed"}`));
+
     let skillReplyResolved = false;
     try {
       const skillTurn = await createSkillPmDslTurn(buildSkillTurnRequest(requestPayload, nextMessages, uiState));
+      const assistantText = skillTurn.assistant_message || "模型已生成本轮澄清回复。";
       setUiState((current) => ({ ...current, ...(skillTurn.uiState || {}) }));
       setMessages((current) => replaceMessage(
         current,
         loadingId,
-        systemMessage(skillTurn.assistant_message || "模型已生成本轮澄清回复。", current.length, { id: loadingId })
+        systemMessage(assistantText, current.length, { id: loadingId })
       ));
+      createClarification(requirement.id, {
+        role: "system",
+        content: assistantText,
+        source: "skill_turn"
+      }).catch((error) => setHistoryError(`系统回复保存失败：${error.message || "Persistence API request failed"}`));
       setRunState((current) => ({
         ...current,
         runId: skillTurn.runId || current.runId,
@@ -158,6 +223,21 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
       const result = await runDslFlow(requestPayload, { appendStartMessage: false });
       const filteredUiState = applyClarificationDedupToUiState(result.uiState, nextMessages);
       setUiState((current) => mergeRunnerUiState(current, filteredUiState));
+      if (!isLocalRequirementId(requirement.id)) {
+        persistRequirementState(requirement.id, result, filteredUiState)
+          .then((updated) => {
+            setLoadedRequirement(updated);
+            onRequirementChange?.(updated);
+            if (createdRequirementForTurn) {
+              ensureEmptyDesignPlan(updated).catch((error) => {
+                setHistoryError(`设计规划初始化失败：${error.message || "Persistence API request failed"}`);
+              });
+            }
+          })
+          .catch((error) => {
+            setHistoryError(`DSL 状态保存失败：${error.message || "Persistence API request failed"}`);
+          });
+      }
       setRunState((current) => ({
         ...current,
         runId: result.runId,
@@ -171,13 +251,19 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
       onToast(`DSL run ${result.status}`);
     } catch (error) {
       const runError = error.payload?.error || { code: "request_failed", message: error.message, details: {} };
+      const failureText = skillReplyResolved ? buildArtifactFailureReply(runError) : buildFailureReply(runError);
       setMessages((current) => skillReplyResolved
-        ? [...current, systemMessage(buildArtifactFailureReply(runError), current.length)]
+        ? [...current, systemMessage(failureText, current.length)]
         : replaceMessage(
             current,
             loadingId,
-            systemMessage(buildFailureReply(runError), current.length, { id: loadingId })
+            systemMessage(failureText, current.length, { id: loadingId })
           ));
+      createClarification(requirement.id, {
+        role: "system",
+        content: failureText,
+        source: "error"
+      }).catch(() => {});
       setRunState((current) => ({
         ...current,
         runId: runError.details?.runId || current.runId,
@@ -352,11 +438,14 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
           <h1>需求澄清工作台</h1>
           <p>通过对话生成 RequirementDSL，并持续检查风险与执行边界</p>
         </header>
+        {requirementError || historyError ? (
+          <p className="run-error-text" role="alert">{requirementError || historyError}</p>
+        ) : null}
 
         <section className="dsl-task-card" aria-label="当前需求任务">
           <span className="dsl-task-icon" aria-hidden="true"><FileText size={28} /></span>
           <div>
-            <h2>{dslTask.title}</h2>
+            <h2>{loadedRequirement?.title || dslTask.title}</h2>
             <p>阶段 <strong>{dslTask.phase}</strong></p>
           </div>
           <div>
@@ -485,6 +574,91 @@ function buildArtifactFailureReply(error) {
   const code = error?.code || "request_failed";
   const message = error?.message || "未知错误";
   return `系统提示：快速澄清已完成，完整 DSL artifacts 后台生成失败。当前不会交给 Agent 执行，你可以继续澄清或稍后重试生成完整 artifacts。原因：${code} / ${message}。`;
+}
+
+function requirementToUiState(current, requirement) {
+  if (!requirement) return current;
+  return {
+    ...current,
+    dslCompletion: {
+      ...(current.dslCompletion || {}),
+      value: Number(requirement.completionPercent ?? current.dslCompletion?.value ?? 0),
+      source: "persistent_database"
+    },
+    readiness: {
+      ...(current.readiness || {}),
+      ready_for_agent: Boolean(requirement.readyForAgent),
+      handoff_decision: requirement.handoffDecision || requirement.readinessStatus || "clarify_first",
+      source: "persistent_database"
+    },
+    humanReport: {
+      ...(current.humanReport || {}),
+      summary: {
+        ...(current.humanReport?.summary || {}),
+        title: requirement.dslJson?.title || requirement.title,
+        text: requirement.rawPmInput || current.humanReport?.summary?.text || "",
+        source: "persistent_database"
+      }
+    }
+  };
+}
+
+async function persistRequirementState(requirementId, result, uiState) {
+  const readiness = uiState?.readiness || {};
+  return updateRequirement(requirementId, {
+    dslJson: extractDslJson(result, uiState),
+    readinessStatus: result.status || readiness.handoff_decision || "clarify_first",
+    readyForAgent: Boolean(readiness.ready_for_agent),
+    handoffDecision: readiness.handoff_decision || "clarify_first",
+    sourceProvider: uiState?.source?.provider || "",
+    sourceModel: uiState?.source?.model || "",
+    completionPercent: uiState?.dslCompletion?.value ?? 0
+  });
+}
+
+function ensureEmptyDesignPlan(requirement) {
+  return upsertDesignPlan(requirement.id, {
+    title: requirement.title || requirement.dslJson?.title || "待规划需求",
+    summary: "等待人工从 RequirementDSL 拆解设计规划。",
+    currentStage: "empty",
+    overallProgress: 0
+  });
+}
+
+function extractDslJson(result, uiState) {
+  const artifacts = result?.artifacts || {};
+  return artifacts["12_final_dsl.json"]?.json ||
+    artifacts["requirement_dsl.json"]?.json ||
+    artifacts["final_dsl.json"]?.json ||
+    uiState?.humanReport ||
+    {};
+}
+
+function inferRequirementTitle(text) {
+  const trimmed = String(text || "").trim();
+  return trimmed ? trimmed.slice(0, 80) : "Workbench requirement";
+}
+
+function hasRequirementId(requirement) {
+  return Boolean(requirement?.id && requirement?.projectId !== undefined);
+}
+
+function localRequirement(projectId, text) {
+  return {
+    id: `req-local-${Date.now()}`,
+    projectId: projectId || "conduit-realworld-example-app",
+    title: inferRequirementTitle(text),
+    rawPmInput: text,
+    dslJson: {},
+    readinessStatus: "clarify_first",
+    readyForAgent: false,
+    handoffDecision: "clarify_first",
+    completionPercent: 0
+  };
+}
+
+function isLocalRequirementId(requirementId) {
+  return String(requirementId || "").startsWith("req-local-");
 }
 
 function jobToRunState(job) {

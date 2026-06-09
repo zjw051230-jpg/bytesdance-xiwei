@@ -67,6 +67,18 @@ export default function ClarificationChat({
   return (
     <section className={`clarification-chat ${shouldShowSuggestion ? "has-suggestion" : ""}`} aria-label="需求澄清对话区">
       <div className="chat-stream">
+        {messages.length === 0 ? (
+          <article className="chat-message system">
+            <div className="chat-avatar" aria-hidden="true">✦</div>
+            <div className="chat-copy">
+              <div className="chat-meta">
+                <strong>系统澄清</strong>
+                <time>空状态</time>
+              </div>
+              <p>暂无澄清历史。输入 PM 需求后会保存到后端数据库。</p>
+            </div>
+          </article>
+        ) : null}
         {messages.map((message) => (
           <article className={`chat-message ${message.role}`} key={message.id}>
             <div className="chat-avatar" aria-hidden="true">{message.role === "pm" ? "PM" : "✦"}</div>

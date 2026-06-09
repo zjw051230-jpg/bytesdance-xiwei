@@ -8,7 +8,8 @@ export default function DSLStatusConsole({
   onRetryRun,
   onOpenPartialArtifacts
 }) {
-  const completion = uiState?.dslCompletion?.value ?? 72;
+  const artifactCompletion = completionFromArtifacts(runState?.artifacts);
+  const completion = artifactCompletion ?? uiState?.dslCompletion?.value ?? 72;
   const coverageItems = uiState?.coverageItems ?? { covered: [], pending: [] };
   const risks = uiState?.risks ?? [];
   const readiness = uiState?.readiness ?? {
@@ -171,6 +172,16 @@ function formatArtifactStatus(runStatus) {
   if (["queued", "running"].includes(runStatus)) return "running";
   if (["failed", "timeout", "cancelled"].includes(runStatus)) return "failed";
   return "idle";
+}
+
+function completionFromArtifacts(artifacts = {}) {
+  const scoring = artifacts["09_scoring.json"]?.json || artifacts["09_scoring.json"] || {};
+  const rawScore = scoring.dsl_completion_score ?? scoring.completionScore ?? scoring.completion_percent;
+  const numericScore = Number(rawScore);
+  if (!Number.isFinite(numericScore)) return null;
+  if (numericScore > 0 && numericScore <= 1) return Math.round(numericScore * 100);
+  if (numericScore >= 0 && numericScore <= 100) return Math.round(numericScore);
+  return null;
 }
 
 function getGlobalNumber(name, fallback = 0) {

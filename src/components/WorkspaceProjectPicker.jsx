@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import NewProjectModal from "./NewProjectModal.jsx";
 import ProjectSelectCard from "./ProjectSelectCard.jsx";
-import { fallbackProject, workspaceProjects } from "../data/workspaceProjects.js";
+import { workspaceProjects } from "../data/workspaceProjects.js";
 
 const newProjectCard = {
   id: "new-project",
@@ -15,10 +15,11 @@ export default function WorkspaceProjectPicker({
   onProjectSelect,
   onProjectCreate,
   onEnterWorkbench,
-  toast
+  toast,
+  projectLoadState = { loading: false, error: "" }
 }) {
   const displayProjects = useMemo(() => {
-    return projects.length > 0 ? projects : [fallbackProject];
+    return projects.length > 0 ? projects : [];
   }, [projects]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -39,6 +40,12 @@ export default function WorkspaceProjectPicker({
             variant="new"
             onClick={() => setIsModalOpen(true)}
           />
+          {projectLoadState.error ? (
+            <p className="workspace-empty-state" role="alert">项目列表加载失败：{projectLoadState.error}</p>
+          ) : null}
+          {!projectLoadState.loading && !projectLoadState.error && visibleProjects.length === 0 ? (
+            <p className="workspace-empty-state">暂无项目。新建一个项目后会保存到后端数据库。</p>
+          ) : null}
           {visibleProjects.map((project) => (
             <ProjectSelectCard
               key={project.id}
@@ -49,7 +56,7 @@ export default function WorkspaceProjectPicker({
             />
           ))}
         </div>
-        {activeProjectId ? (
+        {activeProjectId && visibleProjects.length > 0 ? (
           <button className="enter-workbench-button" type="button" onClick={() => onEnterWorkbench?.()}>
             进入工作台
           </button>
