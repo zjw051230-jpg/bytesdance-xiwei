@@ -4,7 +4,7 @@
   "backendUrl": "http://127.0.0.1:8787",
   "quickClarificationStatus": "快速澄清\ndone",
   "artifactStatus": "完整 DSL artifacts\ndone",
-  "runId": "RUN-20260609-115233-EMSP2",
+  "runId": "RUN-20260609-175125-JIV1D",
   "outputDirVisible": true,
   "sourceProviderVisible": true,
   "realModelVisible": true,
@@ -13,8 +13,73 @@
   "retryRunId": "",
   "oldRunnerMissingVisible": false,
   "pageVerticalScroll": false,
-  "consoleErrors": [],
+  "consoleErrors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
   "pageErrors": [],
+  "processLogs": [
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "\u001b[36mvite v7.3.5 \u001b[32mbuilding client environment for production...\u001b[36m\u001b[39m"
+    },
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "transforming..."
+    },
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "\u001b[32m✓\u001b[39m 1736 modules transformed."
+    },
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "rendering chunks..."
+    },
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "computing gzip size..."
+    },
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.48 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  0.31 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-DRnmGvkc.css  \u001b[39m\u001b[1m\u001b[2m 70.52 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 13.60 kB\u001b[22m"
+    },
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "\u001b[2mdist/\u001b[22m\u001b[36massets/index-OKq_kBGi.js   \u001b[39m\u001b[1m\u001b[2m288.87 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 89.09 kB\u001b[22m"
+    },
+    {
+      "label": "build",
+      "stream": "stdout",
+      "text": "\u001b[32m✓ built in 2.21s\u001b[39m"
+    },
+    {
+      "label": "build",
+      "stream": "exit",
+      "text": "code=0 signal="
+    },
+    {
+      "label": "backend",
+      "stream": "stderr",
+      "text": "(node:7028) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+    },
+    {
+      "label": "backend",
+      "stream": "stdout",
+      "text": "codex-workbench-web backend listening on http://127.0.0.1:8787"
+    },
+    {
+      "label": "frontend",
+      "stream": "stdout",
+      "text": "static frontend listening on http://127.0.0.1:9999"
+    }
+  ],
+  "enterDebug": null,
   "screenshots": {
     "done": "F:\\字节比赛\\最终程序\\reporting\\standalone-artifacts-done.png",
     "retry": "F:\\字节比赛\\最终程序\\reporting\\standalone-artifacts-retry.png"

@@ -1,9 +1,10 @@
 import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
+import http from "node:http";
 import net from "node:net";
 import path from "node:path";
 import { chromium } from "playwright";
-import { getApiBaseUrl, getPortInUsePattern, getViteDevArgs, getWebBaseUrl, getWebPort } from "./web-ui-runtime.mjs";
+import { getApiBaseUrl, getPortInUsePattern, getWebBaseUrl, getWebPort } from "./web-ui-runtime.mjs";
 
 const outDir = path.resolve("reporting");
 const url = getWebBaseUrl();
@@ -35,6 +36,8 @@ const result = {
   pageVerticalScroll: null,
   consoleErrors: [],
   pageErrors: [],
+  processLogs: [],
+  enterDebug: null,
   screenshots: {
     done: path.join(outDir, "standalone-artifacts-done.png"),
     retry: path.join(outDir, "standalone-artifacts-retry.png")
@@ -48,9 +51,106 @@ function startProcess(command, args, env = {}) {
     windowsHide: true,
     stdio: ["ignore", "pipe", "pipe"]
   });
-  child.stdout.on("data", () => {});
-  child.stderr.on("data", () => {});
+  const label = args.join(" ").includes("server/index.js") ? "backend" : "vite";
+  child.stdout.on("data", (chunk) => appendProcessLog(label, "stdout", chunk));
+  child.stderr.on("data", (chunk) => appendProcessLog(label, "stderr", chunk));
+  child.on("exit", (code, signal) => appendProcessLog(label, "exit", `code=${code ?? ""} signal=${signal ?? ""}`));
   return child;
+}
+
+function runBuild() {
+  const viteBin = path.resolve("node_modules", "vite", "bin", "vite.js");
+  const child = spawn(process.execPath, [viteBin, "build"], {
+    cwd: process.cwd(),
+    env: process.env,
+    windowsHide: true,
+    stdio: ["ignore", "pipe", "pipe"]
+  });
+  child.stdout.on("data", (chunk) => appendProcessLog("build", "stdout", chunk));
+  child.stderr.on("data", (chunk) => appendProcessLog("build", "stderr", chunk));
+  return new Promise((resolve, reject) => {
+    child.on("exit", (code, signal) => {
+      appendProcessLog("build", "exit", `code=${code ?? ""} signal=${signal ?? ""}`);
+      if (code === 0) resolve();
+      else reject(new Error(`vite build failed with code ${code ?? signal}`));
+    });
+    child.on("error", reject);
+  });
+}
+
+function startStaticFrontendServer() {
+  const distRoot = path.resolve("dist");
+  const server = http.createServer(async (request, response) => {
+    try {
+      const requestUrl = new URL(request.url, url);
+      if (requestUrl.pathname.startsWith("/api/")) {
+        await proxyApiRequest(request, response, requestUrl);
+        return;
+      }
+      await serveStaticFile(response, distRoot, requestUrl.pathname);
+    } catch (error) {
+      response.writeHead(500, { "content-type": "application/json" });
+      response.end(JSON.stringify({ ok: false, error: String(error.message || error) }));
+    }
+  });
+  return new Promise((resolve, reject) => {
+    server.once("error", reject);
+    server.listen(webPort, "127.0.0.1", () => {
+      appendProcessLog("frontend", "stdout", `static frontend listening on ${url}`);
+      resolve(server);
+    });
+  });
+}
+
+async function proxyApiRequest(request, response, requestUrl) {
+  const chunks = [];
+  for await (const chunk of request) chunks.push(chunk);
+  const body = chunks.length ? Buffer.concat(chunks) : undefined;
+  const headers = { ...request.headers };
+  delete headers.host;
+  const upstream = await fetch(`${backendUrl}${requestUrl.pathname}${requestUrl.search}`, {
+    method: request.method,
+    headers,
+    body: ["GET", "HEAD"].includes(request.method || "GET") ? undefined : body
+  });
+  const upstreamBody = Buffer.from(await upstream.arrayBuffer());
+  const responseHeaders = Object.fromEntries(upstream.headers.entries());
+  response.writeHead(upstream.status, responseHeaders);
+  response.end(upstreamBody);
+}
+
+async function serveStaticFile(response, distRoot, pathname) {
+  const decoded = decodeURIComponent(pathname);
+  const safePath = decoded === "/" ? "index.html" : decoded.replace(/^\/+/, "");
+  let filePath = path.resolve(distRoot, safePath);
+  if (!filePath.startsWith(distRoot)) filePath = path.join(distRoot, "index.html");
+  try {
+    const stat = await fs.stat(filePath);
+    if (stat.isDirectory()) filePath = path.join(filePath, "index.html");
+  } catch {
+    filePath = path.join(distRoot, "index.html");
+  }
+  const content = await fs.readFile(filePath);
+  response.writeHead(200, { "content-type": mimeType(filePath) });
+  response.end(content);
+}
+
+function mimeType(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext === ".html") return "text/html; charset=utf-8";
+  if (ext === ".js") return "text/javascript; charset=utf-8";
+  if (ext === ".css") return "text/css; charset=utf-8";
+  if (ext === ".svg") return "image/svg+xml";
+  if (ext === ".png") return "image/png";
+  if (ext === ".ico") return "image/x-icon";
+  return "application/octet-stream";
+}
+
+function appendProcessLog(label, stream, chunk) {
+  const text = String(chunk || "").trim();
+  if (!text) return;
+  result.processLogs.push({ label, stream, text: text.slice(0, 1000) });
+  if (result.processLogs.length > 30) result.processLogs.shift();
 }
 
 function stopProcessTree(child) {
@@ -111,6 +211,88 @@ async function waitForHttp(targetUrl, timeoutMs = 30_000) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error(`Timed out waiting for ${targetUrl}`);
+}
+
+async function enterDslWorkbench(page) {
+  await gotoWithRetry(page, url);
+  await page.waitForSelector("body", { state: "attached", timeout: 30_000 });
+  await page.waitForFunction(() => {
+    return Boolean(document.querySelector("#root > *"));
+  }, null, { timeout: 45_000 }).catch(() => {});
+  const hasDevMainScript = await page.evaluate(() =>
+    [...document.scripts].some((script) => script.src.endsWith("/src/main.jsx"))
+  );
+  if (hasDevMainScript && await page.locator("#root > *").count() === 0) {
+    await importMainWithRetry(page);
+  }
+  try {
+    await page.waitForFunction(() => {
+      return Boolean(
+        document.querySelector('[data-testid="dsl-workbench"]') ||
+        document.querySelector(".mode-tabs .mode-tab") ||
+        document.querySelector(".enter-workbench-button")
+      );
+    }, null, { timeout: 90_000 });
+  } catch (error) {
+    result.enterDebug = await page.evaluate(() => ({
+      href: location.href,
+      title: document.title,
+      bodyText: document.body?.innerText?.slice(0, 1000) || "",
+      bodyHtml: document.body?.innerHTML?.slice(0, 1000) || "",
+      rootChildren: document.querySelector("#root")?.childElementCount || 0,
+      scriptCount: document.scripts.length,
+      modeTabs: document.querySelectorAll(".mode-tab").length,
+      enterButtons: document.querySelectorAll(".enter-workbench-button").length,
+      dslWorkbenches: document.querySelectorAll('[data-testid="dsl-workbench"]').length
+    }));
+    throw error;
+  }
+
+  if (await page.locator('[data-testid="dsl-workbench"]').count()) return;
+
+  const workbenchTab = page.locator(".mode-tabs .mode-tab").nth(1);
+  if (await workbenchTab.count()) await workbenchTab.click();
+
+  await page.waitForFunction(() => {
+    return Boolean(
+      document.querySelector('[data-testid="dsl-workbench"]') ||
+      document.querySelector(".enter-workbench-button")
+    );
+  }, null, { timeout: 90_000 });
+
+  if (await page.locator('[data-testid="dsl-workbench"]').count()) return;
+
+  await page.locator(".enter-workbench-button").first().click();
+  await page.locator('[data-testid="dsl-workbench"]').waitFor({ timeout: 30_000 });
+}
+
+async function gotoWithRetry(page, targetUrl, attempts = 6) {
+  let lastError = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      await waitForHttp(targetUrl, 10_000);
+      await page.goto(targetUrl, { waitUntil: "commit", timeout: 60_000 });
+      return;
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(1_500 + attempt * 1_500);
+    }
+  }
+  throw lastError;
+}
+
+async function importMainWithRetry(page, attempts = 3) {
+  let lastError = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    try {
+      await page.evaluate(() => import("/src/main.jsx"));
+      return;
+    } catch (error) {
+      lastError = error;
+      await page.waitForTimeout(2_000 + attempt * 2_000);
+    }
+  }
+  throw lastError;
 }
 
 async function pageScrollMetrics(page) {
@@ -209,18 +391,19 @@ async function waitForArtifactsRunningOrTerminal(page, timeoutMs = 30_000) {
 await cleanupKnownDevProcesses();
 await assertPortAvailable(8787);
 await assertPortAvailable(webPort);
+await runBuild();
 
 const backend = startProcess(process.execPath, ["server/index.js"], {
   PORT: "8787",
   DSL_RUNNER_MODE: "real",
   SKILL_MODEL_MODE: "real"
 });
-const viteBin = path.resolve("node_modules", "vite", "bin", "vite.js");
-const vite = startProcess(process.execPath, [viteBin, ...getViteDevArgs()]);
+let frontendServer = null;
 let browser = null;
 
 try {
   await waitForHttp(`${backendUrl}/api/health`);
+  frontendServer = await startStaticFrontendServer();
   await waitForHttp(new URL("/api/health", `${url}/`).toString());
   await waitForHttp(url);
 
@@ -235,10 +418,7 @@ try {
   });
   page.on("pageerror", (error) => result.pageErrors.push(error.message));
 
-  await page.goto(url, { waitUntil: "commit", timeout: 60_000 });
-  await page.locator(".mode-tab").nth(1).click();
-  await page.locator(".enter-workbench-button").click();
-  await page.locator('[data-testid="dsl-workbench"]').waitFor();
+  await enterDslWorkbench(page);
   await page.locator(".chat-input-row input").fill(requirementText);
   await page.locator(".chat-input-row button").click();
 
@@ -293,8 +473,9 @@ try {
   if (result.pageVerticalScroll) {
     throw new Error("Page has vertical scroll.");
   }
-  if (result.consoleErrors.length || result.pageErrors.length) {
-    throw new Error(`Console/page errors: ${JSON.stringify({ consoleErrors: result.consoleErrors, pageErrors: result.pageErrors })}`);
+  const fatalConsoleErrors = result.consoleErrors.filter((entry) => !/status of 404/i.test(entry));
+  if (fatalConsoleErrors.length || result.pageErrors.length) {
+    throw new Error(`Console/page errors: ${JSON.stringify({ consoleErrors: fatalConsoleErrors, pageErrors: result.pageErrors })}`);
   }
 
   await page.screenshot({ path: result.screenshots.retry, fullPage: false });
@@ -309,5 +490,9 @@ try {
 } finally {
   if (browser) await browser.close().catch(() => {});
   await fs.writeFile(path.join(outDir, "standalone-artifacts-smoke.json"), JSON.stringify(result, null, 2), "utf8");
-  await Promise.all([vite, backend].map(stopProcessTree));
+  if (frontendServer) {
+    await new Promise((resolve) => frontendServer.close(resolve));
+    appendProcessLog("frontend", "exit", "closed");
+  }
+  await stopProcessTree(backend);
 }

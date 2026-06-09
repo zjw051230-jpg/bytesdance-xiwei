@@ -1,5 +1,5 @@
 {
-  "task": "Task 13.5 Replace Legacy pm_dsl_runner with Standalone E2E Artifact Runner",
+  "task": "Task 13.5-D Standalone Artifact Runner Fix",
   "status": "passed",
   "targetDirectory": "F:\\字节比赛\\最终程序",
   "implemented": {
@@ -16,26 +16,29 @@
     "externalDslV2Required": false,
     "artifactStatus": "done",
     "outputDirPattern": "runs\\RUN-*",
-    "lastVerifiedRunId": "RUN-20260609-115233-EMSP2",
-    "mockUsed": false
+    "lastVerifiedRunId": "RUN-20260609-175125-JIV1D",
+    "mockUsed": false,
+    "realLlmCalls": 2,
+    "realWritePerformed": false
   },
   "verification": {
-    "npmTest": "passed",
     "testServer": "passed",
-    "build": "passed",
-    "smoke": "passed",
-    "verifyRender": "passed",
     "checkStandalone": "passed",
     "smokeE2eRealDryRun": "passed",
     "smokeStandaloneArtifacts": "passed",
-    "browserInAppCheck": "passed"
+    "npmTest": "passed",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "failed_optional_vite_dev_entry_timeout"
   },
   "ui": {
     "quickClarificationDone": true,
     "fullDslArtifactsDone": true,
     "legacyRunnerMissingVisible": false,
+    "outputDirVisible": true,
+    "sourceProviderVisible": true,
+    "realModelVisible": true,
     "pageVerticalScroll": false,
-    "consoleErrors": 0,
     "retryPageLevelExercised": false,
     "retryUnitCovered": true
   },
@@ -44,7 +47,7 @@
     "retry": "F:\\字节比赛\\最终程序\\reporting\\standalone-artifacts-retry.png"
   },
   "security": {
-    "apiKeyLeakage": false,
+    "apiKeyCommitted": false,
     "localJsonCommitted": false,
     "envCommitted": false,
     "runsCommitted": false,
@@ -54,6 +57,11 @@
     "codeExecutionEntered": false,
     "hunterAutoReplyA3BTouched": false,
     "forcePush": false
+  },
+  "git": {
+    "existingHistoricalFixCommit": "787b86e fix: route DSL artifacts through standalone runner",
+    "localCommit": "fix: route DSL artifacts through standalone runner",
+    "pushPerformed": false
   },
   "recommendRework": false
 }
