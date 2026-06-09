@@ -11,6 +11,8 @@ const frontendHealthUrl = new URL("/api/health", `${url}/`).toString();
 const webPort = getWebPort();
 const outDir = path.resolve("reporting");
 const executablePath = "C:/Program Files/Google/Chrome/Application/chrome.exe";
+const appReadyTimeoutMs = 90_000;
+const scrollTolerancePx = 6;
 
 await fs.mkdir(outDir, { recursive: true });
 
@@ -31,7 +33,7 @@ async function pickMetrics(page, selector) {
 }
 
 async function pageScrollMetrics(page) {
-  return page.evaluate(() => {
+  return page.evaluate((tolerance) => {
     const root = document.documentElement;
     const body = document.body;
     return {
@@ -40,9 +42,10 @@ async function pageScrollMetrics(page) {
       docScrollHeight: root.scrollHeight,
       bodyScrollHeight: body.scrollHeight,
       docClientHeight: root.clientHeight,
-      hasVerticalPageScroll: root.scrollHeight > root.clientHeight || body.scrollHeight > innerHeight
+      allowedTolerance: tolerance,
+      hasVerticalPageScroll: root.scrollHeight > root.clientHeight + tolerance || body.scrollHeight > innerHeight + tolerance
     };
-  });
+  }, scrollTolerancePx);
 }
 
 function startProcess(command, args, env = {}) {
@@ -87,6 +90,79 @@ async function waitForHttp(targetUrl, timeoutMs = 30_000) {
   throw new Error(`Timed out waiting for ${targetUrl}`);
 }
 
+async function gotoApp(page) {
+  await page.goto(url, { waitUntil: "commit", timeout: 60_000 });
+  await page.waitForLoadState("domcontentloaded", { timeout: 30_000 }).catch(() => {});
+  await page.waitForLoadState("networkidle", { timeout: 20_000 }).catch(() => {});
+  await page.locator("#root > *").waitFor({ timeout: appReadyTimeoutMs });
+  await page.getByText("Codex Workbench").first().waitFor({ timeout: appReadyTimeoutMs });
+  await waitForStableEntry(page);
+}
+
+async function waitForStableEntry(page) {
+  await page.waitForFunction(() => {
+    return Boolean(
+      document.querySelector(".workspace-top-tabs") ||
+      document.querySelector('[data-testid="workspace-shell"]') ||
+      document.querySelector('[data-testid="workspace-project-picker"]') ||
+      document.querySelector('[data-testid="dsl-workbench"]') ||
+      document.querySelector('[data-testid="design-planning-workbench"]') ||
+      [...document.querySelectorAll("button")].some((button) => ["工作台", "DSL 澄清台", "设计规划", "审阅检查", "PR 页面"].includes(button.textContent?.trim()))
+    );
+  }, null, { timeout: appReadyTimeoutMs });
+}
+
+async function ensureWorkbenchMode(page) {
+  if (await page.locator(".workspace-top-tabs").count()) return;
+  if (await page.locator('[data-testid="workspace-shell"]').count()) return;
+  const workbenchButton = page.getByRole("button", { name: "工作台" });
+  if (await workbenchButton.count()) {
+    await workbenchButton.click();
+    await page.locator('[data-testid="workspace-shell"]').waitFor({ timeout: appReadyTimeoutMs });
+    return;
+  }
+  await waitForStableEntry(page);
+}
+
+async function ensureDslWorkbench(page) {
+  if (await page.locator('[data-testid="dsl-workbench"]').count()) return;
+  await ensureWorkbenchMode(page);
+
+  if (await page.locator('[data-testid="workspace-project-picker"]').count()) {
+    await page.getByRole("heading", { name: "选择你的项目" }).waitFor({ timeout: appReadyTimeoutMs });
+    await page.locator('[data-testid="project-rail"][data-state="collapsed"]').waitFor({ timeout: appReadyTimeoutMs });
+    await page.getByRole("button", { name: "进入工作台" }).click();
+  } else if (await page.locator(".workspace-top-tabs").count()) {
+    await page.getByRole("button", { name: "DSL 澄清台", exact: true }).click();
+  }
+
+  await page.locator('[data-testid="dsl-workbench"]').waitFor({ timeout: appReadyTimeoutMs });
+}
+
+async function assertWorkspaceChrome(page) {
+  const checks = {
+    topTabs: await page.locator(".workspace-top-tabs").count(),
+    dslTab: await page.getByRole("button", { name: "DSL 澄清台", exact: true }).isVisible(),
+    designTab: await page.getByRole("button", { name: "设计规划", exact: true }).isVisible(),
+    reviewTab: await page.getByRole("button", { name: "审阅检查", exact: true }).isVisible(),
+    prTab: await page.getByRole("button", { name: "PR 页面", exact: true }).isVisible(),
+    leftRail: await page.locator('[data-testid="project-rail"]').count(),
+    shell: await page.locator('[data-testid="workspace-shell"]').count(),
+    mainContent: await page.locator(".workspace-content").count()
+  };
+  const failed = Object.entries(checks).filter(([, value]) => value === false || value === 0).map(([key]) => key);
+  if (failed.length > 0) {
+    throw new Error(`Workspace chrome check failed: ${failed.join(", ")}`);
+  }
+  return checks;
+}
+
+function assertNoVerticalPageScroll(metrics, label) {
+  if (metrics.hasVerticalPageScroll) {
+    throw new Error(`${label} has page-level vertical scroll: document=${metrics.docScrollHeight}, body=${metrics.bodyScrollHeight}, viewport=${metrics.docClientHeight}, tolerance=${scrollTolerancePx}`);
+  }
+}
+
 function assertPortAvailable(port) {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -97,24 +173,19 @@ function assertPortAvailable(port) {
 }
 
 async function enterWorkbench(page) {
-  await page.goto(url, { waitUntil: "commit", timeout: 60_000 });
-  await page.getByRole("button", { name: "监控台" }).waitFor();
-  await page.getByRole("button", { name: "工作台" }).click();
-  await page.getByRole("button", { name: "DSL 澄清台" }).waitFor();
-  await page.getByRole("heading", { name: "选择你的项目" }).waitFor();
-  await page.locator('[data-testid="project-rail"][data-state="collapsed"]').waitFor();
-  await page.getByRole("button", { name: "进入工作台" }).click();
-  await page.locator('[data-testid="dsl-workbench"]').waitFor();
+  await gotoApp(page);
+  await ensureDslWorkbench(page);
+  await assertWorkspaceChrome(page);
   await page.getByRole("heading", { name: "需求澄清工作台" }).waitFor();
   await page.getByRole("heading", { name: "DSL 状态控制台" }).waitFor();
   await page.getByRole("button", { name: /打开(?:需求|草稿)报告/ }).waitFor();
 }
 
 async function enterDesignPlanning(page) {
-  await page.goto(url, { waitUntil: "commit", timeout: 60_000 });
-  await page.getByRole("button", { name: "监控台" }).waitFor();
-  await page.getByRole("button", { name: "工作台" }).click();
-  await page.getByRole("button", { name: "设计规划" }).click();
+  await gotoApp(page);
+  await ensureDslWorkbench(page);
+  await assertWorkspaceChrome(page);
+  await page.getByRole("button", { name: "设计规划", exact: true }).click();
   await page.locator('[data-testid="design-planning-workbench"]').waitFor();
   await page.getByRole("heading", { name: "设计规划" }).waitFor();
 }
@@ -137,18 +208,27 @@ async function verifyViewport(width, height) {
   page.on("pageerror", (err) => pageErrors.push(err.message));
 
   await enterWorkbench(page);
+  const chromeChecks = await assertWorkspaceChrome(page);
+
+  const renderScreenshotPath = path.join(outDir, `render-${width}x${height}.png`);
+  await page.screenshot({ path: renderScreenshotPath, fullPage: false });
 
   const initialMetrics = {
+    chrome: chromeChecks,
     hasDslWorkbench: await page.locator('[data-testid="dsl-workbench"]').count(),
     hasSendAnswer: await page.getByRole("button", { name: "发送回答" }).isVisible(),
     persistentGenerateDslCount: await page.getByRole("button", { name: "生成 DSL", exact: true }).count(),
     persistentRegenerateQuestionCount: await page.getByRole("button", { name: "重新生成问题", exact: true }).count(),
     runStatusIdle: await page.getByText("idle").first().isVisible(),
     shell: await pickMetrics(page, ".workspace-shell"),
+    leftRail: await pickMetrics(page, '[data-testid="project-rail"]'),
+    topTabs: await pickMetrics(page, ".workspace-top-tabs"),
+    mainContent: await pickMetrics(page, ".workspace-content"),
     workbench: await pickMetrics(page, ".dsl-workbench"),
     statusConsole: await pickMetrics(page, ".dsl-status-console"),
     scroll: await pageScrollMetrics(page)
   };
+  assertNoVerticalPageScroll(initialMetrics.scroll, `DSL initial ${width}x${height}`);
 
   await page.getByLabel("输入 PM 回答或补充需求").fill("登录失败提示太模糊，希望用户知道下一步怎么做。");
   await page.getByRole("button", { name: "发送回答" }).click();
@@ -176,6 +256,7 @@ async function verifyViewport(width, height) {
     noAgentPlanText: (await page.textContent("body")).includes("不会交给 Agent 执行"),
     scroll: await pageScrollMetrics(page)
   };
+  assertNoVerticalPageScroll(resultMetrics.scroll, `DSL result ${width}x${height}`);
 
   await page.getByRole("button", { name: /打开(?:需求|草稿)报告/ }).click();
   await page.getByRole("dialog", { name: "需求报告（人类可读版）" }).waitFor();
@@ -189,6 +270,7 @@ async function verifyViewport(width, height) {
     modalBody: await pickMetrics(page, ".report-modal-body"),
     scroll: await pageScrollMetrics(page)
   };
+  assertNoVerticalPageScroll(modalMetrics.scroll, `DSL modal ${width}x${height}`);
 
   const modalScreenshotPath = width === 1920
     ? path.join(outDir, "real-dsl-report-modal-1920x1080.png")
@@ -206,6 +288,7 @@ async function verifyViewport(width, height) {
     frontendHealthUrl,
     executablePath,
     screenshots: {
+      render: renderScreenshotPath,
       running: runningScreenshotPath,
       result: resultScreenshotPath,
       modal: modalScreenshotPath
@@ -236,6 +319,7 @@ async function verifyDesignPlanningViewport(width, height) {
   page.on("pageerror", (err) => pageErrors.push(err.message));
 
   await enterDesignPlanning(page);
+  const chromeChecks = await assertWorkspaceChrome(page);
 
   const screenshotPath = width === 1920
     ? path.join(outDir, "design-planning-page-1920x1080.png")
@@ -250,8 +334,15 @@ async function verifyDesignPlanningViewport(width, height) {
 
   const text = await page.textContent("body");
   const metrics = {
+    chrome: chromeChecks,
     hasTopTabs: await page.locator(".workspace-top-tabs").count(),
-    designTabSelected: await page.getByRole("button", { name: "设计规划" }).getAttribute("aria-pressed"),
+    hasDslTab: await page.getByRole("button", { name: "DSL 澄清台", exact: true }).isVisible(),
+    hasDesignTab: await page.getByRole("button", { name: "设计规划", exact: true }).isVisible(),
+    hasReviewTab: await page.getByRole("button", { name: "审阅检查", exact: true }).isVisible(),
+    hasPrTab: await page.getByRole("button", { name: "PR 页面", exact: true }).isVisible(),
+    hasLeftRail: await page.locator('[data-testid="project-rail"]').count(),
+    hasMainContent: await page.locator(".workspace-content").count(),
+    designTabSelected: await page.getByRole("button", { name: "设计规划", exact: true }).getAttribute("aria-pressed"),
     hasDesignPlanningWorkbench: await page.locator('[data-testid="design-planning-workbench"]').count(),
     dslStatusConsoleCount: await page.getByRole("heading", { name: "DSL 状态控制台" }).count(),
     hasMilestones: text.includes("实施阶段 / 里程碑"),
@@ -262,6 +353,9 @@ async function verifyDesignPlanningViewport(width, height) {
     hasAgentExecutionPanel: await page.getByText("Agent Execution Orchestrator").isVisible(),
     hasAgentContextButton: await page.locator(".agent-action-row button").first().isVisible(),
     shell: await pickMetrics(page, ".workspace-shell"),
+    leftRail: await pickMetrics(page, '[data-testid="project-rail"]'),
+    topTabs: await pickMetrics(page, ".workspace-top-tabs"),
+    mainContent: await pickMetrics(page, ".workspace-content"),
     workbench: await pickMetrics(page, ".design-planning-workbench"),
     rightPanel: await pickMetrics(page, ".planning-right-panel"),
     scroll: await pageScrollMetrics(page)

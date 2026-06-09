@@ -1,14 +1,30 @@
 [
   {
     "viewport": "1920x1080",
-    "url": "http://127.0.0.1:10099",
+    "url": "http://127.0.0.1:9999",
     "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
     "screenshots": {
       "page": "F:\\字节比赛\\最终程序\\reporting\\design-planning-page-1920x1080.png",
       "topTabs": "F:\\字节比赛\\最终程序\\reporting\\workspace-top-tabs.png"
     },
     "metrics": {
+      "chrome": {
+        "topTabs": 1,
+        "dslTab": true,
+        "designTab": true,
+        "reviewTab": true,
+        "prTab": true,
+        "leftRail": 1,
+        "shell": 1,
+        "mainContent": 1
+      },
       "hasTopTabs": 1,
+      "hasDslTab": true,
+      "hasDesignTab": true,
+      "hasReviewTab": true,
+      "hasPrTab": true,
+      "hasLeftRail": 1,
+      "hasMainContent": 1,
       "designTabSelected": "true",
       "hasDesignPlanningWorkbench": 1,
       "dslStatusConsoleCount": 0,
@@ -23,6 +39,30 @@
         "top": 56,
         "left": 0,
         "width": 1920,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "leftRail": {
+        "top": 56,
+        "left": 0,
+        "width": 64,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "topTabs": {
+        "top": 7,
+        "left": 602,
+        "width": 704,
+        "height": 42,
+        "bottom": 49,
+        "overflowY": "visible"
+      },
+      "mainContent": {
+        "top": 56,
+        "left": 64,
+        "width": 1856,
         "height": 1024,
         "bottom": 1080,
         "overflowY": "hidden"
@@ -49,6 +89,7 @@
         "docScrollHeight": 1080,
         "bodyScrollHeight": 1080,
         "docClientHeight": 1080,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },
@@ -57,13 +98,29 @@
   },
   {
     "viewport": "1440x900",
-    "url": "http://127.0.0.1:10099",
+    "url": "http://127.0.0.1:9999",
     "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
     "screenshots": {
       "page": "F:\\字节比赛\\最终程序\\reporting\\design-planning-page-1440x900.png"
     },
     "metrics": {
+      "chrome": {
+        "topTabs": 1,
+        "dslTab": true,
+        "designTab": true,
+        "reviewTab": true,
+        "prTab": true,
+        "leftRail": 1,
+        "shell": 1,
+        "mainContent": 1
+      },
       "hasTopTabs": 1,
+      "hasDslTab": true,
+      "hasDesignTab": true,
+      "hasReviewTab": true,
+      "hasPrTab": true,
+      "hasLeftRail": 1,
+      "hasMainContent": 1,
       "designTabSelected": "true",
       "hasDesignPlanningWorkbench": 1,
       "dslStatusConsoleCount": 0,
@@ -78,6 +135,30 @@
         "top": 56,
         "left": 0,
         "width": 1440,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "leftRail": {
+        "top": 56,
+        "left": 0,
+        "width": 60,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "topTabs": {
+        "top": 8,
+        "left": 400,
+        "width": 620,
+        "height": 40,
+        "bottom": 48,
+        "overflowY": "visible"
+      },
+      "mainContent": {
+        "top": 56,
+        "left": 60,
+        "width": 1380,
         "height": 844,
         "bottom": 900,
         "overflowY": "hidden"
@@ -104,6 +185,7 @@
         "docScrollHeight": 900,
         "bodyScrollHeight": 900,
         "docClientHeight": 900,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },

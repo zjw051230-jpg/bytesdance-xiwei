@@ -1,16 +1,27 @@
 [
   {
     "viewport": "1920x1080",
-    "url": "http://127.0.0.1:10099",
+    "url": "http://127.0.0.1:9999",
     "backendUrl": "http://127.0.0.1:8787",
-    "frontendHealthUrl": "http://127.0.0.1:10099/api/health",
+    "frontendHealthUrl": "http://127.0.0.1:9999/api/health",
     "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
     "screenshots": {
+      "render": "F:\\字节比赛\\最终程序\\reporting\\render-1920x1080.png",
       "running": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-running-1920x1080.png",
       "result": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-result-1920x1080.png",
       "modal": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-report-modal-1920x1080.png"
     },
     "initialMetrics": {
+      "chrome": {
+        "topTabs": 1,
+        "dslTab": true,
+        "designTab": true,
+        "reviewTab": true,
+        "prTab": true,
+        "leftRail": 1,
+        "shell": 1,
+        "mainContent": 1
+      },
       "hasDslWorkbench": 1,
       "hasSendAnswer": true,
       "persistentGenerateDslCount": 0,
@@ -20,6 +31,30 @@
         "top": 56,
         "left": 0,
         "width": 1920,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "leftRail": {
+        "top": 56,
+        "left": 0,
+        "width": 64,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "topTabs": {
+        "top": 7,
+        "left": 602,
+        "width": 704,
+        "height": 42,
+        "bottom": 49,
+        "overflowY": "visible"
+      },
+      "mainContent": {
+        "top": 56,
+        "left": 64,
+        "width": 1856,
         "height": 1024,
         "bottom": 1080,
         "overflowY": "hidden"
@@ -46,11 +81,12 @@
         "docScrollHeight": 1080,
         "bodyScrollHeight": 1080,
         "docClientHeight": 1080,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },
     "resultMetrics": {
-      "runIdText": "RUN-20260609-182630-9CRWJ",
+      "runIdText": "RUN-20260609-192433-0QYWX",
       "statusPassedVisible": true,
       "artifactsDoneVisible": true,
       "completionVisible": true,
@@ -62,6 +98,7 @@
         "docScrollHeight": 1080,
         "bodyScrollHeight": 1080,
         "docClientHeight": 1080,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },
@@ -91,6 +128,7 @@
         "docScrollHeight": 1080,
         "bodyScrollHeight": 1080,
         "docClientHeight": 1080,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },
@@ -99,16 +137,27 @@
   },
   {
     "viewport": "1440x900",
-    "url": "http://127.0.0.1:10099",
+    "url": "http://127.0.0.1:9999",
     "backendUrl": "http://127.0.0.1:8787",
-    "frontendHealthUrl": "http://127.0.0.1:10099/api/health",
+    "frontendHealthUrl": "http://127.0.0.1:9999/api/health",
     "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
     "screenshots": {
+      "render": "F:\\字节比赛\\最终程序\\reporting\\render-1440x900.png",
       "running": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-running-1440x900.png",
       "result": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-workbench-result-1440x900.png",
       "modal": "F:\\字节比赛\\最终程序\\reporting\\real-dsl-report-modal-1440x900.png"
     },
     "initialMetrics": {
+      "chrome": {
+        "topTabs": 1,
+        "dslTab": true,
+        "designTab": true,
+        "reviewTab": true,
+        "prTab": true,
+        "leftRail": 1,
+        "shell": 1,
+        "mainContent": 1
+      },
       "hasDslWorkbench": 1,
       "hasSendAnswer": true,
       "persistentGenerateDslCount": 0,
@@ -118,6 +167,30 @@
         "top": 56,
         "left": 0,
         "width": 1440,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "leftRail": {
+        "top": 56,
+        "left": 0,
+        "width": 60,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "topTabs": {
+        "top": 8,
+        "left": 400,
+        "width": 620,
+        "height": 40,
+        "bottom": 48,
+        "overflowY": "visible"
+      },
+      "mainContent": {
+        "top": 56,
+        "left": 60,
+        "width": 1380,
         "height": 844,
         "bottom": 900,
         "overflowY": "hidden"
@@ -144,11 +217,12 @@
         "docScrollHeight": 900,
         "bodyScrollHeight": 900,
         "docClientHeight": 900,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },
     "resultMetrics": {
-      "runIdText": "RUN-20260609-182637-WLXDY",
+      "runIdText": "RUN-20260609-192440-3IQWS",
       "statusPassedVisible": true,
       "artifactsDoneVisible": true,
       "completionVisible": true,
@@ -160,6 +234,7 @@
         "docScrollHeight": 900,
         "bodyScrollHeight": 900,
         "docClientHeight": 900,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },
@@ -189,6 +264,7 @@
         "docScrollHeight": 900,
         "bodyScrollHeight": 900,
         "docClientHeight": 900,
+        "allowedTolerance": 6,
         "hasVerticalPageScroll": false
       }
     },
