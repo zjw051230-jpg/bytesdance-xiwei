@@ -462,7 +462,8 @@ describe("monitor console and workspace picker", () => {
       expect.objectContaining({ method: "POST" })
     );
 
-    const requestBody = JSON.parse(fetchMock.mock.calls[0][1].body);
+    const skillCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/pm-dsl-turn"));
+    const requestBody = JSON.parse(skillCall[1].body);
     expect(requestBody.pmMessages.at(-1).content).toBe("Login failure hint is too vague; PM wants a clearer next action.");
 
     await waitFor(() => expect(screen.getByText("RUN-test-api")).toBeInTheDocument());

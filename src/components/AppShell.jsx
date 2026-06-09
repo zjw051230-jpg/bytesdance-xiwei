@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ProjectOverview from "./ProjectOverview.jsx";
 import Sidebar from "./Sidebar.jsx";
 import TaskInspector from "./TaskInspector.jsx";
 import TopBar from "./TopBar.jsx";
 import WorkspaceShell from "./WorkspaceShell.jsx";
+import { createProject as createPersistedProject, listProjects, updateProject } from "../api/persistenceClient.js";
 import { fallbackProject, workspaceProjects } from "../data/workspaceProjects.js";
 
 const initialProjects = workspaceProjects.length > 0 ? workspaceProjects : [fallbackProject];
@@ -15,8 +16,23 @@ export default function AppShell() {
   const [workspacePage, setWorkspacePage] = useState("picker");
   const [workspaceToast, setWorkspaceToast] = useState("");
 
+  useEffect(() => {
+    let active = true;
+    listProjects()
+      .then((projects) => {
+        if (!active || !Array.isArray(projects) || projects.length === 0) return;
+        setProjectList(projects);
+        setActiveProjectId((current) => current || projects[0]?.id);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const selectProject = (project, source = "picker") => {
     setActiveProjectId(project.id);
+    updateProject(project.id, { lastOpenedAt: new Date().toISOString() }).catch(() => {});
     if (source === "rail") {
       setWorkspaceToast(`已切换到 ${project.name}`);
     } else if (source !== "enter") {
@@ -25,7 +41,7 @@ export default function AppShell() {
   };
 
   const createProject = ({ name, localPath }) => {
-    const createdProject = {
+    const draft = {
       id: `mock-${Date.now()}`,
       name,
       description: localPath ? `本地路径：${localPath}` : "刚刚创建的 mock 项目",
@@ -33,8 +49,17 @@ export default function AppShell() {
       status: "current",
       icon: "folder"
     };
+    const createdProject = draft;
     setProjectList((currentProjects) => [createdProject, ...currentProjects]);
     setActiveProjectId(createdProject.id);
+    createPersistedProject(draft)
+      .then((persistedProject) => {
+        setProjectList((currentProjects) => currentProjects.map((project) =>
+          project.id === createdProject.id ? persistedProject : project
+        ));
+        setActiveProjectId((current) => current === createdProject.id ? persistedProject.id : current);
+      })
+      .catch(() => {});
     setWorkspaceToast(`已创建 ${name}`);
   };
 

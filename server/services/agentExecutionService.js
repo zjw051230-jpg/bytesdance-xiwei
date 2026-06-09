@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
+import { persistAgentDryRun } from "./persistence/workbenchPersistenceAdapter.js";
 
 const agentRoot = path.resolve("agent(1)", "agent");
 const pythonCoreRoot = path.join(agentRoot, "agent_core");
@@ -163,6 +164,7 @@ export async function startAgentRun(request = {}, config = {}) {
     }]))
   };
   agentRuns.set(runId, run);
+  persistAgentDryRun(run, config);
   return { ok: true, data: run, error: null };
 }
 

@@ -16,6 +16,7 @@ import {
 } from "./jobStore.js";
 import { redactSecrets } from "./redactionService.js";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
+import { persistDslRunFailed, persistDslRunFinished, persistDslRunStarted } from "./persistence/workbenchPersistenceAdapter.js";
 import { checkStandaloneArtifactRunner, runStandaloneArtifactRunner } from "./standaloneArtifactRunner.js";
 
 export const defaultConfig = {
@@ -25,7 +26,8 @@ export const defaultConfig = {
   runsRoot: path.resolve("runs"),
   timeoutSeconds: 180,
   mockDelayMs: Number(process.env.DSL_MOCK_DELAY_MS || 0),
-  runnerMode: process.env.DSL_RUNNER_MODE || "real"
+  runnerMode: process.env.DSL_RUNNER_MODE || "real",
+  workbenchDbPath: process.env.WORKBENCH_DB_PATH || ""
 };
 
 export async function getHealth(config = {}) {
@@ -58,6 +60,7 @@ export async function createDslRun(requestBody, config = {}) {
   const { runId, outputDir } = await prepareRunDirectory(merged.runsRoot);
   const codeContextPath = requestBody?.codeContextPath || merged.codeContextPath;
   const mergedPmText = mergePmText(pmMessages);
+  persistDslRunStarted({ config: merged, projectId: requestBody?.projectId, runId, pmMessages });
 
   try {
     if (merged.runnerMode === "mock") {
@@ -79,11 +82,21 @@ export async function createDslRun(requestBody, config = {}) {
       }
     }
 
-    const { artifacts, caseDir } = await readRunArtifacts(outputDir);
-    const uiState = artifactsToUiState(artifacts);
-    const summary = artifacts["summary.json"]?.json || {};
-    const status = String(summary.status || "passed");
-    return {
+      const { artifacts, caseDir } = await readRunArtifacts(outputDir);
+      const uiState = artifactsToUiState(artifacts);
+      const summary = artifacts["summary.json"]?.json || {};
+      const status = String(summary.status || "passed");
+      persistDslRunFinished({
+        config: merged,
+        projectId: requestBody?.projectId,
+        runId,
+        status,
+        artifactStatus: "done",
+        dslJson: artifacts["12_final_dsl.json"]?.json || artifacts["05_dsl_draft.json"]?.json || summary,
+        uiState,
+        artifacts: artifactIndexes(outputDir, artifacts)
+      });
+      return {
       ok: true,
       data: redactSecrets({
         runId,
@@ -110,6 +123,13 @@ export async function createDslRun(requestBody, config = {}) {
     const code = error instanceof RunnerError ? error.code : "runner_failed";
     const message = error instanceof RunnerError ? error.message : String(error.message || error);
     await writeRunnerError(outputDir, { code, message, details: error.details || {} });
+    persistDslRunFailed({
+      config: merged,
+      projectId: requestBody?.projectId,
+      runId,
+      status: code === "runner_timeout" ? "timeout" : "failed",
+      error: { code, message }
+    });
     return errorPayload(code, message, {
       runId,
       outputDir,
@@ -213,6 +233,7 @@ async function createRunContext(requestBody, config, options = {}) {
   }
 
   const { runId, outputDir } = await prepareRunDirectory(merged.runsRoot);
+  persistDslRunStarted({ config: merged, projectId: requestBody?.projectId, runId, pmMessages });
   return {
     ok: true,
     merged,
@@ -277,6 +298,16 @@ async function executeAsyncJob(context) {
       realWritePerformed: false,
       lastMessage: `DSL runner finished with ${status}`
     });
+    persistDslRunFinished({
+      config: context.merged,
+      projectId: context.requestBody?.projectId,
+      runId: context.runId,
+      status,
+      artifactStatus: "done",
+      dslJson: artifacts["12_final_dsl.json"]?.json || artifacts["05_dsl_draft.json"]?.json || summary,
+      uiState,
+      artifacts: artifactIndexes(context.outputDir, artifacts)
+    });
   } catch (error) {
     await finishJobWithError(context, error);
   }
@@ -338,11 +369,36 @@ async function finishJobWithError(context, error) {
       artifacts: artifactState.summary
     });
   }
+  persistDslRunFailed({
+    config: context.merged,
+    projectId: context.requestBody?.projectId,
+    runId: context.runId,
+    status: code === "runner_timeout" ? "timeout" : "failed",
+    error: safeError
+  });
 }
 
 function isTerminalJob(runId) {
   const status = getInternalJob(runId)?.status;
   return ["passed", "failed", "timeout", "cancelled"].includes(status);
+}
+
+function artifactIndexes(outputDir, artifacts = {}) {
+  return Object.entries(artifacts)
+    .filter(([, artifact]) => artifact.exists)
+    .map(([name, artifact]) => ({
+      type: artifactTypeFromName(name),
+      name,
+      path: path.join(outputDir, "single_case", name),
+      summary: artifact.text ? String(artifact.text).slice(0, 160) : `${name} generated`
+    }));
+}
+
+function artifactTypeFromName(name) {
+  if (name.includes("dsl")) return "dsl";
+  if (name.includes("context")) return "context";
+  if (name.includes("summary") || name.includes("report")) return "report";
+  return "report";
 }
 
 async function collectArtifacts(outputDir, status) {

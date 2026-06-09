@@ -3,6 +3,11 @@
 *.local.json
 configs/api_config.local.json
 configs/doubao_api_config.local.json
+data/*.sqlite
+data/*.sqlite-*
+data/*.db
+*.sqlite
+*.db
 runs/
 outputs/
 node_modules/

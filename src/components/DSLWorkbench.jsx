@@ -9,6 +9,7 @@ import {
   startDslRun
 } from "../api/dslClient.js";
 import { fallbackUiState } from "../adapters/dslArtifactAdapter.js";
+import { listClarifications, listRequirements } from "../api/persistenceClient.js";
 import ClarificationChat from "./ClarificationChat.jsx";
 import DSLStatusConsole from "./DSLStatusConsole.jsx";
 import RequirementReportModal from "./RequirementReportModal.jsx";
@@ -42,6 +43,50 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
   });
 
   useEffect(() => () => stopPolling(), []);
+
+  useEffect(() => {
+    let active = true;
+    const projectId = activeProject?.id;
+    if (!projectId) return () => {
+      active = false;
+    };
+    listRequirements(projectId)
+      .then(async (requirements) => {
+        if (!active || !Array.isArray(requirements) || requirements.length === 0) return;
+        const latest = requirements[0];
+        const turns = await listClarifications(latest.id).catch(() => []);
+        if (!active) return;
+        if (Array.isArray(turns) && turns.length > 0) {
+          setMessages(turns.map((turn, index) => ({
+            id: turn.id,
+            author: turn.role === "pm" ? "PM" : "系统澄清",
+            role: turn.role === "assistant" ? "system" : turn.role,
+            time: "历史",
+            text: turn.content,
+            persisted: true,
+            order: index
+          })));
+        }
+        setUiState((current) => ({
+          ...current,
+          dslCompletion: {
+            ...(current.dslCompletion || {}),
+            value: latest.completionPercent || current.dslCompletion?.value || 0,
+            source: "persistent_database"
+          },
+          readiness: {
+            ...(current.readiness || {}),
+            ready_for_agent: Boolean(latest.readyForAgent),
+            handoff_decision: latest.handoffDecision || "clarify_first",
+            source: "persistent_database"
+          }
+        }));
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [activeProject?.id]);
 
   const stopPolling = () => {
     pollRef.current = "";

@@ -1,0 +1,79 @@
+{
+  "task": "Task 13.6 Persistent Database Layer",
+  "status": "pushed",
+  "database": {
+    "enabled": true,
+    "type": "sqlite",
+    "defaultPath": "data/workbench.sqlite",
+    "envOverride": "WORKBENCH_DB_PATH",
+    "dbFileCommitted": false
+  },
+  "persistence": {
+    "projects": true,
+    "requirements": true,
+    "clarifications": true,
+    "designPlans": true,
+    "planningTasks": true,
+    "agentRuns": true,
+    "reviewItems": true,
+    "prDrafts": true,
+    "activityLogs": true
+  },
+  "api": {
+    "projects": true,
+    "requirements": true,
+    "clarifications": true,
+    "designPlans": true,
+    "planningTasks": true,
+    "agentRuns": true,
+    "agentArtifacts": true,
+    "runEvents": true,
+    "reviewItems": true,
+    "prDrafts": true,
+    "activityLogs": true
+  },
+  "tests": {
+    "npmTest": "passed: 78 tests",
+    "testServer": "passed: 48 tests",
+    "dbInit": "passed",
+    "dbSmoke": "passed",
+    "persistenceRestart": "passed",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "passed",
+    "checkStandalone": "passed",
+    "smokeE2eRealDryRun": "passed after rerun; one transient real-model invalid JSON response observed"
+  },
+  "render": {
+    "frontendUrl": "http://127.0.0.1:9999",
+    "backendUrl": "http://127.0.0.1:8787",
+    "frontendHealthViaProxy": true,
+    "viewportsVerified": ["1920x1080", "1440x900"],
+    "pageVerticalScroll": false,
+    "consoleErrors": false,
+    "pageErrors": false
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localDbCommitted": false,
+    "localJsonCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "stdoutKeyPrinted": false,
+    "falsePositiveNote": "Broad sk- scan initially matched task-* planning task ids; row-level inspection found no credential values, generated planning task ids now use workitem-*, and the final row-level DB scan returned zero hits."
+  },
+  "boundaries": {
+    "dslTouched": false,
+    "dslV2Touched": false,
+    "hunterTouched": false,
+    "autoReplyTouched": false,
+    "a3bUsed": false,
+    "forcePush": false
+  },
+  "git": {
+    "commit": "feat: persist workbench state in local database",
+    "pushed": true,
+    "branch": "main"
+  }
+}
