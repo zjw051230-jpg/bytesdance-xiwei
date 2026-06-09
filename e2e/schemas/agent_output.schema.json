@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Standalone Agent Codegen Output",
+  "type": "object",
+  "required": ["summary", "files", "test_commands", "notes"],
+  "properties": {
+    "summary": { "type": "string" },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "action", "content"],
+        "properties": {
+          "path": { "type": "string" },
+          "action": { "type": "string", "enum": ["create", "modify"] },
+          "content": { "type": "string" }
+        }
+      }
+    },
+    "test_commands": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "array", "items": { "type": "string" } }
+  }
+}

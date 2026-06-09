@@ -12,6 +12,7 @@ export default function AppShell() {
   const [mode, setMode] = useState("monitor");
   const [projectList, setProjectList] = useState(initialProjects);
   const [activeProjectId, setActiveProjectId] = useState(initialProjects[0]?.id);
+  const [workspacePage, setWorkspacePage] = useState("picker");
   const [workspaceToast, setWorkspaceToast] = useState("");
 
   const selectProject = (project, source = "picker") => {
@@ -37,9 +38,29 @@ export default function AppShell() {
     setWorkspaceToast(`已创建 ${name}`);
   };
 
+  const handleModeChange = (nextMode) => {
+    setMode(nextMode);
+    if (nextMode === "workbench" && workspacePage !== "picker") {
+      return;
+    }
+    if (nextMode === "workbench") {
+      setWorkspaceToast("");
+    }
+  };
+
+  const handleWorkspacePageChange = (page) => {
+    setMode("workbench");
+    setWorkspacePage(page);
+  };
+
   return (
     <div className="app-shell">
-      <TopBar mode={mode} onModeChange={setMode} />
+      <TopBar
+        mode={mode}
+        onModeChange={handleModeChange}
+        activeWorkspacePage={workspacePage === "picker" ? "dsl" : workspacePage}
+        onWorkspacePageChange={handleWorkspacePageChange}
+      />
       {mode === "monitor" ? (
         <div className="layout" data-testid="monitor-console-view">
           <Sidebar />
@@ -52,6 +73,8 @@ export default function AppShell() {
           activeProjectId={activeProjectId}
           onProjectSelect={selectProject}
           onProjectCreate={createProject}
+          workspacePage={workspacePage}
+          onWorkspacePageChange={setWorkspacePage}
           toast={workspaceToast}
           onToast={setWorkspaceToast}
         />

@@ -1,0 +1,15 @@
+{
+  "repo": "conduit-realworld-example-app",
+  "scope": "standalone-real-e2e",
+  "files": [
+    {
+      "path": "README.md",
+      "purpose": "Safe documentation target for dry-run planning or isolated smoke writes."
+    }
+  ],
+  "constraints": [
+    "Do not expose API keys.",
+    "Do not enter Agent Plan or Handoff.",
+    "Prefer minimal, reversible file edits in a test branch or temporary copy."
+  ]
+}

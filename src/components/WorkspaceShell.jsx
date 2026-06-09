@@ -1,4 +1,5 @@
 import { useState } from "react";
+import DesignPlanningWorkbench from "./DesignPlanningWorkbench.jsx";
 import DSLWorkbench from "./DSLWorkbench.jsx";
 import ProjectRail from "./ProjectRail.jsx";
 import WorkspaceProjectPicker from "./WorkspaceProjectPicker.jsx";
@@ -8,17 +9,18 @@ export default function WorkspaceShell({
   activeProjectId,
   onProjectSelect,
   onProjectCreate,
+  workspacePage,
+  onWorkspacePageChange,
   toast,
   onToast
 }) {
   const [railExpanded, setRailExpanded] = useState(false);
-  const [workspaceView, setWorkspaceView] = useState("picker");
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? projects[0];
 
   const enterWorkbench = (project = activeProject) => {
     if (project) {
       onProjectSelect(project, "enter");
-      setWorkspaceView("dsl");
+      onWorkspacePageChange("dsl");
     }
   };
 
@@ -31,7 +33,7 @@ export default function WorkspaceShell({
       className={`workspace-shell ${railExpanded ? "rail-expanded" : "rail-collapsed"}`}
       data-testid="workspace-shell"
       data-rail-state={railExpanded ? "expanded" : "collapsed"}
-      data-workspace-view={workspaceView}
+      data-workspace-view={workspacePage}
     >
       <ProjectRail
         expanded={railExpanded}
@@ -42,7 +44,7 @@ export default function WorkspaceShell({
         onProjectSelect={handleRailSelect}
       />
       <div className="workspace-content">
-        {workspaceView === "picker" ? (
+        {workspacePage === "picker" ? (
           <WorkspaceProjectPicker
             projects={projects}
             activeProjectId={activeProjectId}
@@ -51,14 +53,33 @@ export default function WorkspaceShell({
             onEnterWorkbench={enterWorkbench}
             toast={toast}
           />
-        ) : (
+        ) : null}
+        {workspacePage === "dsl" ? (
           <DSLWorkbench
             activeProject={activeProject}
             toast={toast}
             onToast={onToast}
           />
-        )}
+        ) : null}
+        {workspacePage === "design" ? (
+          <DesignPlanningWorkbench activeProject={activeProject} toast={toast} />
+        ) : null}
+        {workspacePage === "review" || workspacePage === "pr" ? (
+          <PlaceholderWorkbench page={workspacePage} />
+        ) : null}
       </div>
     </div>
+  );
+}
+
+function PlaceholderWorkbench({ page }) {
+  const title = page === "review" ? "审阅检查" : "PR 页面";
+  return (
+    <main className="workspace-placeholder" data-testid={`${page}-placeholder`}>
+      <section>
+        <h1>{title}</h1>
+        <p>即将开放</p>
+      </section>
+    </main>
   );
 }

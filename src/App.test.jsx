@@ -26,25 +26,52 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText("Artifacts (4)")).toBeInTheDocument();
   });
 
-  it("switches 工作台 into the project picker and back to 监控台", () => {
+  it("switches 工作台 into the project picker and shows top page tabs", () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
 
-    expect(screen.getByRole("button", { name: "监控台" })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: "工作台" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "DSL 澄清台" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "设计规划" })).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: "审阅检查" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "PR 页面" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "选择你的项目" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "新建项目" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "conduit-realworld-example-app" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "Codex Workbench" })).toBeInTheDocument();
     expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "collapsed");
     expect(screen.queryByTestId("monitor-console-view")).not.toBeInTheDocument();
+  });
 
-    fireEvent.click(screen.getByRole("button", { name: "监控台" }));
+  it("switches between the DSL page, design planning page, and placeholder pages from top tabs", () => {
+    render(<App />);
 
-    expect(screen.getByTestId("monitor-console-view")).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: "选择你的项目" })).not.toBeInTheDocument();
-    expect(screen.queryByTestId("project-rail")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "设计规划" }));
+
+    expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "设计规划" })).toBeInTheDocument();
+    expect(screen.getByText("实施阶段 / 里程碑")).toBeInTheDocument();
+    expect(screen.getByText("任务拆解清单")).toBeInTheDocument();
+    expect(screen.getByText("执行摘要 / 最新进展")).toBeInTheDocument();
+    expect(screen.getByText("总体进度")).toBeInTheDocument();
+    expect(screen.getByText("风险 / 阻塞项")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "DSL 状态控制台" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "设计规划" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "DSL 澄清台" }));
+    expect(screen.getByTestId("dsl-workbench")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "需求澄清工作台" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "DSL 状态控制台" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "审阅检查" }));
+    expect(screen.getByTestId("review-placeholder")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "审阅检查" })).toBeInTheDocument();
+    expect(screen.getByText("即将开放")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "PR 页面" }));
+    expect(screen.getByTestId("pr-placeholder")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "PR 页面" })).toBeInTheDocument();
   });
 
   it("selects a project and shows a local toast", () => {

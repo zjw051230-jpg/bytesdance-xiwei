@@ -33,11 +33,11 @@
         "overflowY": "hidden"
       },
       "statusConsole": {
-        "top": 68,
-        "left": 1230,
-        "width": 678,
-        "height": 1000,
-        "bottom": 1068,
+        "top": 66,
+        "left": 1211,
+        "width": 699,
+        "height": 1004,
+        "bottom": 1070,
         "overflowY": "hidden"
       },
       "scroll": {
@@ -50,7 +50,7 @@
       }
     },
     "resultMetrics": {
-      "runIdText": "RUN-20260608-192345-2UPGS",
+      "runIdText": "RUN-20260609-085335-TJIDJ",
       "statusPassedVisible": true,
       "completionVisible": true,
       "evpiSourceVisible": false,
@@ -69,19 +69,19 @@
       "hasRunId": true,
       "hasBoundary": true,
       "modal": {
-        "top": 90,
-        "left": 211,
-        "width": 1498,
-        "height": 900,
-        "bottom": 990,
+        "top": 145,
+        "left": 320,
+        "width": 1280,
+        "height": 790,
+        "bottom": 935,
         "overflowY": "hidden"
       },
       "modalBody": {
-        "top": 167,
-        "left": 212,
-        "width": 1496,
-        "height": 822,
-        "bottom": 989,
+        "top": 214,
+        "left": 321,
+        "width": 1278,
+        "height": 720,
+        "bottom": 934,
         "overflowY": "hidden"
       },
       "scroll": {
@@ -147,7 +147,7 @@
       }
     },
     "resultMetrics": {
-      "runIdText": "RUN-20260608-192350-QOIU7",
+      "runIdText": "RUN-20260609-085339-WXTVG",
       "statusPassedVisible": true,
       "completionVisible": true,
       "evpiSourceVisible": false,

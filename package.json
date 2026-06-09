@@ -12,9 +12,11 @@
     "test:server": "vitest --run server src/adapters",
     "check:skill-model-sdk": "node scripts/check-skill-model-sdk.mjs",
     "check:doubao": "node scripts/check-doubao-ark.mjs",
+    "check:standalone": "node scripts/check-standalone.mjs",
     "check:doubao-skill-minimal": "node scripts/check-doubao-skill-turn.mjs minimal",
     "check:doubao-skill-l1": "node scripts/check-doubao-skill-turn.mjs l1",
     "smoke": "node scripts/smoke.mjs",
+    "smoke:design-planning": "node scripts/smoke-design-planning.mjs",
     "smoke:real-dsl": "node scripts/smoke-real-dsl.mjs",
     "smoke:web-ui-real-dsl": "node scripts/smoke-real-dsl.mjs",
     "smoke:web-ui-l1-dedup": "node scripts/smoke-l1-dedup.mjs",
@@ -25,6 +27,8 @@
     "smoke:web-ui-skill-l1-l3": "node scripts/smoke-skill-l1-l3.mjs",
     "smoke:skill-fast-latency": "node scripts/smoke-skill-fast-latency.mjs",
     "smoke:web-ui-real-skill-l1": "node scripts/smoke-real-skill-l1.mjs",
+    "smoke:e2e-real": "node scripts/smoke-e2e-real.mjs",
+    "smoke:e2e-real:dry-run": "node scripts/smoke-e2e-real.mjs --dry-run",
     "verify": "node scripts/verify-render.mjs"
   },
   "dependencies": {

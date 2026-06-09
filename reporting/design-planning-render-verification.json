@@ -1,0 +1,109 @@
+[
+  {
+    "viewport": "1920x1080",
+    "url": "http://127.0.0.1:9999",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "page": "F:\\字节比赛\\最终程序\\reporting\\design-planning-page-1920x1080.png",
+      "topTabs": "F:\\字节比赛\\最终程序\\reporting\\workspace-top-tabs.png"
+    },
+    "metrics": {
+      "hasTopTabs": 1,
+      "designTabSelected": "true",
+      "hasDesignPlanningWorkbench": 1,
+      "dslStatusConsoleCount": 0,
+      "hasMilestones": true,
+      "hasTaskBreakdown": true,
+      "hasExecutionFeedback": true,
+      "hasProgressPanel": true,
+      "hasRiskPanel": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1920,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "workbench": {
+        "top": 56,
+        "left": 64,
+        "width": 1856,
+        "height": 1024,
+        "bottom": 1080,
+        "overflowY": "hidden"
+      },
+      "rightPanel": {
+        "top": 68,
+        "left": 1406,
+        "width": 502,
+        "height": 1000,
+        "bottom": 1068,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 1080,
+        "bodyScrollHeight": 1080,
+        "docClientHeight": 1080,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  },
+  {
+    "viewport": "1440x900",
+    "url": "http://127.0.0.1:9999",
+    "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "screenshots": {
+      "page": "F:\\字节比赛\\最终程序\\reporting\\design-planning-page-1440x900.png"
+    },
+    "metrics": {
+      "hasTopTabs": 1,
+      "designTabSelected": "true",
+      "hasDesignPlanningWorkbench": 1,
+      "dslStatusConsoleCount": 0,
+      "hasMilestones": true,
+      "hasTaskBreakdown": true,
+      "hasExecutionFeedback": true,
+      "hasProgressPanel": true,
+      "hasRiskPanel": true,
+      "shell": {
+        "top": 56,
+        "left": 0,
+        "width": 1440,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "workbench": {
+        "top": 56,
+        "left": 60,
+        "width": 1380,
+        "height": 844,
+        "bottom": 900,
+        "overflowY": "hidden"
+      },
+      "rightPanel": {
+        "top": 66,
+        "left": 1037,
+        "width": 393,
+        "height": 824,
+        "bottom": 890,
+        "overflowY": "hidden"
+      },
+      "scroll": {
+        "bodyOverflowY": "hidden",
+        "rootOverflowY": "hidden",
+        "docScrollHeight": 900,
+        "bodyScrollHeight": 900,
+        "docClientHeight": 900,
+        "hasVerticalPageScroll": false
+      }
+    },
+    "consoleEntries": [],
+    "pageErrors": []
+  }
+]

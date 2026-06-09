@@ -1,11 +1,13 @@
 import fs from "node:fs/promises";
 import OpenAI from "openai";
+import { PROJECT_API_CONFIG_PATH, resolveApiConfigPath } from "./configPath.js";
 import { redactSecrets, redactString } from "./redactionService.js";
 
-export const DEFAULT_OPENAI_COMPATIBLE_CONFIG_PATH = "F:\\dsl-v2\\configs\\api_config.local.json";
+export const DEFAULT_OPENAI_COMPATIBLE_CONFIG_PATH = PROJECT_API_CONFIG_PATH;
 
 export async function readOpenAiCompatibleConfig(options = {}) {
-  const apiConfigPath = options.apiConfigPath || process.env.SKILL_MODEL_API_CONFIG || DEFAULT_OPENAI_COMPATIBLE_CONFIG_PATH;
+  const resolved = await resolveApiConfigPath({ apiConfigPath: options.apiConfigPath });
+  const apiConfigPath = resolved.configPath;
   let raw;
   try {
     raw = JSON.parse(await fs.readFile(apiConfigPath, "utf8"));
@@ -34,6 +36,8 @@ export async function readOpenAiCompatibleConfig(options = {}) {
 
   return {
     apiConfigPath,
+    configSource: resolved.source,
+    usedExternalDslV2Fallback: resolved.usedExternalDslV2Fallback,
     baseURL,
     apiKey,
     model,
@@ -128,6 +132,8 @@ export async function createChatCompletionWithLocalConfig(options = {}) {
 export function safeConfig(config) {
   return {
     apiConfigPath: config.apiConfigPath,
+    configSource: config.configSource,
+    usedExternalDslV2Fallback: config.usedExternalDslV2Fallback,
     baseURL: config.baseURL,
     model: config.model,
     chatCompletionsPath: config.chatCompletionsPath,

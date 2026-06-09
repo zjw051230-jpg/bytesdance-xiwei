@@ -18,17 +18,31 @@ const testRunsRoot = path.resolve("runs", "test-server");
 const listeners = [];
 
 async function startTestServer(options) {
+  const runtimeRoot = path.join(testRunsRoot, "standalone-runtime");
+  const apiConfigPath = path.join(testRunsRoot, "configs", "api_config.local.json");
+  await ensureStandaloneServerFixtures(runtimeRoot, apiConfigPath);
   const server = createAppServer({
     runsRoot: testRunsRoot,
-    dslRuntimeRoot: "F:\\dsl-v2",
-    apiConfigPath: "F:\\dsl-v2\\configs\\api_config.local.json",
-    codeContextPath: "F:\\dsl-v2\\core\\examples\\code_context\\conduit_code_context_packet.json",
+    dslRuntimeRoot: runtimeRoot,
+    apiConfigPath,
+    codeContextPath: path.resolve("e2e", "context", "default_code_context_packet.json"),
     ...options
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   listeners.push(server);
   const { port } = server.address();
   return `http://127.0.0.1:${port}`;
+}
+
+async function ensureStandaloneServerFixtures(runtimeRoot, apiConfigPath) {
+  await fs.mkdir(path.join(runtimeRoot, "runtime"), { recursive: true });
+  await fs.writeFile(path.join(runtimeRoot, "runtime", "pm_dsl_runner.py"), "# test runner availability marker\n", "utf8");
+  await fs.mkdir(path.dirname(apiConfigPath), { recursive: true });
+  await fs.writeFile(apiConfigPath, JSON.stringify({
+    provider: "doubao_ark",
+    api_key: "db-test-fixture-secret",
+    model: "ep-test-fixture"
+  }, null, 2), "utf8");
 }
 
 async function startFakeOpenAiServer(handler) {
@@ -232,7 +246,7 @@ describe("DSL backend API", () => {
 
     const config = await readDoubaoArkConfig({ configPath });
 
-    expect(DEFAULT_DOUBAO_ARK_CONFIG_PATH).toBe("F:\\dsl-v2\\configs\\api_config.local.json");
+    expect(DEFAULT_DOUBAO_ARK_CONFIG_PATH).toBe(path.resolve("configs", "api_config.local.json"));
     expect(config.configPath).toBe(configPath);
     expect(config.baseURL).toBe("https://ark.cn-beijing.volces.com/api/v3");
     expect(config.chatCompletionsPath).toBe("/chat/completions");
@@ -267,21 +281,22 @@ describe("DSL backend API", () => {
     });
   });
 
-  it("loads PM-to-DSL skill prompt files from dsl-v2", async () => {
+  it("loads PM-to-DSL skill prompt files from project-local e2e prompts", async () => {
     const result = await loadSkillPrompts({
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       skillNames: ["prd_to_dsl", "clarification", "code_context"]
     });
 
     expect(result.ok).toBe(true);
-    expect(result.data.skills.prd_to_dsl.content).toContain("prd_to_dsl");
-    expect(result.data.skills.clarification.content).toContain("clarification");
-    expect(result.data.skills.code_context.content).toContain("code_context");
+    expect(result.data.skills.prd_to_dsl.content).toContain("RequirementDSL");
+    expect(result.data.skills.clarification.content).toContain("Clarification");
+    expect(result.data.skills.code_context.content).toContain("Code Context");
   });
 
   it("returns a structured skill loader error when a required skill is missing", async () => {
     const result = await loadSkillPrompts({
-      dslRuntimeRoot: testRunsRoot,
+      dslRuntimeRoot: path.resolve("e2e"),
+      skillRoot: testRunsRoot,
       skillNames: ["prd_to_dsl"]
     });
 
@@ -309,7 +324,7 @@ describe("DSL backend API", () => {
       }
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       skillModelMode: "mock"
     });
 
@@ -386,7 +401,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "文章详情页需要阅读信息提示；api_key=sk-real-secret-value。" }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       apiConfigPath: configPath,
       nodeEnv: "development"
     });
@@ -469,7 +484,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "Article detail page needs reading info." }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       doubaoApiConfigPath: configPath,
       doubaoBaseURL: `${fakeArk.baseUrl}/api/v3`,
       nodeEnv: "development"
@@ -501,7 +516,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "Article detail page needs reading info." }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       doubaoApiConfigPath: missingDoubaoConfigPath,
       nodeEnv: "development"
     });
@@ -518,7 +533,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "文章详情页需要阅读信息提示。" }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       nodeEnv: "test"
     });
 
@@ -534,7 +549,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "需要登录失败提示优化" }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       modelClient: async () => {
         throw new Error("mock model offline");
       }
@@ -552,7 +567,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "需要一个非 JSON 模型响应的防护测试。" }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       modelClient: async () => "this is not json"
     });
 
@@ -577,7 +592,7 @@ describe("DSL backend API", () => {
       maxLatencyMs: 500
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       apiConfigPath: configPath,
       nodeEnv: "development"
     });
@@ -597,7 +612,7 @@ describe("DSL backend API", () => {
       }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       skillModelMode: "mock"
     });
 
@@ -619,7 +634,7 @@ describe("DSL backend API", () => {
       }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       skillModelMode: "mock"
     });
 
@@ -641,7 +656,7 @@ describe("DSL backend API", () => {
       }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       skillModelMode: "mock"
     });
 
@@ -661,7 +676,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "给文章详情页加一个小提示。" }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       modelClient: async () => JSON.stringify({
         assistant_message: "好的，需求已完成。",
         dsl_patch: { candidate: true },
@@ -716,7 +731,7 @@ describe("DSL backend API", () => {
       }
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       modelClient: async ({ prompt, input }) => {
         captured = { prompt, input };
         return JSON.stringify({
@@ -785,7 +800,7 @@ describe("DSL backend API", () => {
       pmMessages: [{ role: "pm", content: "Article detail page needs reading info." }]
     }, {
       runsRoot: testRunsRoot,
-      dslRuntimeRoot: "F:\\dsl-v2",
+      dslRuntimeRoot: path.resolve("e2e"),
       doubaoApiConfigPath: configPath,
       doubaoBaseURL: `${fakeArk.baseUrl}/api/v3`,
       nodeEnv: "development"
@@ -815,7 +830,7 @@ describe("DSL backend API", () => {
         pmMessages: [{ role: "pm", content: "给文章加一个推荐模块。" }]
       }, {
         runsRoot: testRunsRoot,
-        dslRuntimeRoot: "F:\\dsl-v2",
+        dslRuntimeRoot: path.resolve("e2e"),
         modelClient: async () => new Promise(() => {})
       }),
       new Promise((resolve) => setTimeout(() => resolve({ timedOutWaitingForSkillTurn: true }), 200))

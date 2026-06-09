@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Standalone Context Readiness",
+  "type": "object",
+  "required": ["ready", "reasons", "safe_to_write", "recommended_files", "test_commands"],
+  "properties": {
+    "ready": { "type": "boolean" },
+    "reasons": { "type": "array", "items": { "type": "string" } },
+    "safe_to_write": { "type": "boolean" },
+    "recommended_files": { "type": "array", "items": { "type": "string" } },
+    "test_commands": { "type": "array", "items": { "type": "string" } }
+  }
+}

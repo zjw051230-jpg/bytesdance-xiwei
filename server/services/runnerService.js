@@ -19,9 +19,9 @@ import { redactSecrets, redactString } from "./redactionService.js";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 
 export const defaultConfig = {
-  dslRuntimeRoot: "F:\\dsl-v2",
-  apiConfigPath: "F:\\dsl-v2\\configs\\api_config.local.json",
-  codeContextPath: "F:\\dsl-v2\\core\\examples\\code_context\\conduit_code_context_packet.json",
+  dslRuntimeRoot: path.resolve("e2e"),
+  apiConfigPath: path.resolve("configs", "api_config.local.json"),
+  codeContextPath: path.resolve("e2e", "context", "default_code_context_packet.json"),
   runsRoot: path.resolve("runs"),
   timeoutSeconds: 180,
   mockDelayMs: Number(process.env.DSL_MOCK_DELAY_MS || 0),
@@ -30,10 +30,11 @@ export const defaultConfig = {
 
 export async function getHealth(config = {}) {
   const merged = { ...defaultConfig, ...config };
+  const mockRunnerAvailable = ["mock", "mock-fail"].includes(merged.runnerMode);
   return {
     service: "codex-workbench-web",
     dslRuntimeRoot: merged.dslRuntimeRoot,
-    runnerAvailable: await exists(path.join(merged.dslRuntimeRoot, "runtime", "pm_dsl_runner.py")),
+    runnerAvailable: mockRunnerAvailable || await exists(path.join(merged.dslRuntimeRoot, "runtime", "pm_dsl_runner.py")),
     apiConfigExists: await exists(merged.apiConfigPath)
   };
 }

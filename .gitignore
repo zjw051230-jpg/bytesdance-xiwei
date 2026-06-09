@@ -10,6 +10,7 @@ dist/
 frontend/dist/
 coverage/
 .cache/
+*.log
 tianxiwei-bytesdance/
 reporting/*.png
 reporting/vite.log

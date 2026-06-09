@@ -100,6 +100,7 @@ async function enterWorkbench(page) {
   await page.goto(url, { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "监控台" }).waitFor();
   await page.getByRole("button", { name: "工作台" }).click();
+  await page.getByRole("button", { name: "DSL 澄清台" }).waitFor();
   await page.getByRole("heading", { name: "选择你的项目" }).waitFor();
   await page.locator('[data-testid="project-rail"][data-state="collapsed"]').waitFor();
   await page.getByRole("button", { name: "进入工作台" }).click();
@@ -107,6 +108,15 @@ async function enterWorkbench(page) {
   await page.getByRole("heading", { name: "需求澄清工作台" }).waitFor();
   await page.getByRole("heading", { name: "DSL 状态控制台" }).waitFor();
   await page.getByRole("button", { name: /打开(?:需求|草稿)报告/ }).waitFor();
+}
+
+async function enterDesignPlanning(page) {
+  await page.goto(url, { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: "监控台" }).waitFor();
+  await page.getByRole("button", { name: "工作台" }).click();
+  await page.getByRole("button", { name: "设计规划" }).click();
+  await page.locator('[data-testid="design-planning-workbench"]').waitFor();
+  await page.getByRole("heading", { name: "设计规划" }).waitFor();
 }
 
 async function verifyViewport(width, height) {
@@ -203,6 +213,75 @@ async function verifyViewport(width, height) {
   };
 }
 
+async function verifyDesignPlanningViewport(width, height) {
+  const browser = await chromium.launch({ headless: true, executablePath });
+  const page = await browser.newPage({ viewport: { width, height } });
+  const consoleEntries = [];
+  const pageErrors = [];
+
+  page.on("console", (msg) => {
+    if (["error", "warning"].includes(msg.type())) {
+      consoleEntries.push({ type: msg.type(), text: msg.text() });
+    }
+  });
+  page.on("pageerror", (err) => pageErrors.push(err.message));
+
+  await enterDesignPlanning(page);
+
+  const screenshotPath = width === 1920
+    ? path.join(outDir, "design-planning-page-1920x1080.png")
+    : path.join(outDir, `design-planning-page-${width}x${height}.png`);
+  await page.screenshot({ path: screenshotPath, fullPage: false });
+
+  let topTabsScreenshotPath = "";
+  if (width === 1920) {
+    topTabsScreenshotPath = path.join(outDir, "workspace-top-tabs.png");
+    await page.locator(".workspace-top-tabs").screenshot({ path: topTabsScreenshotPath });
+  }
+
+  const text = await page.textContent("body");
+  const metrics = {
+    hasTopTabs: await page.locator(".workspace-top-tabs").count(),
+    designTabSelected: await page.getByRole("button", { name: "设计规划" }).getAttribute("aria-pressed"),
+    hasDesignPlanningWorkbench: await page.locator('[data-testid="design-planning-workbench"]').count(),
+    dslStatusConsoleCount: await page.getByRole("heading", { name: "DSL 状态控制台" }).count(),
+    hasMilestones: text.includes("实施阶段 / 里程碑"),
+    hasTaskBreakdown: text.includes("任务拆解清单"),
+    hasExecutionFeedback: text.includes("执行摘要 / 最新进展"),
+    hasProgressPanel: text.includes("总体进度"),
+    hasRiskPanel: text.includes("风险 / 阻塞项"),
+    shell: await pickMetrics(page, ".workspace-shell"),
+    workbench: await pickMetrics(page, ".design-planning-workbench"),
+    rightPanel: await pickMetrics(page, ".planning-right-panel"),
+    scroll: await pageScrollMetrics(page)
+  };
+
+  await browser.close();
+
+  if (metrics.dslStatusConsoleCount !== 0) {
+    throw new Error("Design planning page must not render DSL 状态控制台");
+  }
+  if (metrics.scroll.hasVerticalPageScroll) {
+    throw new Error(`Design planning page has vertical page scroll at ${width}x${height}`);
+  }
+  if (consoleEntries.length > 0 || pageErrors.length > 0) {
+    throw new Error(`Design planning page console/page errors at ${width}x${height}`);
+  }
+
+  return {
+    viewport: `${width}x${height}`,
+    url,
+    executablePath,
+    screenshots: {
+      page: screenshotPath,
+      topTabs: topTabsScreenshotPath || undefined
+    },
+    metrics,
+    consoleEntries,
+    pageErrors
+  };
+}
+
 await assertPortAvailable(8787);
 await assertPortAvailable(webPort);
 
@@ -224,13 +303,22 @@ try {
     await verifyViewport(1920, 1080),
     await verifyViewport(1440, 900)
   ];
+  const designPlanningResults = [
+    await verifyDesignPlanningViewport(1920, 1080),
+    await verifyDesignPlanningViewport(1440, 900)
+  ];
 
   await fs.writeFile(
     path.join(outDir, "real-dsl-render-verification.json"),
     JSON.stringify(results, null, 2),
     "utf8"
   );
-  console.log(JSON.stringify(results, null, 2));
+  await fs.writeFile(
+    path.join(outDir, "design-planning-render-verification.json"),
+    JSON.stringify(designPlanningResults, null, 2),
+    "utf8"
+  );
+  console.log(JSON.stringify({ dsl: results, designPlanning: designPlanningResults }, null, 2));
 } finally {
   await Promise.all([vite, backend].map(stopProcessTree));
 }

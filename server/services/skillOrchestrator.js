@@ -22,7 +22,7 @@ export async function runSkillTurn(requestBody = {}, config = {}) {
   const { runId, outputDir } = await prepareRunDirectory(config.runsRoot || path.resolve("runs"));
   const skillNames = config.skillNames || defaultSkillNames;
   const promptResult = await loadSkillPrompts({
-    dslRuntimeRoot: config.dslRuntimeRoot || "F:\\dsl-v2",
+    dslRuntimeRoot: config.dslRuntimeRoot || path.resolve("e2e"),
     skillNames,
     wrapperPath: config.wrapperPath
   });

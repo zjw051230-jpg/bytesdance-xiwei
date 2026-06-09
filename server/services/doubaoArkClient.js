@@ -1,12 +1,16 @@
 import fs from "node:fs/promises";
+import { PROJECT_API_CONFIG_PATH, resolveApiConfigPath } from "./configPath.js";
 import { redactSecrets, redactString } from "./redactionService.js";
 
-export const DEFAULT_DOUBAO_ARK_CONFIG_PATH = "F:\\dsl-v2\\configs\\api_config.local.json";
+export const DEFAULT_DOUBAO_ARK_CONFIG_PATH = PROJECT_API_CONFIG_PATH;
 export const DEFAULT_DOUBAO_ARK_BASE_URL = "https://ark.cn-beijing.volces.com/api/v3";
 export const DEFAULT_DOUBAO_ARK_PATH = "/chat/completions";
 
 export async function readDoubaoArkConfig(options = {}) {
-  const configPath = options.configPath || options.doubaoApiConfigPath || process.env.DOUBAO_API_CONFIG || DEFAULT_DOUBAO_ARK_CONFIG_PATH;
+  const resolved = await resolveApiConfigPath({
+    configPath: options.configPath || options.doubaoApiConfigPath
+  });
+  const configPath = resolved.configPath;
   let raw;
   try {
     raw = JSON.parse(await fs.readFile(configPath, "utf8"));
@@ -52,6 +56,8 @@ export async function readDoubaoArkConfig(options = {}) {
 
   return {
     configPath,
+    configSource: resolved.source,
+    usedExternalDslV2Fallback: resolved.usedExternalDslV2Fallback,
     provider,
     baseURL,
     chatCompletionsPath,
@@ -174,6 +180,8 @@ export async function createDoubaoChatCompletionWithLocalConfig(options = {}) {
 export function safeConfig(config) {
   return {
     configPath: config.configPath,
+    configSource: config.configSource,
+    usedExternalDslV2Fallback: config.usedExternalDslV2Fallback,
     provider: "doubao_ark",
     baseURL: config.baseURL,
     chatCompletionsPath: config.chatCompletionsPath,

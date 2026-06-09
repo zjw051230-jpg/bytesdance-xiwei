@@ -1,0 +1,9 @@
+{
+  "provider": "doubao_ark",
+  "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+  "chat_completions_path": "/chat/completions",
+  "model": "fill-your-ep-or-model-id",
+  "api_key": "",
+  "timeout_seconds": 120,
+  "max_retries": 1
+}

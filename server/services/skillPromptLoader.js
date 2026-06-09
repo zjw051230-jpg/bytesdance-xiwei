@@ -7,16 +7,20 @@ export const defaultSkillNames = ["prd_to_dsl", "clarification", "code_context"]
 const promptCache = new Map();
 
 export async function loadSkillPrompts(config = {}) {
-  const dslRuntimeRoot = config.dslRuntimeRoot || "F:\\dsl-v2";
+  const dslRuntimeRoot = config.dslRuntimeRoot || path.resolve("e2e");
   const skillNames = config.skillNames || defaultSkillNames;
   const wrapperPath = config.wrapperPath || path.resolve("server", "prompts", "pm_to_dsl_fast_skill_turn.md");
-  const cacheKey = JSON.stringify({ dslRuntimeRoot, skillNames, wrapperPath });
+  const skillRoot = config.skillRoot ? path.resolve(config.skillRoot) : "";
+  const cacheKey = JSON.stringify({ dslRuntimeRoot, skillNames, wrapperPath, skillRoot });
   if (promptCache.has(cacheKey)) return promptCache.get(cacheKey);
 
   const skills = {};
 
   for (const skillName of skillNames) {
-    const skillPath = path.join(dslRuntimeRoot, "skills", skillName, "skill.md");
+    const localSkillPath = path.resolve("e2e", "prompts", "skills", skillName, "skill.md");
+    const skillPath = skillRoot
+      ? path.join(skillRoot, skillName, "skill.md")
+      : localSkillPath;
     let content = "";
     try {
       content = await fs.readFile(skillPath, "utf8");

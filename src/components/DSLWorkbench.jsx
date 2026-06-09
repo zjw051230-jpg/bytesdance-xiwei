@@ -59,7 +59,7 @@ export default function DSLWorkbench({ activeProject, toast, onToast }) {
     const requestPayload = {
       projectId: activeProject?.id ?? "conduit-realworld-example-app",
       pmMessages: messagesToRunnerPayload(nextMessages),
-      codeContextPath: "F:\\dsl-v2\\core\\examples\\code_context\\conduit_code_context_packet.json",
+      codeContextPath: "e2e\\context\\default_code_context_packet.json",
       maxRounds: 3
     };
     const testTimeoutMs = getGlobalNumber("__DSL_TEST_TIMEOUT_MS__");

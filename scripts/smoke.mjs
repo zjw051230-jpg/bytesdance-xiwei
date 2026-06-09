@@ -9,6 +9,8 @@ const requiredFiles = [
   "src/components/WorkspaceShell.jsx",
   "src/components/ProjectRail.jsx",
   "src/components/ProjectRailItem.jsx",
+  "src/components/WorkspaceTopTabs.jsx",
+  "src/components/DesignPlanningWorkbench.jsx",
   "src/components/WorkspaceProjectPicker.jsx",
   "src/components/DSLWorkbench.jsx",
   "src/components/ClarificationChat.jsx",
@@ -20,6 +22,7 @@ const requiredFiles = [
   "src/components/ProjectSelectCard.jsx",
   "src/components/NewProjectModal.jsx",
   "src/data/workspaceProjects.js",
+  "src/data/planningWorkbenchData.js",
   "src/data/dslWorkbenchData.js",
   "server/index.js",
   "server/routes/dslRuns.js",
@@ -37,4 +40,4 @@ if (missing.length > 0) {
   process.exit(1);
 }
 
-console.log("smoke: monitor console, workspace picker, project rail, and DSL workbench files present");
+console.log("smoke: monitor console, workspace picker, project rail, DSL workbench, and design planning files present");
