@@ -4,7 +4,7 @@
   "backendUrl": "http://127.0.0.1:8787",
   "quickClarificationStatus": "快速澄清\ndone",
   "artifactStatus": "完整 DSL artifacts\ndone",
-  "runId": "RUN-20260609-175125-JIV1D",
+  "runId": "RUN-20260609-190415-LXO0C",
   "outputDirVisible": true,
   "sourceProviderVisible": true,
   "realModelVisible": true,
@@ -13,9 +13,7 @@
   "retryRunId": "",
   "oldRunnerMissingVisible": false,
   "pageVerticalScroll": false,
-  "consoleErrors": [
-    "Failed to load resource: the server responded with a status of 404 (Not Found)"
-  ],
+  "consoleErrors": [],
   "pageErrors": [],
   "processLogs": [
     {
@@ -46,17 +44,17 @@
     {
       "label": "build",
       "stream": "stdout",
-      "text": "\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.48 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  0.31 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[35massets/index-DRnmGvkc.css  \u001b[39m\u001b[1m\u001b[2m 70.52 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 13.60 kB\u001b[22m"
+      "text": "\u001b[2mdist/\u001b[22m\u001b[32mindex.html                 \u001b[39m\u001b[1m\u001b[2m  0.48 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip:  0.31 kB\u001b[22m"
     },
     {
       "label": "build",
       "stream": "stdout",
-      "text": "\u001b[2mdist/\u001b[22m\u001b[36massets/index-OKq_kBGi.js   \u001b[39m\u001b[1m\u001b[2m288.87 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 89.09 kB\u001b[22m"
+      "text": "\u001b[2mdist/\u001b[22m\u001b[35massets/index-DRnmGvkc.css  \u001b[39m\u001b[1m\u001b[2m 70.52 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 13.60 kB\u001b[22m\n\u001b[2mdist/\u001b[22m\u001b[36massets/index-Dbz-l4Ac.js   \u001b[39m\u001b[1m\u001b[2m289.44 kB\u001b[22m\u001b[1m\u001b[22m\u001b[2m │ gzip: 89.31 kB\u001b[22m"
     },
     {
       "label": "build",
       "stream": "stdout",
-      "text": "\u001b[32m✓ built in 2.21s\u001b[39m"
+      "text": "\u001b[32m✓ built in 1.61s\u001b[39m"
     },
     {
       "label": "build",
@@ -66,7 +64,7 @@
     {
       "label": "backend",
       "stream": "stderr",
-      "text": "(node:7028) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
+      "text": "(node:2664) ExperimentalWarning: SQLite is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)"
     },
     {
       "label": "backend",

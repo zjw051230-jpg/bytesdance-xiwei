@@ -1,0 +1,51 @@
+{
+  "task": "Task 13.6-E Persistence + Standalone Artifacts Final Integration",
+  "status": "partial_pass",
+  "included": {
+    "databaseCore": true,
+    "backendPersistenceApis": true,
+    "frontendPersistence": true,
+    "standaloneArtifactRunner": true,
+    "agentIntegration": true,
+    "standaloneE2e": true
+  },
+  "tests": {
+    "npmTest": "passed: 9 files, 97 tests",
+    "serverTest": "passed: 3 files, 57 tests",
+    "dbInit": "passed",
+    "dbSmoke": "passed: all 10 core object types plus updates",
+    "persistenceSmoke": "passed: all 10 core object types after restart",
+    "build": "passed",
+    "smoke": "passed",
+    "verifyRender": "failed twice: stale entry locator waited for monitor-mode button named 监控台",
+    "checkStandalone": "passed",
+    "e2eDryRun": "passed: realWritePerformed false, mockLlmUsed false",
+    "standaloneArtifacts": "passed: RUN-20260609-190415-LXO0C"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "forcePushUsed": false
+  },
+  "git": {
+    "branch": "main",
+    "finalCommit": "pending_until_commit_exists",
+    "pushed": false,
+    "aheadStatus": "before final commit: 2 ahead, 0 behind origin/main"
+  },
+  "artifacts": {
+    "latestRunId": "RUN-20260609-190415-LXO0C",
+    "pmDslRunnerRequired": false,
+    "externalDslV2Required": false,
+    "standaloneRunnerUsed": true,
+    "mockLlmUsed": false,
+    "realWritePerformed": false
+  },
+  "manualAcceptancePathIncluded": true,
+  "recommendRework": false,
+  "followUp": "Repair verify-render UI entry locator in a later targeted task so it waits on the current picker/workbench entry state."
+}

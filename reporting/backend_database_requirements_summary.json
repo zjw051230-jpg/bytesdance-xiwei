@@ -1,0 +1,33 @@
+{
+  "task": "Task 13.4 Backend Database Requirements",
+  "status": "completed",
+  "document": "docs/backend_database_requirements.md",
+  "scope": {
+    "implementationCodeWritten": false,
+    "databaseMigrationWritten": false,
+    "apiContractOnly": true
+  },
+  "sections": [
+    "project_goal",
+    "core_objects",
+    "page_backend_mapping",
+    "api_contracts",
+    "state_enums",
+    "persistence_requirements",
+    "security_boundaries",
+    "error_codes",
+    "priorities"
+  ],
+  "outputs": {
+    "markdown": "F:\\字节比赛\\最终程序\\docs\\backend_database_requirements.md",
+    "summary": "F:\\字节比赛\\最终程序\\reporting\\backend_database_requirements_summary.json"
+  },
+  "safety": {
+    "implementationCodeWritten": false,
+    "databaseMigrationWritten": false,
+    "frameworkChoiceSpecified": false,
+    "ormSpecified": false,
+    "sqlSchemaWritten": false,
+    "secretsIncluded": false
+  }
+}

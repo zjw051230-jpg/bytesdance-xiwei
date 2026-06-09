@@ -12,6 +12,6 @@ export function openWorkbenchDatabase(options = {}) {
   const dbPath = resolveWorkbenchDbPath(options);
   fs.mkdirSync(path.dirname(dbPath), { recursive: true });
   const database = new DatabaseSync(dbPath);
-  database.exec("PRAGMA foreign_keys = ON;");
+  database.exec("PRAGMA busy_timeout = 5000; PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;");
   return database;
 }

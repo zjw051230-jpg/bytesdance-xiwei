@@ -1,0 +1,78 @@
+{
+  "task": "Task 13.6-A Persistent Database Core",
+  "status": "implemented_with_external_test_blocker",
+  "database": {
+    "type": "sqlite",
+    "defaultPath": "data/workbench.sqlite",
+    "envOverride": "WORKBENCH_DB_PATH",
+    "driver": "node:sqlite DatabaseSync",
+    "connectionPragmas": ["busy_timeout = 5000", "journal_mode = WAL", "foreign_keys = ON"]
+  },
+  "schemaObjects": [
+    "Project",
+    "Requirement",
+    "ClarificationTurn",
+    "DesignPlan",
+    "PlanningTask",
+    "AgentRun",
+    "AgentArtifact",
+    "ReviewItem",
+    "PrDraft",
+    "ActivityLog"
+  ],
+  "repositoryFiles": [
+    "server/repositories/projectRepository.js",
+    "server/repositories/requirementRepository.js",
+    "server/repositories/clarificationRepository.js",
+    "server/repositories/designPlanRepository.js",
+    "server/repositories/planningTaskRepository.js",
+    "server/repositories/agentRunRepository.js",
+    "server/repositories/agentArtifactRepository.js",
+    "server/repositories/reviewRepository.js",
+    "server/repositories/prDraftRepository.js",
+    "server/repositories/activityRepository.js",
+    "server/repositories/index.js",
+    "server/repositories/utils.js"
+  ],
+  "scripts": {
+    "db:init": "node scripts/db-init.mjs",
+    "db:smoke": "node scripts/db-smoke.mjs",
+    "smoke:persistence": "node scripts/smoke-persistence-restart.mjs"
+  },
+  "verification": {
+    "npm run db:init": "passed",
+    "npm run db:smoke": "passed",
+    "npm run smoke:persistence": "passed",
+    "npm run test:server": "passed",
+    "npm test -- server/persistence.test.js": "passed",
+    "npm test -- src/api/persistenceClient.test.js": "passed",
+    "npm test": "failed"
+  },
+  "npmTestFailure": {
+    "blockingFiles": [
+      "src/components/frontendPersistence.test.jsx",
+      "src/App.test.jsx"
+    ],
+    "reason": "Full test suite fails in frontend files outside the allowed modification scope for this task."
+  },
+  "safety": {
+    "forbiddenTrackedArtifactsFound": false,
+    "requiredGitignoreEntriesPresent": true,
+    "localIgnoredArtifactsPresent": [
+      "configs/api_config.local.json",
+      "data/",
+      "runs/",
+      "node_modules/",
+      "dist/"
+    ],
+    "realSecretsAdded": false,
+    "secretScanNotes": "Only an existing dummy redaction fixture in server/server.test.js matched the token-shaped pattern."
+  },
+  "git": {
+    "commitCreated": false,
+    "commitMessage": null,
+    "reason": "The required npm test command failed."
+  },
+  "recommendRework": false,
+  "integrationFollowUp": "Resolve or accept the existing frontend test failures before creating the requested local commit."
+}

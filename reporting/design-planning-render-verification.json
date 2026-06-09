@@ -1,7 +1,7 @@
 [
   {
     "viewport": "1920x1080",
-    "url": "http://127.0.0.1:9999",
+    "url": "http://127.0.0.1:10099",
     "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
     "screenshots": {
       "page": "F:\\字节比赛\\最终程序\\reporting\\design-planning-page-1920x1080.png",
@@ -57,7 +57,7 @@
   },
   {
     "viewport": "1440x900",
-    "url": "http://127.0.0.1:9999",
+    "url": "http://127.0.0.1:10099",
     "executablePath": "C:/Program Files/Google/Chrome/Application/chrome.exe",
     "screenshots": {
       "page": "F:\\字节比赛\\最终程序\\reporting\\design-planning-page-1440x900.png"
