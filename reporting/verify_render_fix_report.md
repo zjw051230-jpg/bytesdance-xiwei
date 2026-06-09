@@ -54,8 +54,8 @@
 - dist committed: false.
 
 ### 8. Git / Push
-- commit: `fix: stabilize render verification locator` (exact SHA reported after commit/push).
-- pushed: pending at report write time.
+- commit: `f1d4b82866911ee26f3c90194ad9f4bc5df0232d` (`fix: stabilize render verification locator`).
+- pushed: true.
 - branch: `main`.
 
 ### 9. 是否建议返工
