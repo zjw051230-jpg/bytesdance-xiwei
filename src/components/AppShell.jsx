@@ -28,6 +28,7 @@ export default function AppShell() {
     const createdProject = {
       id: `mock-${Date.now()}`,
       name,
+      localPath,
       description: localPath ? `本地路径：${localPath}` : "刚刚创建的 mock 项目",
       railSubtitle: localPath || "刚刚创建",
       status: "current",

@@ -69,7 +69,11 @@ export default function WorkspaceShell({
           />
         ) : null}
         {workspacePage === "review" ? (
-          <ReviewCheckWorkbench agentWorkflow={agentWorkflow} onOpenPr={() => onWorkspacePageChange("pr")} />
+          <ReviewCheckWorkbench
+            activeProject={activeProject}
+            agentWorkflow={agentWorkflow}
+            onOpenPr={() => onWorkspacePageChange("pr")}
+          />
         ) : null}
         {workspacePage === "pr" ? (
           <PRWorkbench agentWorkflow={agentWorkflow} />

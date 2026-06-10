@@ -6,6 +6,7 @@ import { handleArtifacts } from "./routes/artifacts.js";
 import { handleAgentExecutionRoutes } from "./routes/agentExecution.js";
 import { defaultConfig, getHealth } from "./services/runnerService.js";
 import { handleDslRuns } from "./routes/dslRuns.js";
+import { handlePreviewRoutes } from "./routes/preview.js";
 import { handleSkillRoutes } from "./routes/skill.js";
 
 export function createAppServer(config = {}) {
@@ -22,6 +23,7 @@ export function createAppServer(config = {}) {
         return;
       }
       if (url.pathname.startsWith("/api/dsl/runs") && await handleDslRuns(request, response, merged)) return;
+      if (await handlePreviewRoutes(request, response, merged)) return;
       if (await handleSkillRoutes(request, response, merged)) return;
       if (await handleAgentExecutionRoutes(request, response, merged)) return;
       if (await handleArtifacts(request, response, merged)) return;
