@@ -54,8 +54,8 @@
 * real repo write performed: false
 
 ### 8. Git / Push
-* commit: pending before final commit
-* pushed: pending
+* commit: 6ae5416 (`fix: support multi-dimensional clarification refinement loop`)
+* pushed: true
 * branch: main
 
 ### 9. 是否建议返工
