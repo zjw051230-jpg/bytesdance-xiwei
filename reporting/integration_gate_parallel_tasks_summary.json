@@ -1,0 +1,43 @@
+{
+  "task": "Integration Gate Parallel Tasks",
+  "status": "committed_not_pushed",
+  "groups": {
+    "performanceCommitted": true,
+    "mockMappingCommitted": true,
+    "skillsCommitted": true,
+    "testAlignmentCommitted": true
+  },
+  "tests": {
+    "npmTest": "passed: 14 files, 139 tests",
+    "serverTest": "passed: 8 files, 83 tests",
+    "build": "passed: Vite build, 1739 modules transformed",
+    "skillsAudit": "passed: 16 skills, 0 errors",
+    "smokeSkills": "passed: 16 dry-run results"
+  },
+  "frontendProtection": {
+    "killed9999": false,
+    "killed8787": false,
+    "restartedDevServer": false,
+    "ranDev": false,
+    "ranVerify": false,
+    "ranSmoke": false
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "agent2RawDirCommitted": false
+  },
+  "git": {
+    "commits": [
+      "9720453 fix: improve local dev load performance",
+      "418ae63 fix: replace mock data with real workbench mappings",
+      "8aedacd chore: organize runnable skills registry"
+    ],
+    "pushed": false,
+    "branch": "main"
+  }
+}
