@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import ProjectOverview from "./ProjectOverview.jsx";
-import Sidebar from "./Sidebar.jsx";
-import TaskInspector from "./TaskInspector.jsx";
+import MonitorConsole from "./MonitorConsole.jsx";
 import TopBar from "./TopBar.jsx";
 import WorkspaceShell from "./WorkspaceShell.jsx";
 import { loadMonitorConsoleData } from "../api/monitorClient.js";
@@ -211,10 +209,8 @@ export default function AppShell() {
         onWorkspacePageChange={handleWorkspacePageChange}
       />
       {mode === "monitor" ? (
-        <div className="layout" data-testid="monitor-console-view">
-          <Sidebar monitor={monitorModel} />
-          <ProjectOverview monitor={monitorModel} />
-          <TaskInspector monitor={monitorModel} />
+        <div className="layout monitor-layout" data-testid="monitor-console-view">
+          <MonitorConsole monitor={monitorModel} />
         </div>
       ) : (
         <WorkspaceShell

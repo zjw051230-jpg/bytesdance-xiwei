@@ -28,9 +28,12 @@ describe("monitor console and workspace picker", () => {
     render(<App />);
 
     await waitFor(() => expect(defaultPersistenceFetch).toHaveBeenCalledWith("/api/projects", undefined));
+    expect(screen.getByTestId("monitor-console-overview")).toBeInTheDocument();
     expect(screen.getAllByText("Persistence Project").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("RUN-persisted-monitor").length).toBeGreaterThan(0);
-    expect(screen.getByText("Artifacts (1)")).toBeInTheDocument();
+    expect(screen.getByText("Persisted dry-run summary")).toBeInTheDocument();
+    expect(screen.getByText("Requirement / DSL")).toBeInTheDocument();
+    expect(screen.getByText("Agent Run")).toBeInTheDocument();
+    expect(screen.getByText("Artifacts")).toBeInTheDocument();
     expect(screen.queryByText("RUN-20250524-0A7F")).not.toBeInTheDocument();
     expect(screen.queryByText("conduit-realworld-example-app")).not.toBeInTheDocument();
   });
@@ -183,7 +186,7 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(document.querySelectorAll(".workspace-top-tab")[1]);
 
     expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Agent 执行控制台" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Agent dry-run 预览控制台" })).toBeInTheDocument();
     expect(screen.getByTestId("agent-run-milestones")).toBeInTheDocument();
     expect(screen.getByText("Repository target")).toBeInTheDocument();
     expect(screen.getAllByText(/dry-run/).length).toBeGreaterThan(0);
@@ -202,7 +205,7 @@ describe("monitor console and workspace picker", () => {
     ));
     await waitFor(() => expect(screen.getByText("Agent(2) dry-run preview finished; realWritePerformed=false.")).toBeInTheDocument());
     expect(screen.getByText("Agent(2) dry-run preview finished; realWritePerformed=false.")).toBeInTheDocument();
-    expect(screen.getByText("Real write")).toBeInTheDocument();
+    expect(screen.getAllByText(/dry-run/).length).toBeGreaterThan(0);
     expect(screen.queryByText("Target repository was modified.")).not.toBeInTheDocument();
     expect(screen.getAllByText("Artifacts").length).toBeGreaterThan(0);
     expect(screen.getByText("1 artifact(s) captured for traceability.")).toBeInTheDocument();

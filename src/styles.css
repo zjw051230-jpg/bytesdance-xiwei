@@ -1235,6 +1235,10 @@ code {
   overflow: hidden;
 }
 
+.layout.monitor-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .sidebar,
 .main,
 .inspector {
@@ -7101,5 +7105,336 @@ dt,
 
   .pr-mapping-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.monitor-console {
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto auto auto auto auto;
+  gap: 12px;
+  padding: 20px;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 14% 0%, rgba(10, 132, 255, 0.1), transparent 28%),
+    linear-gradient(180deg, rgba(5, 7, 13, 0.98), rgba(7, 11, 20, 0.98));
+}
+
+.monitor-hero,
+.monitor-status-strip,
+.monitor-overview-card,
+.monitor-workflow-panel,
+.monitor-activity-panel {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(16, 24, 39, 0.72);
+  box-shadow: var(--shadow);
+}
+
+.monitor-hero {
+  min-height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.monitor-kicker {
+  color: var(--accent-2);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.monitor-hero h1 {
+  max-width: min(820px, 72vw);
+  margin: 4px 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1.12;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-hero p,
+.monitor-card-foot small,
+.monitor-activity-panel small,
+.monitor-workflow-list small {
+  color: var(--muted);
+}
+
+.monitor-hero-actions,
+.monitor-card-top,
+.monitor-card-foot,
+.monitor-workflow-list label > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.monitor-hero-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.monitor-status-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.monitor-status-strip > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  max-width: 340px;
+  padding: 6px 10px;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 12px;
+}
+
+.monitor-status-strip small {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.monitor-status-strip strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.monitor-overview-card {
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  border-radius: 10px;
+  padding: 14px;
+}
+
+.monitor-overview-card p {
+  min-height: 38px;
+  margin: 0;
+  overflow: hidden;
+  color: rgba(244, 247, 251, 0.86);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.monitor-card-top,
+.monitor-card-foot {
+  justify-content: space-between;
+}
+
+.monitor-card-top > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.monitor-card-top .status-badge {
+  flex: 0 0 auto;
+  max-width: 46%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-card-foot button,
+.monitor-activity-panel button,
+.monitor-detail-dialog button {
+  position: relative;
+  z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  min-height: 30px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.monitor-card-foot small {
+  min-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.monitor-card-foot button:hover,
+.monitor-activity-panel button:hover,
+.monitor-detail-dialog button:hover {
+  border-color: rgba(100, 210, 255, 0.36);
+  background: rgba(10, 132, 255, 0.16);
+}
+
+.monitor-card-pass { border-color: rgba(50, 215, 75, 0.24); }
+.monitor-card-warn { border-color: rgba(255, 214, 10, 0.26); }
+.monitor-card-fail { border-color: rgba(255, 69, 58, 0.28); }
+.monitor-card-pending { border-color: rgba(148, 163, 184, 0.2); }
+
+.monitor-overview-card meter,
+.monitor-workflow-list progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--accent);
+}
+
+.monitor-workflow-panel,
+.monitor-activity-panel {
+  min-width: 0;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.monitor-activity-panel {
+  min-height: 180px;
+}
+
+.monitor-workflow-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.monitor-workflow-list label {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.monitor-workflow-list label > span {
+  justify-content: space-between;
+}
+
+.monitor-workflow-list em,
+.monitor-empty-state {
+  color: var(--subtle);
+  font-style: normal;
+  font-size: 13px;
+}
+
+.monitor-error-state {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 69, 58, 0.28);
+  border-radius: 8px;
+  color: #fecaca;
+  background: rgba(255, 69, 58, 0.08);
+}
+
+.monitor-activity-panel table,
+.monitor-detail-dialog table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.monitor-activity-panel th,
+.monitor-activity-panel td,
+.monitor-detail-dialog th,
+.monitor-detail-dialog td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 9px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+.monitor-activity-panel td strong,
+.monitor-activity-panel td small {
+  display: block;
+}
+
+.monitor-detail-dialog {
+  width: min(780px, calc(100vw - 36px));
+  max-height: min(760px, calc(100vh - 36px));
+  border: 1px solid rgba(100, 210, 255, 0.24);
+  border-radius: 12px;
+  padding: 0;
+  overflow: auto;
+  color: var(--text);
+  background: rgba(7, 11, 20, 0.98);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.52);
+}
+
+.monitor-detail-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.monitor-detail-dialog header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 16px;
+  background: rgba(7, 11, 20, 0.98);
+}
+
+.monitor-detail-dialog h2 {
+  margin: 3px 0 0;
+  font-size: 18px;
+}
+
+.monitor-detail-dialog details {
+  margin: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.monitor-detail-dialog summary {
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.monitor-detail-dialog th {
+  width: 220px;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .monitor-hero,
+  .monitor-status-strip,
+  .monitor-card-foot {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .monitor-overview-grid,
+  .monitor-workflow-list {
+    grid-template-columns: 1fr;
   }
 }
