@@ -2,6 +2,21 @@ import { describe, expect, it } from "vitest";
 import { artifactsToUiState } from "./dslArtifactAdapter.js";
 
 describe("artifactsToUiState", () => {
+  it("returns a true empty state when no DSL artifacts exist", () => {
+    const uiState = artifactsToUiState({});
+
+    expect(uiState.dslCompletion.rawScore).toBe(0);
+    expect(uiState.dslCompletion.displayScore).toBe(0);
+    expect(uiState.dslCompletion.value).toBe(0);
+    expect(uiState.dslCompletion.source).toBe("not_started");
+    expect(uiState.readiness.handoff_decision).toBe("not_started");
+    expect(uiState.readiness.source).toBe("not_started");
+    expect(uiState.readiness.ready_for_agent).toBeUndefined();
+    expect(uiState.risks).toEqual([]);
+    expect(uiState.coverageItems).toEqual({ covered: [], pending: [] });
+    expect(uiState.recommendedQuestion).toBeNull();
+  });
+
   it("maps scoring, readiness, risks, EVPI question, and report from real artifacts", () => {
     const uiState = artifactsToUiState({
       "09_scoring.json": {

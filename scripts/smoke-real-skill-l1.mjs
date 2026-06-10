@@ -214,7 +214,7 @@ try {
   }, realSkillTurnTimeoutMs);
   await page.screenshot({ path: result.screenshots.main, fullPage: false });
 
-  await page.getByLabel("请输入你的补充回答，系统会继续更新 DSL").fill(l1Input);
+  await page.getByLabel("请按序号回答，也可以只回答你确定的部分").fill(l1Input);
   await page.getByRole("button", { name: "发送回答" }).click();
 
   await page.waitForFunction(() => (

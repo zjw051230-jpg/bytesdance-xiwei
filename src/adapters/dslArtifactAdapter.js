@@ -56,6 +56,8 @@ const fallbackRisks = [
 ];
 
 export function artifactsToUiState(artifacts = {}) {
+  if (!hasExistingArtifact(artifacts)) return emptyUiState();
+
   const scoring = artifactJson(artifacts, "09_scoring.json");
   const finalDsl = artifactJson(artifacts, "12_final_dsl.json");
   const evpi = artifactJson(artifacts, "10_evpi_clarification.json");
@@ -78,6 +80,43 @@ export function artifactsToUiState(artifacts = {}) {
     coverageItems: mapCoverage(finalDsl, scoring, evpi),
     reportQuality: mapReportQuality(dslCompletion, risks),
     boundaries
+  };
+}
+
+export function emptyUiState() {
+  return {
+    dslCompletion: {
+      rawScore: 0,
+      displayScore: 0,
+      value: 0,
+      source: "not_started",
+      displayNote: "DSL generation has not started"
+    },
+    readiness: {
+      handoff_decision: "not_started",
+      source: "not_started"
+    },
+    risks: [],
+    recommendedQuestion: null,
+    humanReport: {
+      summary: {
+        title: "",
+        text: "",
+        status: "not_started",
+        source: "not_started"
+      },
+      scope: { inScope: [], outOfScope: [] },
+      riskCards: [],
+      note: ""
+    },
+    coverageItems: { covered: [], pending: [] },
+    reportQuality: [],
+    boundaries: {
+      agentPlanGenerated: false,
+      agentHandoffEntered: false,
+      codeExecutionEntered: false,
+      postEvalEntered: false
+    }
   };
 }
 
@@ -113,6 +152,16 @@ export function fallbackUiState() {
       postEvalEntered: false
     }
   };
+}
+
+function hasExistingArtifact(artifacts = {}) {
+  return Object.entries(artifacts).some(([filename, item]) => {
+    if (!item || typeof item !== "object") return false;
+    if (item.exists === true) return true;
+    if (item.json && typeof item.json === "object") return true;
+    if (typeof item.text === "string" && item.text.trim()) return true;
+    return /\.(json|md|txt)$/i.test(filename) && Object.keys(item).length > 0;
+  });
 }
 
 function artifactJson(artifacts, filename) {

@@ -18,7 +18,9 @@ const MAX_PM_HISTORY = 6;
 const FAST_PROMPT_MAX_CHARS = 6000;
 const SKILL_SUMMARY_MAX_CHARS = 560;
 const SKILL_MODEL_RESULT_MARKER = "__skillModelResult";
-const CLARIFICATION_TOTAL_QUESTIONS = 3;
+const INITIAL_MIN_QUESTIONS = 5;
+const INITIAL_MAX_QUESTIONS = 8;
+const REFINEMENT_QUESTIONS = 2;
 
 export async function runSkillTurn(requestBody = {}, config = {}) {
   const rawLatestInput = latestRawPmText(requestBody.pmMessages);
@@ -51,6 +53,8 @@ export async function runSkillTurn(requestBody = {}, config = {}) {
     riskSignals: compactRiskSignals(requestBody.riskSignals),
     lightweightSignals: compactLightweightSignals(requestBody.lightweightSignals),
     mode: requestBody.mode || "fast",
+    clarificationMode: String(requestBody.clarificationMode || "").trim(),
+    refinementRequested: Boolean(requestBody.refinementRequested),
     maxLatencyMs,
     currentDslDraft: compactDslDraft(requestBody.currentDslDraft),
     previousUiState: compactPreviousUiState(requestBody.previousUiState),
@@ -178,7 +182,7 @@ export function buildSkillPrompt(promptBundle, input) {
     "```",
     "## Skill summaries, not full skill files",
     skillSections,
-    "Return exactly one JSON object. No Markdown outside JSON."
+    "Return exactly one JSON object. Use clarification.questions as a grouped list with multiple user-answerable questions when clarification is needed. No Markdown outside JSON."
   ].join("\n\n");
   if (prompt.length <= FAST_PROMPT_MAX_CHARS) return prompt;
   return [
@@ -209,6 +213,8 @@ function compactRuntimePayload(input) {
     currentDslDraft: input.currentDslDraft,
     riskSignals: input.riskSignals,
     lightweightSignals: input.lightweightSignals,
+    clarificationMode: input.clarificationMode,
+    refinementRequested: input.refinementRequested,
     previousUiState: input.previousUiState,
     codeContextHint: input.codeContextHint,
     maxLatencyMs: input.maxLatencyMs,
@@ -919,7 +925,10 @@ function enforceClarificationQuestionPolicy(payload, input) {
         questions: [],
         currentQuestion: "",
         remainingQuestionCount: 0,
-        askedQuestionCount: CLARIFICATION_TOTAL_QUESTIONS,
+        askedQuestionCount: 0,
+        questionCount: 0,
+        clarificationMode: progress.mode,
+        coveredDimensions: [],
         isFinalQuestion: false,
         clarificationComplete: true
       },
@@ -943,45 +952,46 @@ function enforceClarificationQuestionPolicy(payload, input) {
       human_report_patch: {
         ...(payload.human_report_patch || {}),
         pending_confirmations: [],
-        next_actions: ["继续完善需求", "开始施工"]
+        next_actions: ["继续丰富需求", "开始施工"]
       }
     };
   }
 
   const questions = normalizeClarificationQuestionList(payload.clarification?.questions, input, progress);
   const currentQuestion = questions[0]?.question || buildGuardrailQuestion(input);
-  const question = {
-    ...(questions[0] || normalizeQuestionItem(currentQuestion, 0)),
-    question: currentQuestion,
-    priority: "p0"
-  };
-  const singleQuestion = [question];
+  const questionCount = questions.length;
+  const coveredDimensions = uniqueStrings(questions.map((question) => question.dimension)).slice(0, 8);
   return {
     ...payload,
-    assistant_message: appendSingleQuestion(payload.assistant_message, question),
+    assistant_message: appendQuestionGroup(payload.assistant_message, questions, progress.mode),
     clarification: {
       ...(payload.clarification || {}),
       should_ask: true,
-      questions: singleQuestion,
+      questions,
       currentQuestion,
-      remainingQuestionCount: progress.remainingQuestionCount,
-      askedQuestionCount: progress.askedQuestionCount,
-      isFinalQuestion: progress.isFinalQuestion,
+      remainingQuestionCount: 0,
+      askedQuestionCount: questionCount,
+      questionCount,
+      minQuestionCount: progress.mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS,
+      maxQuestionCount: progress.mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MAX_QUESTIONS,
+      clarificationMode: progress.mode,
+      coveredDimensions,
+      isFinalQuestion: true,
       clarificationComplete: false
     },
     current_dsl_summary: {
       ...(payload.current_dsl_summary || {}),
       unknowns: uniqueStrings([
         ...arrayOfStrings(payload.current_dsl_summary?.unknowns),
-        currentQuestion
-      ]).slice(0, 3)
+        ...questions.map((question) => question.question)
+      ]).slice(0, INITIAL_MAX_QUESTIONS)
     },
     human_report_patch: {
       ...(payload.human_report_patch || {}),
       pending_confirmations: uniqueStrings([
         ...arrayOfStrings(payload.human_report_patch?.pending_confirmations),
-        currentQuestion
-      ]).slice(0, 3)
+        ...questions.map((question) => question.question)
+      ]).slice(0, INITIAL_MAX_QUESTIONS)
     }
   };
 }
@@ -1006,9 +1016,7 @@ function applyDslCoreEvaluation(payload, input) {
     clarification: {
       ...(payload.clarification || {}),
       should_ask: core.evpi.clarification_gate.should_ask || payload.clarification?.should_ask !== false,
-      questions: existingQuestions.length < 1
-        ? dedupeQuestions([...existingQuestions, ...evpiQuestions]).slice(0, 1)
-        : existingQuestions
+      questions: dedupeQuestions([...existingQuestions, ...evpiQuestions]).slice(0, INITIAL_MAX_QUESTIONS)
     },
     risk_boundary: {
       ...(payload.risk_boundary || {}),
@@ -1068,18 +1076,22 @@ function dedupeQuestions(questions) {
 }
 
 function normalizeClarificationQuestionList(questions = [], input = {}, progress = resolveClarificationProgress(input)) {
+  const mode = progress.mode || "initial";
+  const targetCount = mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS;
+  const maxCount = mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MAX_QUESTIONS;
+  const askedKeys = extractAskedQuestionKeys(input);
   const existing = (Array.isArray(questions) ? questions : [])
     .map((question, index) => normalizeQuestionItem(question, index))
-    .filter((question) => question.question);
-  const filled = existing.length ? [existing[0]] : [];
+    .filter((question) => question.question)
+    .filter((question) => !askedKeys.has(normalizeQuestionKey(question.question)));
   const fallback = buildNaturalQuestionBank(input);
   const fallbackStart = Math.min(progress.nextQuestionIndex, Math.max(0, fallback.length - 1));
   const orderedFallback = [...fallback.slice(fallbackStart), ...fallback.slice(0, fallbackStart)];
-  for (const question of orderedFallback) {
-    if (filled.length >= 1) break;
-    filled.push(question);
-  }
-  return filled.slice(0, 1).map((question, index) => ({
+  const candidates = dedupeQuestions([...existing, ...orderedFallback])
+    .map((question, index) => normalizeQuestionItem(question, index))
+    .filter((question) => !askedKeys.has(normalizeQuestionKey(question.question)));
+  const selected = selectQuestionGroup(candidates, targetCount, maxCount);
+  return selected.map((question, index) => ({
     ...question,
     priority: index === 0 ? "p0" : (question.priority || "p1")
   }));
@@ -1093,16 +1105,20 @@ function normalizeQuestionItem(question, index) {
       suggested_default: "",
       target_fields: [],
       risk_factors: [],
-      priority: index === 0 ? "p0" : "p1"
+      priority: index === 0 ? "p0" : "p1",
+      dimension: "scope"
     };
   }
+  const targetFields = arrayOfStrings(question?.target_fields);
+  const riskFactors = arrayOfStrings(question?.risk_factors || question?.factor_ids);
   return {
     question: ensureQuestionMark(String(question?.question || question?.text || "")),
     reason: String(question?.reason || ""),
     suggested_default: String(question?.suggested_default || question?.suggestedDefault || ""),
-    target_fields: arrayOfStrings(question?.target_fields),
-    risk_factors: arrayOfStrings(question?.risk_factors || question?.factor_ids),
-    priority: String(question?.priority || (index === 0 ? "p0" : "p1")).toLowerCase()
+    target_fields: targetFields,
+    risk_factors: riskFactors,
+    priority: String(question?.priority || (index === 0 ? "p0" : "p1")).toLowerCase(),
+    dimension: normalizeQuestionDimension(question?.dimension || targetFields[0] || riskFactors[0] || "")
   };
 }
 
@@ -1156,39 +1172,106 @@ function questionBank(items) {
     suggested_default: "",
     target_fields: targetFields,
     risk_factors: ["clarification_gap"],
-    priority: index === 0 ? "p0" : "p1"
+    priority: index === 0 ? "p0" : "p1",
+    dimension: normalizeQuestionDimension(targetFields?.[0] || "")
   }));
 }
 
-function appendSingleQuestion(message, question) {
+function selectQuestionGroup(candidates, minCount, maxCount) {
+  const selected = [];
+  const selectedKeys = new Set();
+  const selectedDimensions = new Set();
+  const add = (question) => {
+    const key = normalizeQuestionKey(question?.question || "");
+    if (!key || selectedKeys.has(key) || selected.length >= maxCount) return false;
+    selected.push(question);
+    selectedKeys.add(key);
+    selectedDimensions.add(question.dimension);
+    return true;
+  };
+
+  for (const question of candidates) {
+    if (selected.length >= minCount) break;
+    if (!selectedDimensions.has(question.dimension)) add(question);
+  }
+  for (const question of candidates) {
+    if (selected.length >= minCount) break;
+    add(question);
+  }
+  return selected.slice(0, maxCount);
+}
+
+function extractAskedQuestionKeys(input = {}) {
+  const keys = new Set();
+  for (const message of Array.isArray(input.pmMessages) ? input.pmMessages : []) {
+    const role = String(message?.role || "");
+    if (!["system", "system_clarification", "assistant"].includes(role)) continue;
+    const content = String(message?.content || message?.text || "");
+    for (const segment of content.split(/\r?\n|(?:\d+\.\s*)/)) {
+      const text = segment.trim();
+      if (/[?？]$/.test(text)) keys.add(normalizeQuestionKey(text));
+    }
+  }
+  return keys;
+}
+
+function normalizeQuestionDimension(value) {
+  const text = String(value || "").toLowerCase();
+  if (["target_user", "core_scenario", "ranking_rule", "expected_outcome", "split_requirement"].includes(text)) return "behavior";
+  if (["failure_case", "empty_state"].includes(text)) return "state";
+  if (["data_boundary", "data_security_boundary", "security_boundary"].includes(text)) return "data";
+  if (["permission_boundary"].includes(text)) return "permission";
+  if (["acceptance_criteria"].includes(text)) return "acceptance";
+  if (["edge_case"].includes(text)) return "edge_case";
+  if (["implementation_boundary"].includes(text)) return "implementation_boundary";
+  if (["scope", "out_of_scope"].includes(text)) return "scope";
+  if (/object|page|button|entry|target/.test(text)) return "object";
+  if (/behavior|rule|ranking|expected|outcome|scenario|core/.test(text)) return "behavior";
+  if (/state|failure|error|empty|loading/.test(text)) return "state";
+  if (/data|persist|dedup|count|database/.test(text)) return "data";
+  if (/permission|security|auth|role/.test(text)) return "permission";
+  if (/copy|message|wording|hint/.test(text)) return "copy";
+  if (/acceptance|test|oracle|criteria/.test(text)) return "acceptance";
+  if (/edge|exception/.test(text)) return "edge_case";
+  if (/implementation|api|backend|frontend|boundary|contract/.test(text)) return "implementation_boundary";
+  if (/scope|out_of_scope|split/.test(text)) return "scope";
+  return "scope";
+}
+
+function appendQuestionGroup(message, questions, mode = "initial") {
   const base = String(message || "我已经整理出候选需求，但仍需要 PM 人工确认后才能继续。")
     .split("我还需要确认几个问题：")[0]
+    .split("我先从几个不同方向确认一下：")[0]
+    .split("我再补充确认两个不同方向的问题：")[0]
     .split("还需要确认一个关键口径：")[0]
     .trim();
-  return `${base}\n\n还需要确认一个关键口径：${ensureQuestionMark(question?.question || question)}`;
+  const heading = mode === "refinement"
+    ? "我再补充确认两个不同方向的问题："
+    : "我先从几个不同方向确认一下：";
+  const list = questions.map((question, index) => `${index + 1}. ${ensureQuestionMark(question.question || question)}`).join("\n");
+  return `${base}\n\n${heading}\n${list}`;
 }
 
 function buildClarificationCompleteMessage() {
-  return "当前需求已经具备进入设计规划的基础信息。你可以继续补充细节，也可以开始施工。";
+  return "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。";
 }
 
 function resolveClarificationProgress(input = {}) {
   const messages = Array.isArray(input.pmMessages) ? input.pmMessages : [];
-  const pmCount = messages.filter((message) => String(message.role || "pm") === "pm").length;
-  const askedHistoryCount = messages.filter((message) => ["system", "system_clarification"].includes(String(message.role || ""))).length;
   const latestRole = String(messages[messages.length - 1]?.role || "");
-  const answeredQuestionCount = latestRole === "pm"
-    ? Math.min(CLARIFICATION_TOTAL_QUESTIONS, Math.max(0, askedHistoryCount))
-    : Math.min(CLARIFICATION_TOTAL_QUESTIONS, Math.max(0, pmCount - 1));
-  const askedQuestionCount = Math.min(CLARIFICATION_TOTAL_QUESTIONS, answeredQuestionCount + 1);
-  const clarificationComplete = answeredQuestionCount >= CLARIFICATION_TOTAL_QUESTIONS;
+  const systemMessages = messages.filter((message) => ["system", "system_clarification", "assistant"].includes(String(message.role || "")));
+  const hasQuestionGroup = systemMessages.some((message) => /几个不同方向|两个不同方向|还需要确认|继续丰富需求|澄清问题组/.test(String(message?.content || message?.text || "")));
+  const mode = input.refinementRequested ? "refinement" : "initial";
+  const clarificationComplete = !input.refinementRequested && latestRole === "pm" && hasQuestionGroup;
+  const targetCount = mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS;
   return {
-    answeredQuestionCount,
-    askedQuestionCount: clarificationComplete ? CLARIFICATION_TOTAL_QUESTIONS : askedQuestionCount,
-    remainingQuestionCount: clarificationComplete ? 0 : Math.max(0, CLARIFICATION_TOTAL_QUESTIONS - askedQuestionCount),
-    isFinalQuestion: !clarificationComplete && askedQuestionCount === CLARIFICATION_TOTAL_QUESTIONS,
+    mode,
+    answeredQuestionCount: clarificationComplete ? targetCount : 0,
+    askedQuestionCount: clarificationComplete ? 0 : targetCount,
+    remainingQuestionCount: 0,
+    isFinalQuestion: true,
     clarificationComplete,
-    nextQuestionIndex: Math.min(answeredQuestionCount, CLARIFICATION_TOTAL_QUESTIONS - 1)
+    nextQuestionIndex: Math.min(systemMessages.length, Math.max(0, buildNaturalQuestionBank(input).length - 1))
   };
 }
 
@@ -1352,6 +1435,18 @@ function skillPayloadToUiState(payload) {
       handoff_decision: clarificationComplete ? "clarification_complete" : "clarify_first",
       source: "skill_safety_boundary"
     },
+    clarification: {
+      clarificationMode: payload.clarification?.clarificationMode || "initial",
+      questionCount: Number(payload.clarification?.questionCount || payload.clarification?.questions?.length || 0),
+      minQuestionCount: Number(payload.clarification?.minQuestionCount || INITIAL_MIN_QUESTIONS),
+      maxQuestionCount: Number(payload.clarification?.maxQuestionCount || INITIAL_MAX_QUESTIONS),
+      remainingQuestionCount: Number(payload.clarification?.remainingQuestionCount || 0),
+      askedQuestionCount: Number(payload.clarification?.askedQuestionCount || payload.clarification?.questions?.length || 0),
+      coveredDimensions: arrayOfStrings(payload.clarification?.coveredDimensions),
+      questions: normalizeQuestions(payload.clarification?.questions, payload.clarification),
+      currentQuestion: String(payload.clarification?.currentQuestion || ""),
+      clarificationComplete
+    },
     risks: (coreRisks.length ? coreRisks.map((risk) => risk.factor_id) : (report.risks?.length ? report.risks : ["验收标准仍需人工确认"])).slice(0, 4).map((risk, index) => ({
       priority: index === 0 ? "P0" : "P1",
       key: coreRisks[index]?.factor_id || (index === 0 ? "test_oracle_unclear" : `skill_risk_${index + 1}`),
@@ -1406,10 +1501,9 @@ function skillPayloadToUiState(payload) {
 function resolveDisplayScoreForClarification(rawScore, clarification = {}) {
   const rounded = Number.isFinite(Number(rawScore)) ? Math.round(Number(rawScore)) : 58;
   if (clarification?.clarificationComplete) return clamp(rounded, 86, 94);
-  const asked = Math.max(0, Number(clarification?.askedQuestionCount || 1) - 1);
-  if (asked <= 0) return clamp(rounded, 45, 65);
-  if (asked === 1) return clamp(rounded, 60, 75);
-  return clamp(rounded, 70, 84);
+  const mode = String(clarification?.clarificationMode || "initial");
+  if (mode === "refinement") return clamp(rounded, 75, 84);
+  return clamp(rounded, 45, 65);
 }
 
 function normalizePmMessages(messages) {
@@ -1428,19 +1522,21 @@ function normalizeQuestions(questions, clarification = {}) {
       ? [{
         question: clarification.question,
         reason: clarification.reason,
-          suggested_default: clarification.suggested_default,
+        suggested_default: clarification.suggested_default,
         target_fields: clarification.target_fields,
         risk_factors: clarification.risk_factors,
-        priority: clarification.priority
+        priority: clarification.priority,
+        dimension: clarification.dimension
         }]
       : [];
-  return sourceQuestions.slice(0, 10).map((question, index) => ({
+  return sourceQuestions.slice(0, INITIAL_MAX_QUESTIONS).map((question, index) => ({
     question: String(question.question || question.text || ""),
     reason: String(question.reason || ""),
     suggested_default: String(question.suggested_default || question.suggestedDefault || ""),
     target_fields: arrayOfStrings(question.target_fields),
     risk_factors: arrayOfStrings(question.risk_factors || question.factor_ids),
-    priority: String(question.priority || (index === 0 ? "p0" : "p1")).toLowerCase()
+    priority: String(question.priority || (index === 0 ? "p0" : "p1")).toLowerCase(),
+    dimension: normalizeQuestionDimension(question.dimension || question.target_fields?.[0] || question.factor_ids?.[0] || "")
   }));
 }
 

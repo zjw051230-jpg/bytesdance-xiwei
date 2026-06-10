@@ -265,7 +265,7 @@ async function verifyViewport(width, height) {
   };
   assertNoVerticalPageScroll(initialMetrics.scroll, `DSL initial ${width}x${height}`);
 
-  await page.getByLabel("请输入你的补充回答，系统会继续更新 DSL").fill("登录失败提示太模糊，希望用户知道下一步怎么做。");
+  await page.getByLabel("请按序号回答，也可以只回答你确定的部分").fill("登录失败提示太模糊，希望用户知道下一步怎么做。");
   await page.getByRole("button", { name: "发送回答" }).click();
   await page.getByText("正在生成 DSL draft...").waitFor();
 

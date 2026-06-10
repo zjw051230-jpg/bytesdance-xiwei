@@ -29,6 +29,7 @@ export default function ClarificationChat({
   const hasRealSuggestion = realSuggestion?.source === "EVPI-lite" && runId && dismissedRealRunId !== runId;
   const question = hasRealSuggestion ? realSuggestion : fallbackQuestion;
   const shouldShowSuggestion = hasRealSuggestion || messageCount >= nextSuggestionAt;
+  const latestCompleteMessageId = [...messages].reverse().find((message) => message.kind === "clarification_complete")?.id || "";
 
   useEffect(() => {
     if (runId && dismissedRealRunId && runId !== dismissedRealRunId) {
@@ -83,7 +84,7 @@ export default function ClarificationChat({
 
   const renderCompletionActions = () => (
     <div className="clarification-complete-actions">
-      <button type="button" onClick={() => onContinueRefine?.()}>继续完善需求</button>
+      <button type="button" onClick={() => onContinueRefine?.()}>继续丰富需求</button>
       <button type="button" onClick={() => onStartConstruction?.()}>开始施工</button>
     </div>
   );
@@ -112,7 +113,7 @@ export default function ClarificationChat({
                 <time>{message.time}</time>
               </div>
               <p>{message.text}</p>
-              {message.kind === "clarification_complete" ? renderCompletionActions() : null}
+              {message.id === latestCompleteMessageId ? renderCompletionActions() : null}
             </div>
           </article>
         ))}
@@ -161,8 +162,8 @@ export default function ClarificationChat({
             font: "inherit",
             lineHeight: "20px"
           }}
-          placeholder="请输入你的补充回答，系统会继续更新 DSL..."
-          aria-label="请输入你的补充回答，系统会继续更新 DSL"
+          placeholder="请按序号回答，也可以只回答你确定的部分..."
+          aria-label="请按序号回答，也可以只回答你确定的部分"
         />
         <button type="button" onClick={sendAnswer} disabled={!draft.trim()}><Send size={16} />发送回答</button>
       </div>

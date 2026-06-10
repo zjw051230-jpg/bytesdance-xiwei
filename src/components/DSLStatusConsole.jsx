@@ -9,15 +9,12 @@ export default function DSLStatusConsole({
   onOpenPartialArtifacts
 }) {
   const artifactCompletion = completionFromArtifacts(runState?.artifacts);
-  const completionMeta = resolveDisplayCompletion(artifactCompletion, uiState?.dslCompletion);
+  const emptyState = isNotStartedState(uiState, runState);
+  const completionMeta = resolveDisplayCompletion(artifactCompletion, uiState?.dslCompletion, emptyState);
   const completion = completionMeta.displayScore;
   const coverageItems = uiState?.coverageItems ?? { covered: [], pending: [] };
   const risks = uiState?.risks ?? [];
-  const readiness = uiState?.readiness ?? {
-    ready_for_agent: false,
-    handoff_decision: "clarify_first",
-    source: "fallback_safe_default"
-  };
+  const readiness = uiState?.readiness ?? { handoff_decision: "not_started", source: "not_started" };
   const runStatus = runState?.status ?? "idle";
   const skillStatus = runState?.skillStatus || (runStatus === "skill_turn" ? "done" : "idle");
   const artifactsStatus = runState?.artifactStatus || formatArtifactStatus(runStatus);
@@ -31,8 +28,10 @@ export default function DSLStatusConsole({
   const reportCta = resolveReportCta(runState, artifactsStatus, draftReportMode);
   const clarificationComplete = readiness.handoff_decision === "clarification_complete" ||
     readiness.handoff_decision === "ready_for_design";
-  const readinessLabel = readiness.ready_for_agent ? "ready" : clarificationComplete ? "ready_for_design" : "not ready";
-  const readinessNote = clarificationComplete
+  const readinessLabel = emptyState ? "not_started" : readiness.ready_for_agent ? "ready" : clarificationComplete ? "ready_for_design" : "not ready";
+  const readinessNote = emptyState
+    ? ""
+    : clarificationComplete
     ? "澄清已完成，可进入设计规划；不会自动交给 Agent 执行"
     : "当前仍需澄清，不会交给 Agent 执行";
 
@@ -59,8 +58,8 @@ export default function DSLStatusConsole({
           <div className={`skill-source-badge ${skillSourceTone}`}>回复来源：{skillSourceLabel}</div>
         ) : null}
         <dl>
-          <div><dt>输出目录</dt><dd>{runState?.relativeOutputDir || "runs\\<runId>"}</dd></div>
-          <div><dt>真实 DSL</dt><dd>enabled</dd></div>
+          <div><dt>输出目录</dt><dd>{emptyState ? "—" : (runState?.relativeOutputDir || "runs\\<runId>")}</dd></div>
+          <div><dt>真实 DSL</dt><dd>{emptyState ? "未生成" : "enabled"}</dd></div>
         </dl>
         {skillStatus === "understanding" ? <p>正在理解需求并更新 DSL...</p> : null}
         {skillStatus === "done" && runStatus === "running" ? <p>AI 已回复，完整 artifacts 后台同步中。</p> : null}
@@ -100,11 +99,11 @@ export default function DSLStatusConsole({
           <div className="coverage-columns">
             <div>
               <strong className="coverage-good">已覆盖内容</strong>
-              <ul>{coverageItems.covered.map((item) => <li key={item}>{item}</li>)}</ul>
+              <ul>{coverageItems.covered.length ? coverageItems.covered.map((item) => <li key={item}>{item}</li>) : <li>空态</li>}</ul>
             </div>
             <div>
               <strong className="coverage-warn">待补内容</strong>
-              <ul>{coverageItems.pending.map((item) => <li key={item}>{item}</li>)}</ul>
+              <ul>{coverageItems.pending.length ? coverageItems.pending.map((item) => <li key={item}>{item}</li>) : <li>空态</li>}</ul>
             </div>
           </div>
         </div>
@@ -115,34 +114,38 @@ export default function DSLStatusConsole({
           <h3>Readiness 状态</h3>
           <span>{readinessLabel}</span>
         </div>
-        <div className="readiness-grid">
-          <dl>
-            <div><dt>ready_for_agent</dt><dd>{String(readiness.ready_for_agent)}</dd></div>
-            <div><dt>handoff_decision</dt><dd>{readiness.handoff_decision}</dd></div>
-            <div><dt>source</dt><dd>{readiness.source}</dd></div>
-          </dl>
-          <div className="readiness-note">
-            <Info size={17} />
-            <p>{readinessNote.includes("不会") ? (
-              <>
-                {readinessNote.split("不会")[0]}<strong>不会{readinessNote.split("不会")[1]}</strong>
-              </>
-            ) : readinessNote}</p>
+        {emptyState ? (
+          <p className="readiness-empty">尚未生成 DSL readiness。</p>
+        ) : (
+          <div className="readiness-grid">
+            <dl>
+              <div><dt>ready_for_agent</dt><dd>{String(readiness.ready_for_agent)}</dd></div>
+              <div><dt>handoff_decision</dt><dd>{readiness.handoff_decision}</dd></div>
+              <div><dt>source</dt><dd>{readiness.source}</dd></div>
+            </dl>
+            <div className="readiness-note">
+              <Info size={17} />
+              <p>{readinessNote.includes("不会") ? (
+                <>
+                  {readinessNote.split("不会")[0]}<strong>不会{readinessNote.split("不会")[1]}</strong>
+                </>
+              ) : readinessNote}</p>
+            </div>
           </div>
-        </div>
+        )}
       </section>
 
       <section className="dsl-panel risk-panel">
         <h3>激活风险 <span>（需优先处理）</span></h3>
         <div className="risk-list">
-          {risks.map((risk) => (
+          {risks.length ? risks.map((risk) => (
             <div className="risk-item" key={risk.key}>
               <span className={`risk-priority ${risk.priority.toLowerCase()}`}>{risk.priority}</span>
               <code>{risk.key}</code>
               <p>{risk.description}</p>
               <em>{risk.impact}</em>
             </div>
-          ))}
+          )) : <p className="risk-empty">暂无风险</p>}
         </div>
       </section>
 
@@ -232,7 +235,14 @@ function completionFromArtifacts(artifacts = {}) {
   return null;
 }
 
-function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}) {
+function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}, emptyState = false) {
+  if (emptyState || dslCompletion?.source === "not_started") {
+    return {
+      rawScore: 0,
+      displayScore: 0,
+      displayNote: dslCompletion.displayNote || "DSL generation has not started"
+    };
+  }
   const rawScore = Number.isFinite(Number(artifactRawScore))
     ? Number(artifactRawScore)
     : Number(dslCompletion.rawScore ?? dslCompletion.value ?? 72);
@@ -244,6 +254,31 @@ function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}) {
     displayScore,
     displayNote: dslCompletion.displayNote || "demo display score clamp: rawScore is preserved"
   };
+}
+
+function isNotStartedState(uiState = {}, runState = {}) {
+  const runId = String(runState?.runId || "");
+  const isPlaceholderRunId = !runId || runId === "undefined" || runId === "null" || /^<.*>$/.test(runId);
+  const hasArtifacts = hasDslArtifacts(runState?.artifacts);
+  const noRequirementSignal = !uiState?.humanReport?.summary?.text && !uiState?.recommendedQuestion && !uiState?.readiness?.source && !uiState?.dslCompletion?.source;
+  const notStartedUi =
+    uiState?.dslCompletion?.source === "not_started" ||
+    uiState?.readiness?.source === "not_started" ||
+    uiState?.readiness?.handoff_decision === "not_started";
+  const fallbackWithoutRun =
+    isPlaceholderRunId &&
+    (uiState?.dslCompletion?.source === "fallback_safe_default" ||
+      uiState?.readiness?.source === "fallback_safe_default" ||
+      uiState?.dslCompletion?.source === "mock");
+  return Boolean(
+    (isPlaceholderRunId || runState?.artifactStatus === "idle" || runState?.status === "idle") &&
+    !hasArtifacts &&
+    (notStartedUi || noRequirementSignal || fallbackWithoutRun)
+  );
+}
+
+function hasDslArtifacts(artifacts = {}) {
+  return Object.values(artifacts).some((item) => item?.exists || item?.json || item?.text);
 }
 
 function clamp(value, min, max) {

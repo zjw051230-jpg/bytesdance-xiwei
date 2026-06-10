@@ -1,0 +1,42 @@
+{
+  "task": "Clarification Question Group Refinement",
+  "status": "passed",
+  "behavior": {
+    "initialMinQuestions": 5,
+    "initialMaxQuestions": 8,
+    "minDimensions": 3,
+    "refinementQuestions": 2,
+    "continueRefineWorks": true,
+    "refinementLoops": true,
+    "startConstructionNavigates": true,
+    "agentTriggered": false
+  },
+  "score": {
+    "emptyStateNot58": true,
+    "initialBelow85": true,
+    "completionBetween86And94": true,
+    "refinementReopenBelow85": true,
+    "refinementCompleteBetween86And94": true
+  },
+  "tests": {
+    "npmTest": "passed",
+    "testServer": "passed",
+    "build": "passed",
+    "smoke": "not run by request",
+    "verify": "not run by request"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "realRepoWritePerformed": false
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "main"
+  }
+}

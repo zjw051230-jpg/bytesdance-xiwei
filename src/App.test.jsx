@@ -571,6 +571,27 @@ describe("monitor console and workspace picker", () => {
     expect(document.querySelector(".report-cta")).not.toHaveTextContent("conduit-realworld-example-app");
   });
 
+  it("shows a true empty DSL state before any run or PM input", () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
+
+    expect(screen.getByText("0%")).toBeInTheDocument();
+    expect(screen.queryByText("58%")).not.toBeInTheDocument();
+    expect(screen.queryByText("fallback_safe_default")).not.toBeInTheDocument();
+    expect(screen.queryByText("test_oracle_unclear")).not.toBeInTheDocument();
+    expect(screen.queryByText("error_code_mapping")).not.toBeInTheDocument();
+    expect(screen.getByText("not_started")).toBeInTheDocument();
+    expect(screen.queryByText("ready_for_agent")).not.toBeInTheDocument();
+    expect(screen.queryByText("clarify_first")).not.toBeInTheDocument();
+    expect(screen.getByText("暂无风险")).toBeInTheDocument();
+
+    const reportCta = screen.getByRole("button", { name: /打开需求报告/ });
+    expect(reportCta).toBeDisabled();
+    expect(reportCta).toHaveTextContent("未生成");
+  });
+
   it("labels skill reply source as real, fallback, or mock in the status console", () => {
     const handlers = {
       onOpenReport: vi.fn(),
@@ -677,14 +698,14 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
 
-    expect(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL...")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分...")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "发送回答" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "生成 DSL" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "重新生成问题" })).not.toBeInTheDocument();
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
 
     for (let index = 0; index < 5; index += 1) {
-      fireEvent.change(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL..."), {
+      fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), {
         target: { value: `Login failure hint needs clearer next action ${index + 1}.` }
       });
       fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -692,7 +713,7 @@ describe("monitor console and workspace picker", () => {
 
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL..."), {
+    fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), {
       target: { value: "Login failure hint needs clearer next action 6." }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -711,7 +732,7 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
 
     for (let index = 0; index < 6; index += 1) {
-      fireEvent.change(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL..."), {
+      fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), {
         target: { value: `补充澄清内容 ${index + 1}` }
       });
       fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -839,19 +860,59 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByText(/EVPI-lite/)).not.toBeInTheDocument();
   });
 
-  it("walks DSL clarification one question at a time before offering design planning", async () => {
-    const questions = [
-      "浏览量去重规则按什么算？比如同一用户 24 小时内多次访问同一篇文章只算 1 次，还是每次刷新都累计？",
-      "未登录用户的浏览量是否也要统计？如果统计，按 IP、设备还是 session 去重？",
-      "验收时你希望用哪些标准判断这个需求完成？"
+  it("walks DSL clarification as grouped questions and supports refinement loops", async () => {
+    const initialQuestions = [
+      "浏览量统计对象是所有文章详情页，还是也包含列表页曝光？",
+      "浏览量去重规则是什么，比如同一用户 24 小时内访问同一篇文章只算 1 次，还是每次刷新都累计？",
+      "未登录用户是否也统计浏览量？如果统计，按 IP、设备还是 session 去重？",
+      "浏览量数据需要实时展示，还是可以有延迟缓存？",
+      "验收时你希望至少看到哪些结果？"
+    ];
+    const firstRefinement = [
+      "如果浏览量统计接口失败，页面应该显示旧数据，还是提示加载失败？",
+      "这次前后端边界怎么拆，是否需要新增独立统计接口？"
+    ];
+    const secondRefinement = [
+      "管理员或作者本人访问文章时是否计入浏览量？",
+      "是否需要为重复访问去重留下可验证日志或测试数据？"
     ];
     const skillTurns = [
-      buildSkillTurn({ message: `我先记录候选需求。还需要确认一个关键口径：${questions[0]}`, question: questions[0], score: 62, asked: 1, remaining: 2 }),
-      buildSkillTurn({ message: `已更新 DSL。还需要确认一个关键口径：${questions[1]}`, question: questions[1], score: 72, asked: 2, remaining: 1 }),
-      buildSkillTurn({ message: `已更新 DSL。还需要确认一个关键口径：${questions[2]}`, question: questions[2], score: 82, asked: 3, remaining: 0, isFinalQuestion: true }),
       buildSkillTurn({
-        message: "当前需求已经具备进入设计规划的基础信息。你可以继续补充细节，也可以开始施工。",
+        message: `我先从几个不同方向确认一下：\n${initialQuestions.map((item, index) => `${index + 1}. ${item}`).join("\n")}`,
+        questions: initialQuestions.map((question, index) => ({ question, dimension: ["object", "data", "permission", "state", "acceptance"][index] })),
+        score: 62,
+        asked: 5,
+        remaining: 0
+      }),
+      buildSkillTurn({
+        message: "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。",
         score: 91,
+        complete: true
+      }),
+      buildSkillTurn({
+        message: `我再补充确认两个不同方向的问题：\n1. ${firstRefinement[0]}\n2. ${firstRefinement[1]}`,
+        questions: firstRefinement.map((question, index) => ({ question, dimension: ["edge_case", "implementation_boundary"][index] })),
+        score: 80,
+        clarificationMode: "refinement",
+        asked: 2,
+        remaining: 0
+      }),
+      buildSkillTurn({
+        message: "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。",
+        score: 92,
+        complete: true
+      }),
+      buildSkillTurn({
+        message: `我再补充确认两个不同方向的问题：\n1. ${secondRefinement[0]}\n2. ${secondRefinement[1]}`,
+        questions: secondRefinement.map((question, index) => ({ question, dimension: ["permission", "acceptance"][index] })),
+        score: 81,
+        clarificationMode: "refinement",
+        asked: 2,
+        remaining: 0
+      }),
+      buildSkillTurn({
+        message: "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。",
+        score: 93,
         complete: true
       })
     ];
@@ -879,29 +940,39 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(document.querySelector(".enter-workbench-button"));
 
     await sendWorkbenchAnswer("文章详情页要增加浏览量统计，同时改前后端。");
-    await waitFor(() => expect(screen.getByText(questions[0])).toBeInTheDocument());
-    expect(screen.queryByText("我还需要确认几个问题：")).not.toBeInTheDocument();
-    expect(screen.queryByText(questions[1])).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(initialQuestions[0])).toBeInTheDocument());
+    for (const question of initialQuestions) {
+      expect(screen.getByText(question)).toBeInTheDocument();
+    }
     expect(screen.getByText("62%")).toBeInTheDocument();
 
-    await sendWorkbenchAnswer("同一用户 24 小时内多次访问同一篇文章只算 1 次。");
-    await waitFor(() => expect(screen.getByText(questions[1])).toBeInTheDocument());
-    expect(screen.queryByText(questions[2])).not.toBeInTheDocument();
-    expect(screen.getByText("72%")).toBeInTheDocument();
-
-    await sendWorkbenchAnswer("未登录也统计，按 session 去重。");
-    await waitFor(() => expect(screen.getByText(questions[2])).toBeInTheDocument());
-    expect(screen.getByText("82%")).toBeInTheDocument();
-
-    await sendWorkbenchAnswer("详情页刷新后数字可见增长，重复访问按规则去重。");
-    await waitFor(() => expect(screen.getByText("当前需求已经具备进入设计规划的基础信息。你可以继续补充细节，也可以开始施工。")).toBeInTheDocument());
+    await sendWorkbenchAnswer("详情页统计，24h 去重，未登录也按 session 统计，验收看刷新后计数变化。");
+    await waitFor(() => expect(screen.getByText("当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。")).toBeInTheDocument());
     expect(screen.getByText("91%")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "继续完善需求" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "继续丰富需求" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "开始施工" })).toBeInTheDocument();
     expect(screen.getByText("ready_for_design")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "继续完善需求" }));
-    expect(screen.getByTestId("dsl-workbench")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "继续丰富需求" }));
+    await waitFor(() => expect(screen.getByText(firstRefinement[0])).toBeInTheDocument());
+    expect(screen.getByText(firstRefinement[1])).toBeInTheDocument();
+    expect(screen.getByText("80%")).toBeInTheDocument();
+    const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body);
+    expect(firstRefineRequest.refinementRequested).toBe(true);
+
+    await sendWorkbenchAnswer("接口失败显示旧数据并给轻提示，前后端用独立统计接口。");
+    await waitFor(() => expect(screen.getByText("92%")).toBeInTheDocument());
+    expect(screen.getByRole("button", { name: "继续丰富需求" })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "继续丰富需求" }));
+    await waitFor(() => expect(screen.getByText(secondRefinement[0])).toBeInTheDocument());
+    expect(screen.getByText(secondRefinement[1])).toBeInTheDocument();
+    expect(screen.queryByText(firstRefinement[0])).not.toBeInTheDocument();
+    const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body);
+    expect(secondRefineRequest.refinementRequested).toBe(true);
+
+    await sendWorkbenchAnswer("作者本人不计入浏览量，验收时保留去重测试数据。");
+    await waitFor(() => expect(screen.getByText("93%")).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "开始施工" }));
     await waitFor(() => expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument());
@@ -1133,7 +1204,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
-    fireEvent.change(screen.getByLabelText("请输入你的补充回答，系统会继续更新 DSL"), {
+    fireEvent.change(screen.getByLabelText("请按序号回答，也可以只回答你确定的部分"), {
       target: { value: "文章详情页需要阅读信息提示。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -1299,7 +1370,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
-    fireEvent.change(screen.getByLabelText("请输入你的补充回答，系统会继续更新 DSL"), {
+    fireEvent.change(screen.getByLabelText("请按序号回答，也可以只回答你确定的部分"), {
       target: { value: "需要验证 cancel flow。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -1383,7 +1454,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
-    fireEvent.change(screen.getByLabelText("请输入你的补充回答，系统会继续更新 DSL"), {
+    fireEvent.change(screen.getByLabelText("请按序号回答，也可以只回答你确定的部分"), {
       target: { value: "需要验证 timeout flow。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -1481,7 +1552,16 @@ describe("monitor console and workspace picker", () => {
   });
 });
 
-function buildSkillTurn({ message, question = "", score, asked = 0, remaining = 0, isFinalQuestion = false, complete = false }) {
+function buildSkillTurn({ message, question = "", questions = null, score, asked = 0, remaining = 0, isFinalQuestion = false, complete = false, clarificationMode = "initial" }) {
+  const questionItems = complete ? [] : (Array.isArray(questions) && questions.length
+    ? questions.map((item, index) => ({
+      question: typeof item === "string" ? item : item.question,
+      reason: "question group fixture",
+      priority: index === 0 ? "p0" : "p1",
+      dimension: typeof item === "string" ? "scope" : item.dimension || "scope"
+    }))
+    : [{ question, reason: "single-question flow", priority: "p0", dimension: "scope" }]);
+  const coveredDimensions = [...new Set(questionItems.map((item) => item.dimension))];
   return {
     runId: `RUN-skill-${score}`,
     status: "skill_turn",
@@ -1490,10 +1570,15 @@ function buildSkillTurn({ message, question = "", score, asked = 0, remaining = 
     assistant_message: message,
     clarification: {
       should_ask: !complete,
-      questions: complete ? [] : [{ question, reason: "single-question flow", priority: "p0" }],
-      currentQuestion: complete ? "" : question,
+      questions: questionItems,
+      currentQuestion: complete ? "" : questionItems[0]?.question || "",
       remainingQuestionCount: remaining,
       askedQuestionCount: asked,
+      questionCount: questionItems.length,
+      minQuestionCount: clarificationMode === "refinement" ? 2 : 5,
+      maxQuestionCount: clarificationMode === "refinement" ? 2 : 8,
+      clarificationMode,
+      coveredDimensions,
       isFinalQuestion,
       clarificationComplete: complete
     },
@@ -1511,8 +1596,18 @@ function buildSkillTurn({ message, question = "", score, asked = 0, remaining = 
         handoff_decision: complete ? "clarification_complete" : "clarify_first",
         source: "skill_safety_boundary"
       },
+      clarification: {
+        questions: questionItems,
+        currentQuestion: complete ? "" : questionItems[0]?.question || "",
+        questionCount: questionItems.length,
+        minQuestionCount: clarificationMode === "refinement" ? 2 : 5,
+        maxQuestionCount: clarificationMode === "refinement" ? 2 : 8,
+        clarificationMode,
+        coveredDimensions,
+        clarificationComplete: complete
+      },
       risks: [],
-      recommendedQuestion: complete ? null : { title: "Skill suggestion", text: question, reason: "single-question flow", source: "skill_model" },
+      recommendedQuestion: complete ? null : { title: "Skill suggestion", text: questionItems[0]?.question || question, reason: "question group fixture", source: "skill_model" },
       humanReport: {
         summary: {
           title: "文章浏览量统计",
@@ -1521,7 +1616,7 @@ function buildSkillTurn({ message, question = "", score, asked = 0, remaining = 
           source: "model_generated_real"
         }
       },
-      coverageItems: { covered: ["浏览量统计"], pending: complete ? [] : [question] },
+      coverageItems: { covered: ["浏览量统计"], pending: complete ? [] : questionItems.map((item) => item.question) },
       boundaries: { agentPlanGenerated: false, agentHandoffEntered: false, codeExecutionEntered: false, postEvalEntered: false }
     }
   };

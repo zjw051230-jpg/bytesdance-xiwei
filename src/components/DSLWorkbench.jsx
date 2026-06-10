@@ -8,7 +8,7 @@ import {
   retryDslRun,
   startDslRun
 } from "../api/dslClient.js";
-import { fallbackUiState } from "../adapters/dslArtifactAdapter.js";
+import { emptyUiState, fallbackUiState } from "../adapters/dslArtifactAdapter.js";
 import {
   createClarification,
   createRequirement,
@@ -32,7 +32,7 @@ import {
   shouldGateInputIntent
 } from "../utils/inputIntentGate.js";
 
-const CLARIFICATION_COMPLETE_MESSAGE = "当前需求已经具备进入设计规划的基础信息。你可以继续补充细节，也可以开始施工。";
+const CLARIFICATION_COMPLETE_MESSAGE = "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。";
 
 export default function DSLWorkbench({
   activeProject,
@@ -47,7 +47,7 @@ export default function DSLWorkbench({
   const [loadedRequirement, setLoadedRequirement] = useState(activeRequirement || null);
   const [inputGateActive, setInputGateActive] = useState(false);
   const [historyError, setHistoryError] = useState("");
-  const [uiState, setUiState] = useState(() => fallbackUiState());
+  const [uiState, setUiState] = useState(() => emptyUiState());
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isPartialOpen, setIsPartialOpen] = useState(false);
   const [partialArtifacts, setPartialArtifacts] = useState(null);
@@ -200,6 +200,7 @@ export default function DSLWorkbench({
     });
 
     setMessages([...nextMessages, loadingMessage]);
+    setUiState((current) => markUiStateInitialRequirement(current, trimmedText));
     onToast("已追加 PM 回答");
     setRunState((current) => ({
       ...current,
@@ -375,6 +376,123 @@ export default function DSLWorkbench({
         error: runError
       }));
       onToast(skillReplyResolved ? "完整 artifacts 生成失败" : "DSL run 失败");
+    }
+  };
+
+  const handleContinueRefine = async () => {
+    if (runState.skillStatus === "understanding" || runState.status === "queued") return;
+    if (!loadedRequirement?.id) {
+      onToast("请先完成一轮需求澄清");
+      return;
+    }
+
+    const triggerText = "继续丰富需求";
+    const pmMessage = {
+      id: `pm-refine-${Date.now()}-${messages.length}`,
+      author: "PM",
+      role: "pm",
+      time: "刚刚",
+      text: triggerText,
+      kind: "refinement_request"
+    };
+    const nextMessages = [...messages, pmMessage];
+    const loadingId = `system-refine-loading-${Date.now()}-${messages.length}`;
+    const loadingMessage = systemMessage("正在补充新的澄清问题...", nextMessages.length, {
+      id: loadingId,
+      kind: "skill_loading"
+    });
+
+    setInputGateActive(false);
+    setMessages([...nextMessages, loadingMessage]);
+    setUiState((current) => ({
+      ...current,
+      dslCompletion: {
+        ...(current.dslCompletion || {}),
+        displayScore: clampNumber(Number(current.dslCompletion?.displayScore ?? current.dslCompletion?.value ?? 80), 75, 84),
+        value: current.dslCompletion?.value ?? current.dslCompletion?.displayScore ?? 80,
+        displayNote: "refinement reopened; displayScore is clamped for demo pacing"
+      },
+      readiness: {
+        ...(current.readiness || {}),
+        ready_for_agent: false,
+        can_handoff_to_agent: false,
+        handoff_decision: "clarify_first"
+      }
+    }));
+    setRunState((current) => ({
+      ...current,
+      status: "skill_turn",
+      skillStatus: "understanding",
+      error: null
+    }));
+    onToast("继续丰富需求");
+
+    const requestPayload = {
+      projectId: activeProject?.id ?? loadedRequirement.projectId ?? "conduit-realworld-example-app",
+      requirementId: loadedRequirement.id,
+      pmMessages: messagesToRunnerPayload(nextMessages),
+      codeContextPath: "e2e\\context\\default_code_context_packet.json",
+      maxRounds: 3
+    };
+    const testTimeoutMs = getGlobalNumber("__DSL_TEST_TIMEOUT_MS__");
+    if (testTimeoutMs > 0) requestPayload.timeoutMs = testTimeoutMs;
+
+    createClarification(loadedRequirement.id, {
+      role: "pm",
+      content: triggerText,
+      source: "refinement_request"
+    }).catch((error) => setHistoryError(`继续丰富需求保存失败：${error.message || "Persistence API request failed"}`));
+
+    try {
+      const skillTurn = await createSkillPmDslTurn(buildSkillTurnRequest(requestPayload, nextMessages, uiState, {
+        refinementRequested: true,
+        clarificationMode: "refinement"
+      }));
+      const assistantText = skillTurn.assistant_message || "我再补充确认两个不同方向的问题：";
+      setUiState((current) => ({ ...current, ...(skillTurn.uiState || {}) }));
+      setMessages((current) => replaceMessage(
+        current,
+        loadingId,
+        systemMessage(assistantText, current.length, {
+          id: loadingId,
+          kind: "skill_reply"
+        })
+      ));
+      createClarification(loadedRequirement.id, {
+        role: "system",
+        content: assistantText,
+        source: "skill_turn_refinement"
+      }).catch((error) => setHistoryError(`系统回复保存失败：${error.message || "Persistence API request failed"}`));
+      setRunState((current) => ({
+        ...current,
+        runId: skillTurn.runId || current.runId,
+        status: "skill_turn",
+        skillStatus: skillStatusFromSource(skillTurn.source?.mode),
+        skillSourceMode: skillTurn.source?.mode || "",
+        skillModel: skillTurn.source?.model || "",
+        skillClient: skillTurn.source?.client || "",
+        skillProvider: skillTurn.source?.provider || "",
+        outputDir: skillTurn.outputDir || current.outputDir,
+        relativeOutputDir: skillTurn.relativeOutputDir || current.relativeOutputDir,
+        realDslEnabled: true,
+        artifacts: current.artifacts || {},
+        error: null
+      }));
+      onToast("已生成继续丰富问题");
+    } catch (error) {
+      const runError = error.payload?.error || { code: "request_failed", message: error.message, details: {} };
+      setMessages((current) => replaceMessage(
+        current,
+        loadingId,
+        systemMessage(buildFailureReply(runError), current.length, { id: loadingId })
+      ));
+      setRunState((current) => ({
+        ...current,
+        skillStatus: "failed",
+        status: "failed",
+        error: runError
+      }));
+      onToast("继续丰富需求失败");
     }
   };
 
@@ -560,7 +678,7 @@ export default function DSLWorkbench({
           onToast={onToast}
           realSuggestion={uiState.recommendedQuestion}
           runId={runState.runId}
-          onContinueRefine={() => onToast("继续完善需求")}
+          onContinueRefine={handleContinueRefine}
           onStartConstruction={onStartConstruction}
         />
       </section>
@@ -676,7 +794,7 @@ function replaceMessage(messages, id, replacement) {
   return replaced ? nextMessages : [...messages, replacement];
 }
 
-function buildSkillTurnRequest(requestPayload, nextMessages, uiState) {
+function buildSkillTurnRequest(requestPayload, nextMessages, uiState, overrides = {}) {
   const recommendedQuestion = uiState?.recommendedQuestion;
   return {
     ...requestPayload,
@@ -700,7 +818,8 @@ function buildSkillTurnRequest(requestPayload, nextMessages, uiState) {
           ]
         }
       : {},
-    pmMessages: messagesToRunnerPayload(nextMessages).slice(-6)
+    pmMessages: messagesToRunnerPayload(nextMessages).slice(-6),
+    ...overrides
   };
 }
 
@@ -741,11 +860,15 @@ function buildArtifactFailureReply(error) {
 
 function requirementToUiState(current, requirement) {
   if (!requirement) return current;
+  if (!hasMeaningfulRequirement(requirement)) return emptyUiState();
+  const completionValue = resolveRequirementCompletion(requirement);
   return {
     ...current,
     dslCompletion: {
       ...(current.dslCompletion || {}),
-      value: Number(requirement.completionPercent ?? current.dslCompletion?.value ?? 0),
+      rawScore: completionValue,
+      displayScore: completionValue,
+      value: completionValue,
       source: "persistent_database"
     },
     readiness: {
@@ -764,6 +887,50 @@ function requirementToUiState(current, requirement) {
       }
     }
   };
+}
+
+function markUiStateInitialRequirement(current, pmInput) {
+  return {
+    ...current,
+    dslCompletion: {
+      rawScore: 45,
+      displayScore: 45,
+      value: 45,
+      source: "pm_input_initial",
+      displayNote: "initial requirement entered; awaiting clarification"
+    },
+    readiness: {
+      ready_for_agent: false,
+      can_handoff_to_agent: false,
+      handoff_decision: "clarify_first",
+      source: "pm_input_initial"
+    },
+    risks: [],
+    coverageItems: { covered: [], pending: [] },
+    humanReport: {
+      ...(current.humanReport || {}),
+      summary: {
+        ...(current.humanReport?.summary || {}),
+        title: inferRequirementTitle(pmInput),
+        text: pmInput,
+        status: "initial_requirement",
+        source: "pm_input_initial"
+      }
+    }
+  };
+}
+
+function hasMeaningfulRequirement(requirement) {
+  return Boolean(
+    String(requirement?.rawPmInput || "").trim() ||
+    (requirement?.dslJson && typeof requirement.dslJson === "object" && Object.keys(requirement.dslJson).length > 0)
+  );
+}
+
+function resolveRequirementCompletion(requirement) {
+  const persisted = Number(requirement?.completionPercent);
+  if (Number.isFinite(persisted) && persisted > 0) return Math.round(persisted);
+  return 45;
 }
 
 async function persistRequirementState(requirementId, result, uiState) {
@@ -912,4 +1079,9 @@ function messagesToRunnerPayload(messages) {
 function getGlobalNumber(name, fallback = 0) {
   const value = Number(globalThis?.[name] || 0);
   return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function clampNumber(value, min, max) {
+  const numeric = Number.isFinite(value) ? value : min;
+  return Math.min(max, Math.max(min, Math.round(numeric)));
 }
