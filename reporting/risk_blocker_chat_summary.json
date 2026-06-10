@@ -1,0 +1,35 @@
+{
+  "task": "Risk Blocker Chat",
+  "status": "committed_not_pushed",
+  "ui": {
+    "riskPanelConvertedToChat": true,
+    "singleActiveQuestion": true,
+    "emptyStateLightweight": true,
+    "enterToSend": true,
+    "shiftEnterNewline": true
+  },
+  "behavior": {
+    "answerUsesExistingDslSubmit": true,
+    "savedToClarificationContext": true,
+    "doesNotDirectlySetReady": true,
+    "doesNotDirectlyChangeScore": true
+  },
+  "scope": {
+    "agentWorkMatrixTouched": false,
+    "stageEventsTouched": false,
+    "dslScoreFormulaTouched": false,
+    "newProjectBootstrapTouched": false,
+    "monitorMappingUnrelatedTouched": false,
+    "agent2RawTouched": false,
+    "skillsTouched": false
+  },
+  "tests": {
+    "skipped": true,
+    "reason": "per user instruction; run in integration gate"
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "ZJWNB"
+  }
+}

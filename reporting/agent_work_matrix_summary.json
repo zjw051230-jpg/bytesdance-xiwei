@@ -1,0 +1,37 @@
+{
+  "task": "Agent Work Matrix",
+  "status": "pending_commit",
+  "ui": {
+    "agentMatrixShownInTaskListArea": true,
+    "allAgentsVisible": true,
+    "runningAgentHighlighted": true,
+    "planningTasksStillSupported": true,
+    "noRunShowsIdleAgents": true
+  },
+  "data": {
+    "usesStageEvents": true,
+    "missingStageEventsFallbackIdle": true,
+    "fakeCompletedBlocked": true
+  },
+  "safety": {
+    "dryRunOnly": true,
+    "realWritePerformed": false,
+    "realRepoWritePerformed": false
+  },
+  "scope": {
+    "dslScoreTouched": false,
+    "newProjectBootstrapTouched": false,
+    "monitorMappingTouched": false,
+    "agent2RawTouched": false,
+    "skillsTouched": false
+  },
+  "tests": {
+    "skipped": true,
+    "reason": "per user instruction; run in integration gate"
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "ZJWNB"
+  }
+}
