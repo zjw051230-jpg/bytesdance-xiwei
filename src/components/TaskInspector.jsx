@@ -1,18 +1,40 @@
 import { CheckCircle2, Copy, Download, Eye, FileText, RotateCcw } from "lucide-react";
-import { selectedTask } from "../data/mockData.js";
 import StatusBadge from "./StatusBadge.jsx";
 
 function fileType(name) {
   return name.split(".").pop()?.toUpperCase() ?? "FILE";
 }
 
-export default function TaskInspector() {
+export default function TaskInspector({ monitor }) {
+  const selectedTask = monitor?.selectedTask;
+  if (!selectedTask) {
+    return (
+      <aside className="inspector">
+        <section className="inspector-section current-task-section">
+          <div className="section-header">
+            <h2>当前任务</h2>
+            <StatusBadge status="pending">EMPTY</StatusBadge>
+          </div>
+          <div className="monitor-empty-state">
+            <strong>暂无真实运行或需求</strong>
+            <span>创建需求、生成设计计划或启动 Agent run 后，这里会展示数据库中的真实状态。</span>
+          </div>
+        </section>
+      </aside>
+    );
+  }
+
+  const hasReport = Boolean(selectedTask.report);
+  const artifacts = selectedTask.artifacts || [];
+  const risks = selectedTask.risks || [];
+  const stageEvents = Array.isArray(selectedTask.stageEvents) ? selectedTask.stageEvents : [];
+
   return (
     <aside className="inspector">
       <section className="inspector-section current-task-section">
         <div className="section-header">
           <h2>当前任务</h2>
-          <StatusBadge status="pass">{selectedTask.liveStatus}</StatusBadge>
+          <StatusBadge status={selectedTask.status}>{selectedTask.liveStatus}</StatusBadge>
         </div>
         <div className="task-summary-card">
           <div>
@@ -21,52 +43,66 @@ export default function TaskInspector() {
             <small>{selectedTask.checkpoint}</small>
           </div>
           <div className="inspector-score compact-score">
-            <span className="score-ring big" style={{ "--score": `${selectedTask.score * 3.6}deg` }}>
-              <strong>{selectedTask.score}</strong>
+            <span className="score-ring big" style={{ "--score": `${(selectedTask.score ?? 0) * 3.6}deg` }}>
+              <strong>{selectedTask.score ?? "-"}</strong>
             </span>
             <em>/ 100</em>
           </div>
         </div>
         <div className="task-meta-grid">
-          <span><small>负责人</small><strong><span className="mini-avatar">H</span>{selectedTask.owner}</strong></span>
-          <span><small>状态</small><strong><StatusBadge status="pass">{selectedTask.status}</StatusBadge></strong></span>
+          <span><small>来源</small><strong><span className="mini-avatar">DB</span>Persistence</strong></span>
+          <span><small>状态</small><strong><StatusBadge status={selectedTask.status}>{selectedTask.status}</StatusBadge></strong></span>
           <span><small>耗时</small><strong>{selectedTask.duration}</strong></span>
         </div>
+        {stageEvents.length ? (
+          <div className="task-stage-detail-list">
+            {stageEvents.map((stage, index) => (
+              <span className={`task-stage-detail ${stage.status}`} key={stage.id || `${stage.agent}-${index}`}>
+                <strong>{stage.agent}</strong>
+                <small>{stage.status}</small>
+              </span>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="inspector-section">
         <div className="section-header">
           <h2>报告审批</h2>
         </div>
-        <div className="report-approval">
-          <span className="approval-title">
-            <strong>{selectedTask.report.title}</strong>
-            <StatusBadge status="warn">{selectedTask.report.status}</StatusBadge>
-          </span>
-          <span>{selectedTask.report.generatedAt}</span>
-          <span>生成者 · {selectedTask.report.author}</span>
-        </div>
-        <div className="approval-actions">
-          <button className="approve"><CheckCircle2 size={14} />通过</button>
-          <button className="reject"><RotateCcw size={14} />要求返工</button>
-          <button><Eye size={14} />查看详情</button>
-        </div>
+        {hasReport ? (
+          <>
+            <div className="report-approval">
+              <span className="approval-title">
+                <strong>{selectedTask.report.title}</strong>
+                <StatusBadge status="warn">{selectedTask.report.status}</StatusBadge>
+              </span>
+              <span>{selectedTask.report.generatedAt || "-"}</span>
+              <span>生成者 · {selectedTask.report.author || "-"}</span>
+            </div>
+            <div className="approval-actions">
+              <button className="approve"><CheckCircle2 size={14} />通过</button>
+              <button className="reject"><RotateCcw size={14} />要求返工</button>
+              <button><Eye size={14} />查看详情</button>
+            </div>
+          </>
+        ) : <p className="monitor-empty-state">暂无真实 PR 草稿或报告。</p>}
       </section>
 
       <section className="inspector-section artifact-section">
         <div className="section-header">
-          <h2>Artifacts (4)</h2>
+          <h2>Artifacts ({artifacts.length})</h2>
         </div>
         <div className="artifact-list">
-          {selectedTask.artifacts.map((artifact) => (
-            <button className="artifact-row" key={artifact.name}>
+          {artifacts.length ? artifacts.map((artifact) => (
+            <button className="artifact-row" key={artifact.id || artifact.name}>
               <FileText size={15} />
               <span>{artifact.name}</span>
-              <em>{fileType(artifact.name)}</em>
-              <small>{artifact.size}</small>
+              <em>{fileType(artifact.name || artifact.type || "artifact")}</em>
+              <small>{artifact.summary || artifact.type || "-"}</small>
               <Download size={14} />
             </button>
-          ))}
+          )) : <p className="monitor-empty-state">暂无真实 artifact。</p>}
         </div>
       </section>
 
@@ -76,7 +112,7 @@ export default function TaskInspector() {
         </div>
         <div className="risk-box">
           <ul>
-            {selectedTask.risks.map((risk) => <li key={risk}>{risk}</li>)}
+            {risks.length ? risks.map((risk) => <li key={risk}>{risk}</li>) : <li>暂无真实风险记录。</li>}
           </ul>
           <button className="link-button">查看详情</button>
         </div>

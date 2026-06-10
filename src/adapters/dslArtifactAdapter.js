@@ -187,7 +187,7 @@ function mapCompletion(scoring, finalDsl, evpi) {
     const rawScore = clamp(candidate <= 1 ? Math.round(candidate * 100) : Math.round(candidate), 0, 100);
     const displayScore = isClarificationComplete(scoring, finalDsl, evpi)
       ? clamp(rawScore, 86, 94)
-      : clamp(rawScore, 45, 84);
+      : clamp(rawScore, 0, 84);
     return {
       rawScore,
       displayScore,

@@ -74,6 +74,10 @@ export async function listAgentArtifacts(runId) {
   return requestJson(`/api/agent/runs/${encodeURIComponent(runId)}/artifacts`);
 }
 
+export async function listProjectActivity(projectId) {
+  return requestJson(`/api/projects/${encodeURIComponent(projectId)}/activity`);
+}
+
 export async function listReviewItems(runId) {
   return requestJson(`/api/agent/runs/${encodeURIComponent(runId)}/review`);
 }

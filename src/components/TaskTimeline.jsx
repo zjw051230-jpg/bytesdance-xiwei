@@ -4,10 +4,14 @@ import StatusBadge from "./StatusBadge.jsx";
 const markerIcons = {
   PASS: Check,
   WARN: TriangleAlert,
-  FAIL: X
+  FAIL: X,
+  PENDING: TriangleAlert
 };
 
 export default function TaskTimeline({ items }) {
+  const agentStageEvents = items
+    .filter((item) => Array.isArray(item.stageEvents) && item.stageEvents.length)
+    .flatMap((item) => item.stageEvents);
   return (
     <section className="panel timeline-panel">
       <div className="panel-title">
@@ -18,8 +22,8 @@ export default function TaskTimeline({ items }) {
         <button className="link-button">查看全部任务 <ArrowRight size={14} /></button>
       </div>
       <div className="timeline-table">
-        {items.map((item) => {
-          const Icon = markerIcons[item.status];
+        {items.length ? items.map((item) => {
+          const Icon = markerIcons[item.status] || TriangleAlert;
           return (
             <button className="timeline-row" key={item.id}>
               <span className={`timeline-marker ${item.status.toLowerCase()}`}><Icon size={13} /></span>
@@ -32,8 +36,19 @@ export default function TaskTimeline({ items }) {
               <time><span>{item.time}</span><small>{item.duration}</small></time>
             </button>
           );
-        })}
+        }) : <p className="monitor-empty-state">暂无真实活动时间线。</p>}
       </div>
+      {agentStageEvents.length ? (
+        <div className="timeline-agent-stages">
+          {agentStageEvents.map((stage, index) => (
+            <div className={`timeline-agent-stage ${stage.status}`} key={stage.id || `${stage.agent}-${index}`}>
+              <strong>{stage.agent}</strong>
+              <span>{stage.summary || stage.title}</span>
+              <em>{stage.status}</em>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

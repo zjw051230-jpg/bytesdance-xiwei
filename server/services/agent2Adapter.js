@@ -67,6 +67,28 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
       }
     }
   };
+  const stageEvents = buildAgentStageEvents({
+    runId,
+    status: failed ? "failed" : "completed",
+    startedAt: now,
+    finishedAt: now,
+    dryRun: !realExecution,
+    realWritePerformed,
+    context,
+    plan: { ...plan, stageEvents, activityTimeline: stageEvents },
+    review,
+    prDraft,
+    artifacts: artifactJson,
+    executionResult,
+    latestReturn: failureMessage,
+    errorSummary: failed ? failureMessage : ""
+  });
+  artifactJson["agent_activity_timeline.json"] = {
+    runId,
+    stageEvents,
+    dryRun: !realExecution,
+    realWritePerformed
+  };
 
   return {
     runId,
@@ -82,6 +104,8 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
         ? `Agent(2) real execution failed for ${taskTitle}: ${failureMessage}`
         : `Agent(2) real execution finished for ${taskTitle}; realWritePerformed=${realWritePerformed}.${!realWritePerformed && executionSummary ? ` ${executionSummary}.` : ""}`
       : `Agent(2) dry-run adapter generated a Workbench preview for ${taskTitle}; no runtime execution or repo writes performed.`,
+    stageEvents,
+    activityTimeline: stageEvents,
     progress: [
       { step: "readiness", status: "completed" },
       { step: realExecution ? "agent2_runtime" : "agent2_contract_mapping", status: failed ? "failed" : "completed" },
@@ -354,6 +378,75 @@ function toStringList(value) {
   if (Array.isArray(value)) return value.map((item) => String(item)).filter(Boolean);
   if (typeof value === "string" && value.trim()) return [value.trim()];
   return [];
+}
+
+export const agentStageDefinitions = [
+  ["requirement", "RequirementAgent", "读取 RequirementDSL / 设计输入"],
+  ["readiness", "ReadinessAgent", "检查 dry-run 执行条件"],
+  ["context", "ContextAgent", "编译 Agent 上下文"],
+  ["planner", "PlannerAgent", "生成任务拆解"],
+  ["locator", "LocatorAgent", "定位相关文件"],
+  ["patchPlan", "PatchPlanAgent", "生成候选修改方案"],
+  ["review", "ReviewAgent", "生成审阅项和风险"],
+  ["prDraft", "PRDraftAgent", "生成 PR 草稿"],
+  ["artifact", "ArtifactAgent", "汇总 artifacts"],
+  ["summary", "SummaryAgent", "汇总结果"]
+];
+
+export function buildAgentStageEvents(run = {}) {
+  const now = run.finishedAt || run.startedAt || new Date().toISOString();
+  const failed = run.status === "failed" || Boolean(run.errorSummary);
+  const artifactCount = Object.keys(run.artifacts || {}).length;
+  const hasContext = hasObject(run.context);
+  const hasPlan = hasObject(run.plan) && (Array.isArray(run.plan.steps) && run.plan.steps.length || run.plan.summary || run.plan.taskName);
+  const hasTargets = Array.isArray(run.plan?.targetFiles) && run.plan.targetFiles.length || Array.isArray(run.review?.changedFiles) && run.review.changedFiles.length;
+  const hasPatchPlan = hasTargets || String(run.plan?.summary || "").trim();
+  const hasReview = hasObject(run.review) && (Array.isArray(run.review.changedFiles) && run.review.changedFiles.length || run.review.summary || run.review.status);
+  const hasPrDraft = hasObject(run.prDraft) && (run.prDraft.title || run.prDraft.body || toStringList(run.prDraft.summary).length || toStringList(run.prDraft.checklist).length);
+  const hasSummary = Boolean(run.latestReturn || run.resultSummary || run.executionResult?.summary);
+  const dryRunSafe = run.dryRun !== false && run.realWritePerformed !== true;
+
+  const statusByKey = {
+    requirement: hasContext ? "completed" : "skipped",
+    readiness: dryRunSafe ? "completed" : "blocked",
+    context: hasContext ? "completed" : "skipped",
+    planner: hasPlan ? "completed" : "skipped",
+    locator: hasTargets ? "completed" : "skipped",
+    patchPlan: hasPatchPlan ? "completed" : "skipped",
+    review: hasReview ? "completed" : "skipped",
+    prDraft: hasPrDraft ? "completed" : "skipped",
+    artifact: artifactCount > 0 ? "completed" : "skipped",
+    summary: failed ? "failed" : hasSummary ? "completed" : "skipped"
+  };
+  const summaryByKey = {
+    requirement: run.context?.requirementDsl?.title || run.context?.taskTitle || "Requirement input was read.",
+    readiness: dryRunSafe ? "dryRun=true and realWritePerformed=false." : "Run boundary is not dry-run safe.",
+    context: hasContext ? "Agent context snapshot is available." : "No context snapshot was produced.",
+    planner: hasPlan ? `${run.plan.steps?.length || 0} plan step(s) available.` : "No plan output was produced.",
+    locator: hasTargets ? `${(run.plan?.targetFiles || run.review?.changedFiles || []).length} file target(s) available.` : "No located files were produced.",
+    patchPlan: hasPatchPlan ? "Candidate modification plan is available." : "No candidate patch plan was produced.",
+    review: hasReview ? run.review.summary || "Review items and risks are available." : "No review output was produced.",
+    prDraft: hasPrDraft ? run.prDraft.title || "PR draft is available." : "No PR draft was produced.",
+    artifact: artifactCount > 0 ? `${artifactCount} artifact(s) captured.` : "No artifacts were captured.",
+    summary: failed ? run.errorSummary : run.latestReturn || run.resultSummary || run.executionResult?.summary || "No summary was produced."
+  };
+
+  return agentStageDefinitions.map(([key, agent, title], index) => ({
+    id: `${run.runId || "agent-run"}:${key}`,
+    key,
+    agent,
+    title,
+    summary: summaryByKey[key],
+    status: statusByKey[key],
+    startedAt: run.startedAt || now,
+    finishedAt: ["completed", "skipped", "blocked", "failed"].includes(statusByKey[key]) ? now : "",
+    errorSummary: statusByKey[key] === "failed" ? String(run.errorSummary || "") : "",
+    order: index + 1
+  }));
+}
+
+function hasObject(value) {
+  return value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length > 0;
 }
 
 function buildFixtureAgent2Result(request = {}) {

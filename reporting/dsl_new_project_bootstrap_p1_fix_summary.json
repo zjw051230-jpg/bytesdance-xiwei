@@ -1,0 +1,29 @@
+{
+  "task": "DSL New Project Bootstrap P1 Fix",
+  "status": "implemented_pending_git_result",
+  "bugfix": {
+    "newProjectInitial74Removed": true,
+    "newProjectStartsEmpty": true,
+    "newProjectNoP3MultiQuestion": true,
+    "existingProjectStatePreserved": true,
+    "existingProjectP1CanAdvance": true,
+    "shortAnswerHandledAsClarificationAnswer": true,
+    "projectSwitchStateIsolated": true
+  },
+  "tests": {
+    "skipped": true,
+    "reason": "per user instruction; run in integration gate"
+  },
+  "scope": {
+    "monitorMappingUnrelatedTouched": false,
+    "agentTimelineTouched": false,
+    "agent2Touched": false,
+    "skillsTouched": false,
+    "performanceTouched": false
+  },
+  "git": {
+    "commit": "see final response",
+    "pushed": false,
+    "branch": "main"
+  }
+}

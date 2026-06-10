@@ -1,0 +1,49 @@
+{
+  "task": "Agent Activity Timeline",
+  "status": "pending_commit",
+  "stageEvents": {
+    "schemaFields": ["id", "key", "agent", "title", "summary", "status", "startedAt", "finishedAt", "errorSummary", "order"],
+    "statuses": ["idle", "running", "completed", "skipped", "blocked", "failed"],
+    "stages": [
+      "RequirementAgent",
+      "ReadinessAgent",
+      "ContextAgent",
+      "PlannerAgent",
+      "LocatorAgent",
+      "PatchPlanAgent",
+      "ReviewAgent",
+      "PRDraftAgent",
+      "ArtifactAgent",
+      "SummaryAgent"
+    ]
+  },
+  "api": {
+    "postAgentRunReturnsStageEvents": true,
+    "getAgentRunReturnsStageEvents": true,
+    "getAgentRunEventsReturnsStageEvents": true
+  },
+  "frontend": {
+    "planningTaskListShowsTimeline": true,
+    "emptyState": "尚未启动 Agent dry-run。点击生成执行计划后，将在这里展示各阶段活动状态。",
+    "completedRunKeepsTimeline": true
+  },
+  "safety": {
+    "dryRun": true,
+    "realWritePerformed": false,
+    "realRepoWritePerformed": false,
+    "dslScoreTouched": false,
+    "monitorMappingTouched": false,
+    "skillsTouched": false,
+    "agent2OriginalTouched": false
+  },
+  "verification": {
+    "testsSkipped": true,
+    "skipReason": "per user instruction for ordinary bugfix/UI mapping tasks",
+    "staticSyntaxChecks": "passed"
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "main"
+  }
+}

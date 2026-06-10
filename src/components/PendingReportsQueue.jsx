@@ -12,7 +12,7 @@ export default function PendingReportsQueue({ reports }) {
         <button className="link-button">查看全部 <ArrowRight size={14} /></button>
       </div>
       <div className="report-list">
-        {reports.map((report) => (
+        {reports.length ? reports.map((report) => (
           <button key={`${report.title}-${report.time}`} className="report-row">
             <FileText size={16} />
             <span>
@@ -20,10 +20,10 @@ export default function PendingReportsQueue({ reports }) {
                 <strong>{report.title}</strong>
                 <StatusBadge status={report.tone}>{report.status}</StatusBadge>
               </span>
-              <small>{report.project} · {report.time}</small>
+              <small>{report.project} / {report.time}</small>
             </span>
           </button>
-        ))}
+        )) : <p className="monitor-empty-state">暂无待审报告。</p>}
       </div>
     </section>
   );

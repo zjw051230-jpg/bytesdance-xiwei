@@ -14,13 +14,14 @@ import {
 
 const RAW_EVPI_ACCEPTANCE_QUESTION = "你希望用什么用户可见现象或测试结果判断这个需求已经完成？";
 const DEFAULT_FAST_SKILL_TIMEOUT_MS = 60_000;
-const MAX_PM_HISTORY = 6;
+const MAX_PM_HISTORY = 12;
 const FAST_PROMPT_MAX_CHARS = 6000;
 const SKILL_SUMMARY_MAX_CHARS = 560;
 const SKILL_MODEL_RESULT_MARKER = "__skillModelResult";
 const INITIAL_MIN_QUESTIONS = 1;
 const INITIAL_MAX_QUESTIONS = 1;
-const INITIAL_REQUIRED_ANSWERS = 2;
+const INITIAL_REQUIRED_ANSWERS = 1;
+const INITIAL_REQUIRED_DIMENSIONS = 1;
 const REFINEMENT_QUESTIONS = 1;
 
 export async function runSkillTurn(requestBody = {}, config = {}) {
@@ -926,10 +927,11 @@ function enforceClarificationQuestionPolicy(payload, input) {
         questions: [],
         currentQuestion: "",
         remainingQuestionCount: 0,
-        askedQuestionCount: 0,
+        askedQuestionCount: progress.answeredQuestionCount,
+        answeredQuestionCount: progress.answeredQuestionCount,
         questionCount: 0,
         clarificationMode: progress.mode,
-        coveredDimensions: [],
+        coveredDimensions: progress.coveredDimensions,
         isFinalQuestion: false,
         clarificationComplete: true
       },
@@ -972,12 +974,13 @@ function enforceClarificationQuestionPolicy(payload, input) {
       currentQuestion,
       remainingQuestionCount: 0,
       askedQuestionCount: questionCount,
+      answeredQuestionCount: progress.answeredQuestionCount,
       questionCount,
       minQuestionCount: progress.mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS,
       maxQuestionCount: progress.mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MAX_QUESTIONS,
       clarificationMode: progress.mode,
       coveredDimensions,
-      isFinalQuestion: true,
+      isFinalQuestion: progress.answeredQuestionCount + questionCount >= INITIAL_REQUIRED_ANSWERS,
       clarificationComplete: false
     },
     current_dsl_summary: {
@@ -1078,7 +1081,7 @@ function dedupeQuestions(questions) {
 
 function normalizeClarificationQuestionList(questions = [], input = {}, progress = resolveClarificationProgress(input)) {
   const mode = progress.mode || "initial";
-  const targetCount = mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS;
+  const targetCount = Number(progress.targetQuestionCount || (mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS));
   const maxCount = mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MAX_QUESTIONS;
   const askedKeys = extractAskedQuestionKeys(input);
   const existing = (Array.isArray(questions) ? questions : [])
@@ -1132,11 +1135,11 @@ function buildNaturalQuestionBank(input = {}) {
   const lower = `${conversation}\n${latest}`.toLowerCase();
   if (isViewCountClarification(input)) {
     return questionBank([
-      ["你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？", ["data_boundary"]],
-      ["浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？", ["data_boundary"]],
-      ["如果浏览量统计失败或接口异常，文章页应该隐藏该数据、显示 0，还是显示加载失败提示？", ["failure_case"]],
-      ["管理员或作者本人访问文章时是否计入浏览量？", ["permission_boundary"]],
-      ["验收时你希望用哪些可见结果判断浏览量统计已经完成？", ["acceptance_criteria"]]
+      ["你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标?", ["data_boundary"]],
+      ["浏览量是否需要去重? 例如同一用户 24 小时内多次访问同一篇文章是否只算 1 次?", ["data_boundary"]],
+      ["未登录用户是否也统计浏览量? 如果统计，按 IP、设备还是 session 归并?", ["permission_boundary"]],
+      ["如果浏览量接口失败或统计异常，文章页应该隐藏该数据、显示 0，还是显示加载失败提示?", ["failure_case"]],
+      ["验收时要看到哪些现象或数据，才能证明统计口径和去重规则生效?", ["acceptance_criteria"]]
     ]);
   }
   if (/login|登录|账号|账户|密码|失败|错误|锁定|找回/.test(lower)) {
@@ -1169,14 +1172,17 @@ function buildNaturalQuestionBank(input = {}) {
       ["是否需要后端保存该信息，还是仅前端实时计算？", ["data_boundary"]]
     ]);
   }
-  return questionBank([
-    ["这个需求主要服务哪些目标用户？", ["target_user"]],
+  const genericQuestions = [
     ["用户会在什么核心场景下使用这个功能？", ["core_scenario"]],
     ["有哪些失败、异常或空状态需要一起处理？", ["failure_case"]],
     ["这次明确不做哪些范围，避免需求被放大？", ["out_of_scope"]],
     ["验收时你希望用哪些标准判断这个需求完成？", ["acceptance_criteria"]],
     ["这个需求是否涉及数据、权限或安全边界？", ["data_security_boundary"]]
-  ]);
+  ];
+  if (/目标用户|用户群|角色|受众|audience|persona|target\s*user|user\s*group/.test(lower)) {
+    genericQuestions.push(["这个需求主要服务哪些目标用户？", ["target_user"]]);
+  }
+  return questionBank(genericQuestions);
 }
 
 function questionBank(items) {
@@ -1228,32 +1234,37 @@ function extractAskedQuestionTexts(input = {}) {
   for (const message of Array.isArray(input.pmMessages) ? input.pmMessages : []) {
     const role = String(message?.role || "");
     if (!["system", "system_clarification", "assistant"].includes(role)) continue;
-    const content = String(message?.content || message?.text || "");
-    for (const segment of content.split(/\r?\n|(?:\d+\.\s*)/)) {
-      const text = segment.trim();
-      if (/[?？]$/.test(text)) questions.push(text);
-    }
+    questions.push(...extractQuestionTextsFromContent(message?.content || message?.text || ""));
   }
   return uniqueStrings(questions);
+}
+
+function extractQuestionTextsFromContent(content) {
+  const questions = [];
+  for (const segment of String(content || "").split(/\r?\n|(?:\d+\.\s*)/)) {
+    const text = segment.trim();
+    if (/[?？]$/.test(text)) questions.push(text);
+  }
+  return questions;
 }
 
 function normalizeQuestionDimension(value) {
   const text = String(value || "").toLowerCase();
   if (["target_user", "core_scenario", "ranking_rule", "expected_outcome", "split_requirement"].includes(text)) return "behavior";
-  if (["failure_case", "empty_state"].includes(text)) return "state";
+  if (["failure_case", "empty_state", "state", "state_error"].includes(text)) return "state_error";
   if (["data_boundary", "data_security_boundary", "security_boundary"].includes(text)) return "data";
   if (["permission_boundary"].includes(text)) return "permission";
-  if (["acceptance_criteria"].includes(text)) return "acceptance";
+  if (["acceptance_criteria", "acceptance", "oracle", "acceptance_oracle"].includes(text)) return "acceptance_oracle";
   if (["edge_case"].includes(text)) return "edge_case";
   if (["implementation_boundary"].includes(text)) return "implementation_boundary";
   if (["scope", "out_of_scope"].includes(text)) return "scope";
   if (/object|page|button|entry|target/.test(text)) return "object";
   if (/behavior|rule|ranking|expected|outcome|scenario|core/.test(text)) return "behavior";
-  if (/state|failure|error|empty|loading/.test(text)) return "state";
+  if (/state|failure|error|empty|loading/.test(text)) return "state_error";
   if (/data|persist|dedup|count|database/.test(text)) return "data";
   if (/permission|security|auth|role/.test(text)) return "permission";
-  if (/copy|message|wording|hint/.test(text)) return "copy";
-  if (/acceptance|test|oracle|criteria/.test(text)) return "acceptance";
+  if (/copy|message|wording|hint/.test(text)) return "copy_ui";
+  if (/acceptance|test|oracle|criteria/.test(text)) return "acceptance_oracle";
   if (/edge|exception/.test(text)) return "edge_case";
   if (/implementation|api|backend|frontend|boundary|contract/.test(text)) return "implementation_boundary";
   if (/scope|out_of_scope|split/.test(text)) return "scope";
@@ -1271,7 +1282,9 @@ function appendQuestionGroup(message, questions, mode = "initial") {
     .trim();
   const heading = mode === "refinement"
     ? "我再补充确认一个问题："
-    : "我先确认一个关键口径：";
+    : questions.length > 1
+      ? "我先从几个不同方向确认一下:"
+      : "我先确认一个关键口径：";
   const list = questions.map((question, index) => `${index + 1}. ${ensureQuestionMark(question.question || question)}`).join("\n");
   return `${base}\n\n${heading}\n${list}`;
 }
@@ -1283,23 +1296,64 @@ function buildClarificationCompleteMessage() {
 function resolveClarificationProgress(input = {}) {
   const messages = Array.isArray(input.pmMessages) ? input.pmMessages : [];
   const latestRole = String(messages[messages.length - 1]?.role || "");
-  const systemMessages = messages.filter((message) => ["system", "system_clarification", "assistant"].includes(String(message.role || "")));
   const askedQuestionCount = extractAskedQuestionTexts(input).length;
-  const hasRefinementQuestion = systemMessages.some((message) => /再补充确认|继续丰富后的确认|refinement/i.test(String(message?.content || message?.text || "")));
   const mode = input.refinementRequested ? "refinement" : "initial";
-  const clarificationComplete = !input.refinementRequested && latestRole === "pm" && (
-    hasRefinementQuestion || askedQuestionCount >= INITIAL_REQUIRED_ANSWERS
-  );
-  const targetCount = mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS;
+  const answered = resolveAnsweredQuestionProgress(input);
+  const coveredDimensions = uniqueStrings(answered.dimensions);
+  const answeredQuestionCount = answered.count;
+  const clarificationComplete = !input.refinementRequested &&
+    latestRole === "pm" &&
+    answeredQuestionCount >= INITIAL_REQUIRED_ANSWERS &&
+    coveredDimensions.length >= INITIAL_REQUIRED_DIMENSIONS;
+  const initialTargetCount = answeredQuestionCount === 0 && askedQuestionCount === 0
+    ? INITIAL_MIN_QUESTIONS
+    : REFINEMENT_QUESTIONS;
+  const targetCount = mode === "refinement" ? REFINEMENT_QUESTIONS : initialTargetCount;
   return {
     mode,
-    answeredQuestionCount: clarificationComplete ? targetCount : 0,
-    askedQuestionCount: clarificationComplete ? 0 : targetCount,
-    remainingQuestionCount: 0,
-    isFinalQuestion: true,
+    answeredQuestionCount,
+    askedQuestionCount: clarificationComplete ? answeredQuestionCount : targetCount,
+    remainingQuestionCount: Math.max(0, INITIAL_REQUIRED_ANSWERS - answeredQuestionCount),
+    isFinalQuestion: answeredQuestionCount + targetCount >= INITIAL_REQUIRED_ANSWERS,
     clarificationComplete,
+    coveredDimensions,
+    targetQuestionCount: targetCount,
     nextQuestionIndex: Math.min(askedQuestionCount, Math.max(0, buildNaturalQuestionBank(input).length - 1))
   };
+}
+
+function resolveAnsweredQuestionProgress(input = {}) {
+  const pendingDimensions = [];
+  let answeredTurns = 0;
+  const dimensions = [];
+  for (const message of Array.isArray(input.pmMessages) ? input.pmMessages : []) {
+    const role = String(message?.role || "");
+    if (["system", "system_clarification", "assistant"].includes(role)) {
+      for (const question of extractQuestionTextsFromContent(message?.content || message?.text || "")) {
+        const dimension = resolveQuestionDimension(question, input);
+        pendingDimensions.push(dimension);
+      }
+      continue;
+    }
+    if (role === "pm" && pendingDimensions.length) {
+      answeredTurns += 1;
+      dimensions.push(...pendingDimensions);
+      pendingDimensions.length = 0;
+    }
+  }
+  return { count: answeredTurns, dimensions: uniqueStrings(dimensions) };
+}
+
+function resolveQuestionDimension(question, input = {}) {
+  const key = normalizeQuestionKey(question);
+  const bankQuestion = buildNaturalQuestionBank(input).find((item) => normalizeQuestionKey(item.question) === key);
+  if (bankQuestion?.dimension) return bankQuestion.dimension;
+  if (/未登录|登录|权限|角色|auth|permission|role/i.test(question)) return "permission";
+  if (/失败|异常|空状态|加载|error|failure|empty/i.test(question)) return "state_error";
+  if (/验收|证明|测试|criteria|oracle|acceptance/i.test(question)) return "acceptance_oracle";
+  if (/数据|统计|去重|累计|实时|今日|浏览量|count|dedup|data/i.test(question)) return "data";
+  if (/范围|页面|详情|列表|模块|scope|page/i.test(question)) return "scope";
+  return "behavior";
 }
 
 function ensureQuestionMark(text) {
@@ -1469,6 +1523,7 @@ function skillPayloadToUiState(payload) {
       maxQuestionCount: Number(payload.clarification?.maxQuestionCount || INITIAL_MAX_QUESTIONS),
       remainingQuestionCount: Number(payload.clarification?.remainingQuestionCount || 0),
       askedQuestionCount: Number(payload.clarification?.askedQuestionCount || payload.clarification?.questions?.length || 0),
+      answeredQuestionCount: Number(payload.clarification?.answeredQuestionCount || 0),
       coveredDimensions: arrayOfStrings(payload.clarification?.coveredDimensions),
       questions: normalizeQuestions(payload.clarification?.questions, payload.clarification),
       currentQuestion: String(payload.clarification?.currentQuestion || ""),
@@ -1528,9 +1583,7 @@ function skillPayloadToUiState(payload) {
 function resolveDisplayScoreForClarification(rawScore, clarification = {}) {
   const rounded = Number.isFinite(Number(rawScore)) ? Math.round(Number(rawScore)) : 58;
   if (clarification?.clarificationComplete) return clamp(rounded, 86, 94);
-  const mode = String(clarification?.clarificationMode || "initial");
-  if (mode === "refinement") return clamp(rounded, 75, 84);
-  return clamp(rounded, 45, 65);
+  return clamp(rounded, 0, 84);
 }
 
 function normalizePmMessages(messages) {

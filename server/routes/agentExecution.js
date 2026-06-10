@@ -4,6 +4,7 @@ import {
   getAgentArtifacts,
   getAgentReadiness,
   getAgentRun,
+  getAgentRunEvents,
   inspectAgent1,
   startAgentRun
 } from "../services/agentExecutionService.js";
@@ -11,7 +12,7 @@ import {
 export async function handleAgentExecutionRoutes(request, response, config = {}) {
   const url = new URL(request.url, "http://127.0.0.1");
   if (!url.pathname.startsWith("/api/agent")) return false;
-  if (/^\/api\/agent\/runs\/[^/]+\/(events|review|changes|rollback|checkpoints)(?:\/.*)?$/.test(url.pathname)) return false;
+  if (/^\/api\/agent\/runs\/[^/]+\/(review|changes|rollback|checkpoints)(?:\/.*)?$/.test(url.pathname)) return false;
 
   if (request.method === "GET" && url.pathname === "/api/agent/inventory") {
     writeJson(response, 200, { ok: true, data: await inspectAgent1(), error: null });
@@ -39,7 +40,7 @@ export async function handleAgentExecutionRoutes(request, response, config = {})
     return true;
   }
 
-  const match = url.pathname.match(/^\/api\/agent\/runs\/([^/]+)(?:\/(cancel|artifacts))?$/);
+  const match = url.pathname.match(/^\/api\/agent\/runs\/([^/]+)(?:\/(cancel|artifacts|events))?$/);
   if (match) {
     const runId = decodeURIComponent(match[1]);
     const action = match[2] || "";
@@ -47,9 +48,11 @@ export async function handleAgentExecutionRoutes(request, response, config = {})
       ? cancelAgentRun(runId)
       : action === "artifacts" && request.method === "GET"
         ? getAgentArtifacts(runId, config)
-        : !action && request.method === "GET"
-          ? getAgentRun(runId, config)
-          : null;
+        : action === "events" && request.method === "GET"
+          ? getAgentRunEvents(runId, config)
+          : !action && request.method === "GET"
+            ? getAgentRun(runId, config)
+            : null;
     if (!result) {
       sendError(response, 404, "not_found", "Agent route not found", { runId, action });
       return true;

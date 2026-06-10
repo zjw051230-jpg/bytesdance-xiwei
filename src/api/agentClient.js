@@ -24,6 +24,10 @@ export async function getAgentArtifacts(runId) {
   return requestJson(`/api/agent/runs/${encodeURIComponent(runId)}/artifacts`);
 }
 
+export async function getAgentRunEvents(runId) {
+  return requestJson(`/api/agent/runs/${encodeURIComponent(runId)}/events`);
+}
+
 async function postJson(url, payload) {
   const startedAt = markRequestStart();
   const options = {

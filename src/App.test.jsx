@@ -1,9 +1,14 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, vi } from "vitest";
+import { afterEach, beforeEach, vi } from "vitest";
 import App from "./App.jsx";
 import DSLStatusConsole from "./components/DSLStatusConsole.jsx";
 
 describe("monitor console and workspace picker", () => {
+  beforeEach(() => {
+    defaultPersistenceFetch.mockClear();
+    vi.stubGlobal("fetch", defaultPersistenceFetch);
+  });
+
   afterEach(() => {
     vi.unstubAllGlobals();
     window.localStorage.clear();
@@ -12,22 +17,25 @@ describe("monitor console and workspace picker", () => {
   it("renders the monitor console shell by default", () => {
     render(<App />);
 
-    expect(screen.getByText("Codex Workbench")).toBeInTheDocument();
+    expect(screen.getAllByText("Codex Workbench").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "监控台" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "工作台" })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByTestId("monitor-console-view")).toBeInTheDocument();
     expect(screen.queryByTestId("workspace-project-picker")).not.toBeInTheDocument();
   });
 
-  it("keeps the requested monitor information architecture", () => {
+  it("maps the monitor console to persistence-backed fixture data", async () => {
     render(<App />);
 
-    expect(screen.getAllByText("conduit-realworld-example-app").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("RUN-20250524-0A7F").length).toBeGreaterThan(0);
-    expect(screen.getByText("Artifacts (4)")).toBeInTheDocument();
+    await waitFor(() => expect(defaultPersistenceFetch).toHaveBeenCalledWith("/api/projects", undefined));
+    expect(screen.getAllByText("Persistence Project").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("RUN-persisted-monitor").length).toBeGreaterThan(0);
+    expect(screen.getByText("Artifacts (1)")).toBeInTheDocument();
+    expect(screen.queryByText("RUN-20250524-0A7F")).not.toBeInTheDocument();
+    expect(screen.queryByText("conduit-realworld-example-app")).not.toBeInTheDocument();
   });
 
-  it("switches 工作台 into the project picker and shows top page tabs", () => {
+  it("switches 工作台 into the project picker and shows top page tabs", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
@@ -38,7 +46,7 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("button", { name: "PR 页面" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "选择你的项目" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "新建项目" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "conduit-realworld-example-app" })).toHaveAttribute("aria-pressed", "true");
+    await waitFor(() => expect(screen.getByRole("button", { name: "Persistence Project" })).toHaveAttribute("aria-pressed", "true"));
     expect(screen.getByRole("button", { name: "Codex Workbench" })).toBeInTheDocument();
     expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "collapsed");
     expect(screen.queryByTestId("monitor-console-view")).not.toBeInTheDocument();
@@ -81,7 +89,6 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "审计页面" })).toBeInTheDocument();
     expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText("该项目未绑定本地路径。")).toBeInTheDocument());
     expect(screen.getByText("用户可见变化")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "PR 页面" }));
@@ -222,17 +229,18 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText("No API keys or local configs committed")).toBeInTheDocument();
   });
 
-  it("selects a project and shows a local toast", () => {
+  it("selects a project and shows a local toast", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "AI Agent Framework" })).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "AI Agent Framework" }));
 
     expect(screen.getByRole("button", { name: "AI Agent Framework" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("status")).toHaveTextContent("已选择 AI Agent Framework");
   });
 
-  it("expands, collapses, and switches projects from the project rail", () => {
+  it("expands, collapses, and switches projects from the project rail", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
@@ -241,7 +249,7 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "展开项目切换栏" }));
 
     expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "expanded");
-    expect(screen.getByRole("button", { name: "切换到 conduit-realworld-example-app" })).toHaveAttribute("aria-pressed", "true");
+    await waitFor(() => expect(screen.getByRole("button", { name: "切换到 Persistence Project" })).toHaveAttribute("aria-pressed", "true"));
 
     fireEvent.click(screen.getByRole("button", { name: "切换到 Data Pipeline" }));
 
@@ -300,10 +308,11 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("button", { name: "切换到 Project A" })).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("syncs project rail selection when the picker card changes", () => {
+  it("syncs project rail selection when the picker card changes", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "AI Agent Framework" })).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "展开项目切换栏" }));
     fireEvent.click(screen.getByRole("button", { name: "AI Agent Framework" }));
 
@@ -383,7 +392,7 @@ describe("monitor console and workspace picker", () => {
     ));
     const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/status"))[1].body);
     expect(statusBody).toMatchObject({
-      projectId: expect.stringMatching(/^mock-/),
+      projectId: expect.stringMatching(/^pending-/),
       localPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app"
     });
     await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4555/#/login"));
@@ -640,7 +649,7 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
   });
 
-  it("enters the DSL workbench from the project picker", () => {
+  it("enters the DSL workbench from the project picker", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
@@ -650,8 +659,8 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("heading", { name: "需求澄清工作台" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "DSL 状态控制台" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /打开需求报告/ })).toBeInTheDocument();
-    expect(screen.getByText("conduit-realworld-example-app")).toBeInTheDocument();
-    expect(document.querySelector(".report-cta")).not.toHaveTextContent("conduit-realworld-example-app");
+    await waitFor(() => expect(screen.getByText("Persistence Project")).toBeInTheDocument());
+    expect(document.querySelector(".report-cta")).not.toHaveTextContent("Persistence Project");
   });
 
   it("shows a true empty DSL state before any run or PM input", () => {
@@ -724,6 +733,60 @@ describe("monitor console and workspace picker", () => {
       />
     );
     expect(screen.getByText("回复来源：External blocked · openai_sdk · gpt-5.5")).toBeInTheDocument();
+  });
+
+  it("does not show 45% while a new DSL run is still calculating or input gated", () => {
+    const handlers = {
+      onOpenReport: vi.fn(),
+      onCancelRun: vi.fn(),
+      onRetryRun: vi.fn(),
+      onOpenPartialArtifacts: vi.fn()
+    };
+    const baseUiState = {
+      dslCompletion: { source: "pm_input_initial" },
+      coverageItems: { covered: [], pending: [] },
+      risks: [],
+      readiness: { ready_for_agent: false, handoff_decision: "clarify_first", source: "pm_input_initial" }
+    };
+    const { rerender } = render(
+      <DSLStatusConsole
+        {...handlers}
+        uiState={baseUiState}
+        runState={{ runId: "RUN-calculating", status: "running", skillStatus: "understanding", artifacts: {} }}
+      />
+    );
+
+    expect(screen.getByText("0%")).toBeInTheDocument();
+    expect(screen.queryByText("45%")).not.toBeInTheDocument();
+
+    rerender(
+      <DSLStatusConsole
+        {...handlers}
+        uiState={{
+          ...baseUiState,
+          dslCompletion: { rawScore: 0, displayScore: 0, value: 0, source: "local_input_gate" },
+          humanReport: { summary: { status: "input_gated", source: "local_input_gate" } }
+        }}
+        runState={{ runId: "", status: "input_gated", skillStatus: "idle", artifacts: {} }}
+      />
+    );
+
+    expect(screen.getByText("0%")).toBeInTheDocument();
+    expect(screen.queryByText("45%")).not.toBeInTheDocument();
+
+    rerender(
+      <DSLStatusConsole
+        {...handlers}
+        uiState={{
+          ...baseUiState,
+          dslCompletion: { rawScore: 51, displayScore: 62, value: 62, source: "skill_orchestrated_model" }
+        }}
+        runState={{ runId: "RUN-calculating", status: "running", skillStatus: "understanding", artifacts: {} }}
+      />
+    );
+
+    expect(screen.getByText("62%")).toBeInTheDocument();
+    expect(screen.queryByText("45%")).not.toBeInTheDocument();
   });
 
   it("keeps the report CTA mapped to report readiness instead of the selected project", () => {
@@ -966,6 +1029,8 @@ describe("monitor console and workspace picker", () => {
       buildSkillTurn({
         message: "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。",
         score: 91,
+        asked: 5,
+        coveredDimensions: ["data", "permission", "state_error", "acceptance_oracle"],
         complete: true
       }),
       buildSkillTurn({
@@ -979,6 +1044,8 @@ describe("monitor console and workspace picker", () => {
       buildSkillTurn({
         message: "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。",
         score: 92,
+        asked: 5,
+        coveredDimensions: ["data", "permission", "state_error", "acceptance_oracle"],
         complete: true
       }),
       buildSkillTurn({
@@ -992,6 +1059,8 @@ describe("monitor console and workspace picker", () => {
       buildSkillTurn({
         message: "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。",
         score: 93,
+        asked: 5,
+        coveredDimensions: ["data", "permission", "state_error", "acceptance_oracle"],
         complete: true
       })
     ];
@@ -1036,7 +1105,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "继续丰富需求" }));
     await waitFor(() => expect(screen.getByText(refinementQuestion)).toBeInTheDocument());
-    expect(screen.getByText("80%")).toBeInTheDocument();
+    expect(screen.getByText("91%")).toBeInTheDocument();
     const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body);
     expect(firstRefineRequest.refinementRequested).toBe(true);
 
@@ -1631,7 +1700,122 @@ describe("monitor console and workspace picker", () => {
   });
 });
 
-function buildSkillTurn({ message, question = "", questions = null, score, asked = 0, remaining = 0, isFinalQuestion = false, complete = false, clarificationMode = "initial" }) {
+const defaultProjectFixtures = [
+  {
+    id: "persistence-project",
+    name: "Persistence Project",
+    description: "Project fixture returned by persistence API",
+    railSubtitle: "F:\\Projects\\Persistence",
+    localPath: "F:\\Projects\\Persistence",
+    status: "current",
+    icon: "code",
+    updatedAt: "2026-06-11T09:00:00.000Z"
+  },
+  {
+    id: "codex-workbench",
+    name: "Codex Workbench",
+    description: "Workbench fixture",
+    railSubtitle: "F:\\Projects\\Codex Workbench",
+    localPath: "F:\\Projects\\Codex Workbench",
+    status: "pass",
+    icon: "code"
+  },
+  {
+    id: "ai-agent-framework",
+    name: "AI Agent Framework",
+    description: "Agent fixture",
+    railSubtitle: "F:\\Agents\\Framework",
+    localPath: "F:\\Agents\\Framework",
+    status: "current",
+    icon: "folder"
+  },
+  {
+    id: "data-pipeline",
+    name: "Data Pipeline",
+    description: "Pipeline fixture",
+    railSubtitle: "F:\\Projects\\Data Pipeline",
+    localPath: "F:\\Projects\\Data Pipeline",
+    status: "warn",
+    icon: "database"
+  }
+];
+
+const defaultRequirementFixture = {
+  id: "req-persisted-monitor",
+  projectId: "persistence-project",
+  title: "Persisted monitor requirement",
+  rawPmInput: "Use persistence data in the monitor console.",
+  dslJson: { title: "Persisted monitor requirement" },
+  readinessStatus: "ready_for_design",
+  readyForAgent: false,
+  handoffDecision: "ready_for_design",
+  completionPercent: 73,
+  updatedAt: "2026-06-11T09:10:00.000Z"
+};
+
+const defaultAgentRunFixture = {
+  id: "RUN-persisted-monitor",
+  runId: "RUN-persisted-monitor",
+  requirementId: "req-persisted-monitor",
+  status: "completed",
+  dryRun: true,
+  realWritePerformed: false,
+  resultSummary: "Persisted dry-run summary",
+  startedAt: "2026-06-11T09:20:00.000Z",
+  finishedAt: "2026-06-11T09:21:00.000Z",
+  updatedAt: "2026-06-11T09:21:00.000Z"
+};
+
+const defaultPersistenceFetch = vi.fn(async (url, options = {}) => {
+  const target = String(url);
+  const method = options.method || "GET";
+  if (target === "/api/projects" && method === "GET") return jsonOk(defaultProjectFixtures);
+  if (target === "/api/projects" && method === "POST") {
+    const body = JSON.parse(options.body || "{}");
+    return jsonOk({ id: "created-project", ...body }, 201);
+  }
+  if (target.startsWith("/api/projects/") && method === "PATCH") return jsonOk({});
+  if (target.startsWith("/api/projects/") && method === "DELETE") return jsonOk({});
+  if (target === "/api/projects/persistence-project/requirements") return jsonOk([defaultRequirementFixture]);
+  if (target.match(/^\/api\/projects\/[^/]+\/requirements$/)) return jsonOk([]);
+  if (target === "/api/projects/persistence-project/activity") {
+    return jsonOk([
+      {
+        id: "activity-persisted-monitor",
+        projectId: "persistence-project",
+        requirementId: "req-persisted-monitor",
+        runId: "RUN-persisted-monitor",
+        type: "agent_run",
+        level: "info",
+        message: "Persisted monitor activity",
+        createdAt: "2026-06-11T09:21:00.000Z"
+      }
+    ]);
+  }
+  if (target.match(/^\/api\/projects\/[^/]+\/activity$/)) return jsonOk([]);
+  if (target === "/api/requirements/req-persisted-monitor/design-plan") {
+    return jsonOk({ id: "plan-persisted-monitor", requirementId: "req-persisted-monitor", title: "Persisted design plan", currentStage: "design", overallProgress: 40 });
+  }
+  if (target === "/api/design-plans/plan-persisted-monitor/tasks") {
+    return jsonOk([{ id: "task-persisted-monitor", title: "Map monitor data", status: "running", progress: 40 }]);
+  }
+  if (target === "/api/agent/runs/RUN-persisted-monitor") return jsonOk(defaultAgentRunFixture);
+  if (target === "/api/agent/runs/RUN-persisted-monitor/artifacts") {
+    return jsonOk({ runId: "RUN-persisted-monitor", artifactList: [{ id: "artifact-monitor", runId: "RUN-persisted-monitor", type: "report", name: "monitor-summary.md", summary: "Persisted monitor report" }] });
+  }
+  if (target === "/api/agent/runs/RUN-persisted-monitor/review") {
+    return jsonOk([{ id: "review-monitor", filePath: "src/components/ProjectOverview.jsx", riskLevel: "P1", reason: "Verify real monitor mapping", humanStatus: "pending" }]);
+  }
+  if (target === "/api/requirements/req-persisted-monitor/pr-draft") {
+    return jsonOk({ id: "pr-monitor", requirementId: "req-persisted-monitor", runId: "RUN-persisted-monitor", title: "Map monitor console to persistence", status: "draft", updatedAt: "2026-06-11T09:22:00.000Z" });
+  }
+  if (target.endsWith("/api/preview/status") || target.endsWith("/api/preview/start")) {
+    return jsonOk({ status: "project_path_missing", available: false, message: "No preview fixture." });
+  }
+  return jsonOk({});
+});
+
+function buildSkillTurn({ message, question = "", questions = null, score, asked = 0, remaining = 0, isFinalQuestion = false, complete = false, clarificationMode = "initial", coveredDimensions: coveredDimensionsOverride = null }) {
   const questionItems = complete ? [] : (Array.isArray(questions) && questions.length
     ? questions.map((item, index) => ({
       question: typeof item === "string" ? item : item.question,
@@ -1640,7 +1824,9 @@ function buildSkillTurn({ message, question = "", questions = null, score, asked
       dimension: typeof item === "string" ? "scope" : item.dimension || "scope"
     }))
     : [{ question, reason: "single-question flow", priority: "p0", dimension: "scope" }]);
-  const coveredDimensions = [...new Set(questionItems.map((item) => item.dimension))];
+  const coveredDimensions = Array.isArray(coveredDimensionsOverride)
+    ? coveredDimensionsOverride
+    : [...new Set(questionItems.map((item) => item.dimension))];
   return {
     runId: `RUN-skill-${score}`,
     status: "skill_turn",
@@ -1653,9 +1839,10 @@ function buildSkillTurn({ message, question = "", questions = null, score, asked
       currentQuestion: complete ? "" : questionItems[0]?.question || "",
       remainingQuestionCount: remaining,
       askedQuestionCount: asked,
+      answeredQuestionCount: asked,
       questionCount: questionItems.length,
-      minQuestionCount: 1,
-      maxQuestionCount: 1,
+      minQuestionCount: 5,
+      maxQuestionCount: 6,
       clarificationMode,
       coveredDimensions,
       isFinalQuestion,
@@ -1679,8 +1866,10 @@ function buildSkillTurn({ message, question = "", questions = null, score, asked
         questions: questionItems,
         currentQuestion: complete ? "" : questionItems[0]?.question || "",
         questionCount: questionItems.length,
-        minQuestionCount: 1,
-        maxQuestionCount: 1,
+        minQuestionCount: 5,
+        maxQuestionCount: 6,
+        askedQuestionCount: asked,
+        answeredQuestionCount: asked,
         clarificationMode,
         coveredDimensions,
         clarificationComplete: complete
