@@ -1406,6 +1406,57 @@ describe("DSL backend API", () => {
     expect(JSON.stringify(finished)).not.toMatch(/pm_dsl_runner|runner_missing|F:\\dsl-v2|api_key|Authorization|Bearer|sk-/i);
   });
 
+  it("uses carried requirement context for continue-triggered full DSL artifacts instead of input gating", async () => {
+    const baseUrl = await startTestServer({
+      runnerMode: "mock"
+    });
+
+    const startResponse = await fetch(`${baseUrl}/api/dsl/runs/start`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        pmMessages: [{ role: "pm", content: "继续" }],
+        context: {
+          pmText: "文章详情页需要展示浏览量，并且同一用户 24 小时内去重。",
+          clarificationSummary: "已确认：总浏览量，24h 去重。"
+        }
+      })
+    });
+    const started = await startResponse.json();
+
+    expect(startResponse.status).toBe(202);
+    expect(started.ok).toBe(true);
+
+    const finished = await waitForJob(baseUrl, started.data.runId);
+    const pmText = finished.fullArtifacts["00_input.json"].json.case.pm_text;
+
+    expect(finished.status).toBe("passed");
+    expect(pmText).toContain("文章详情页需要展示浏览量");
+    expect(pmText).toContain("已确认：总浏览量");
+  });
+
+  it("keeps continue-triggered full DSL artifacts input gated when no context exists", async () => {
+    const baseUrl = await startTestServer({
+      runnerMode: "mock"
+    });
+
+    const startResponse = await fetch(`${baseUrl}/api/dsl/runs/start`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        pmMessages: [{ role: "pm", content: "继续", source: "refinement_request" }]
+      })
+    });
+    const payload = await startResponse.json();
+
+    expect(startResponse.status).toBe(400);
+    expect(payload.ok).toBe(false);
+    expect(payload.error.code).toBe("input_gated");
+    expect(payload.error.details.artifactRunCreated).toBe(false);
+  });
+
   it("returns standalone_artifact_failed details instead of legacy runner_missing when standalone generation fails", async () => {
     const failingModel = async () => {
       throw new Error("standalone test failure");

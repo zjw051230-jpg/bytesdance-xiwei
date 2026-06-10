@@ -11,8 +11,11 @@ export default function ClarificationChat({
   onToast,
   realSuggestion,
   runId,
+  isDslGenerating = false,
+  canAskQuestion = false,
   onContinueRefine,
-  onStartConstruction
+  onStartConstruction,
+  isContinuePending = false
 }) {
   const [draft, setDraft] = useState("");
   const enterSubmitRef = useRef(false);
@@ -28,7 +31,7 @@ export default function ClarificationChat({
   };
   const hasRealSuggestion = realSuggestion?.source === "EVPI-lite" && runId && dismissedRealRunId !== runId;
   const question = hasRealSuggestion ? realSuggestion : fallbackQuestion;
-  const shouldShowSuggestion = hasRealSuggestion || messageCount >= nextSuggestionAt;
+  const shouldShowSuggestion = canAskQuestion && !isDslGenerating && (hasRealSuggestion || messageCount >= nextSuggestionAt);
   const latestCompleteMessageId = [...messages].reverse().find((message) => message.kind === "clarification_complete")?.id || "";
 
   useEffect(() => {
@@ -45,6 +48,7 @@ export default function ClarificationChat({
   };
 
   const sendAnswer = async () => {
+    if (isDslGenerating) return;
     const text = draft.trim();
     if (!text) return;
     setMessageCount((current) => current + 1);
@@ -84,13 +88,13 @@ export default function ClarificationChat({
 
   const renderCompletionActions = () => (
     <div className="clarification-complete-actions">
-      <button type="button" onClick={() => onContinueRefine?.()}>继续丰富需求</button>
+      <button type="button" onClick={() => onContinueRefine?.()} disabled={isContinuePending}>继续丰富需求</button>
       <button type="button" onClick={() => onStartConstruction?.()}>开始施工</button>
     </div>
   );
 
   return (
-    <section className={`clarification-chat ${shouldShowSuggestion ? "has-suggestion" : ""}`} aria-label="需求澄清对话区">
+    <section className={`clarification-chat ${shouldShowSuggestion ? "has-suggestion" : ""} ${isDslGenerating ? "is-generating" : ""}`} aria-label="需求澄清对话区">
       <div className="chat-stream">
         {messages.length === 0 ? (
           <article className="chat-message system">
@@ -113,7 +117,7 @@ export default function ClarificationChat({
                 <time>{message.time}</time>
               </div>
               <p>{message.text}</p>
-              {message.id === latestCompleteMessageId ? renderCompletionActions() : null}
+              {(!isDslGenerating || isContinuePending) && message.id === latestCompleteMessageId ? renderCompletionActions() : null}
             </div>
           </article>
         ))}
@@ -132,6 +136,16 @@ export default function ClarificationChat({
             <button type="button" onClick={adoptQuestion}>采用这个问题</button>
             <button type="button" onClick={rotateQuestion}>换一个</button>
             <button type="button" onClick={skipQuestion}>暂时跳过</button>
+          </div>
+        </div>
+      ) : null}
+
+      {isDslGenerating ? (
+        <div className="dsl-generating-notice" role="status" aria-live="polite">
+          <span className="dsl-generating-dot" aria-hidden="true" />
+          <div>
+            <strong>正在生成 DSL</strong>
+            <p>豆包正在整理 DSL draft，生成 pass 后再展示下一轮澄清问题。</p>
           </div>
         </div>
       ) : null}
@@ -162,10 +176,11 @@ export default function ClarificationChat({
             font: "inherit",
             lineHeight: "20px"
           }}
-          placeholder="请按序号回答，也可以只回答你确定的部分..."
+          placeholder={isDslGenerating ? "正在生成 DSL，请稍等..." : "请按序号回答，也可以只回答你确定的部分..."}
           aria-label="请按序号回答，也可以只回答你确定的部分"
+          disabled={isDslGenerating}
         />
-        <button type="button" onClick={sendAnswer} disabled={!draft.trim()}><Send size={16} />发送回答</button>
+        <button type="button" onClick={sendAnswer} disabled={isDslGenerating || !draft.trim()}><Send size={16} />{isDslGenerating ? "正在回复" : "发送回答"}</button>
       </div>
     </section>
   );

@@ -66,6 +66,8 @@ export default function DSLWorkbench({
   const [isReportOpen, setIsReportOpen] = useState(false);
   const [isPartialOpen, setIsPartialOpen] = useState(false);
   const [partialArtifacts, setPartialArtifacts] = useState(null);
+  const [isContinuePending, setIsContinuePending] = useState(false);
+  const continuePendingRef = useRef(false);
   const pollRef = useRef("");
   const longStageRef = useRef("");
   const [runState, setRunState] = useState(() => createInitialRunState());
@@ -79,6 +81,8 @@ export default function DSLWorkbench({
     setLoadedRequirement(null);
     setMessages([]);
     setInputGateActive(false);
+    setIsContinuePending(false);
+    continuePendingRef.current = false;
     setUiState(emptyUiState());
     setRunState(createInitialRunState());
     if (!projectId) return () => {
@@ -258,6 +262,13 @@ export default function DSLWorkbench({
       projectId: activeProject?.id ?? "conduit-realworld-example-app",
       requirementId: requirement.id,
       pmMessages: messagesToRunnerPayload(nextMessages),
+      context: buildContinuationContext({
+        requirement,
+        uiState,
+        messages: nextMessages,
+        runState,
+        currentInput: trimmedText
+      }),
       codeContextPath: "e2e\\context\\default_code_context_packet.json",
       maxRounds: 3
     };
@@ -271,6 +282,7 @@ export default function DSLWorkbench({
     }).catch((error) => setHistoryError(`PM 输入保存失败：${error.message || "Persistence API request failed"}`));
 
     let skillReplyResolved = false;
+    let skillReplyDisplayed = false;
     try {
       const skillTurn = await createSkillPmDslTurn(buildSkillTurnRequest(requestPayload, nextMessages, uiState, isRiskClarification
         ? { riskClarification: submitMeta }
@@ -283,19 +295,6 @@ export default function DSLWorkbench({
         ? markUiStateClarificationComplete(skillTurn.uiState)
         : (skillTurn.uiState || {});
       setUiState((current) => mergeRunnerUiState(current, skillUiState));
-      setMessages((current) => replaceMessage(
-        current,
-        loadingId,
-        systemMessage(assistantText, current.length, {
-          id: loadingId,
-          kind: clarificationComplete ? "clarification_complete" : "skill_reply"
-        })
-      ));
-      createClarification(requirement.id, {
-        role: "system",
-        content: assistantText,
-        source: "skill_turn"
-      }).catch((error) => setHistoryError(`系统回复保存失败：${error.message || "Persistence API request failed"}`));
       setRunState((current) => ({
         ...current,
         runId: skillTurn.runId || current.runId,
@@ -316,6 +315,20 @@ export default function DSLWorkbench({
       longStageRef.current = "clarified";
 
       if (skillTurn.skipDslGeneration) {
+        setMessages((current) => replaceMessage(
+          current,
+          loadingId,
+          systemMessage(assistantText, current.length, {
+            id: loadingId,
+            kind: clarificationComplete ? "clarification_complete" : "skill_reply"
+          })
+        ));
+        skillReplyDisplayed = true;
+        createClarification(requirement.id, {
+          role: "system",
+          content: assistantText,
+          source: "skill_turn"
+        }).catch((error) => setHistoryError(`系统回复保存失败：${error.message || "Persistence API request failed"}`));
         setRunState((current) => ({
           ...current,
           runId: "",
@@ -339,6 +352,20 @@ export default function DSLWorkbench({
         ? markUiStateClarificationComplete(filteredUiState)
         : filteredUiState;
       setUiState((current) => mergeRunnerUiState(current, finalUiState));
+      setMessages((current) => replaceMessage(
+        current,
+        loadingId,
+        systemMessage(assistantText, current.length, {
+          id: loadingId,
+          kind: clarificationComplete ? "clarification_complete" : "skill_reply"
+        })
+      ));
+      skillReplyDisplayed = true;
+      createClarification(requirement.id, {
+        role: "system",
+        content: assistantText,
+        source: "skill_turn"
+      }).catch((error) => setHistoryError(`系统回复保存失败：${error.message || "Persistence API request failed"}`));
       if (!isLocalRequirementId(requirement.id)) {
         persistRequirementState(requirement.id, result, finalUiState)
           .then((updated) => {
@@ -368,8 +395,8 @@ export default function DSLWorkbench({
     } catch (error) {
       const runError = error.payload?.error || { code: "request_failed", message: error.message, details: {} };
       const failureText = skillReplyResolved ? buildArtifactFailureReply(runError) : buildFailureReply(runError);
-      setMessages((current) => skillReplyResolved
-        ? [...current, systemMessage(failureText, current.length)]
+      setMessages((current) => skillReplyResolved && skillReplyDisplayed
+        ? appendUniqueSystemMessage(current, failureText)
         : replaceMessage(
             current,
             loadingId,
@@ -398,12 +425,14 @@ export default function DSLWorkbench({
   };
 
   const handleContinueRefine = async () => {
-    if (runState.skillStatus === "understanding" || runState.status === "queued") return;
+    if (continuePendingRef.current || isContinuePending || isDslGenerating(runState)) return;
     if (!loadedRequirement?.id) {
       onToast("请先完成一轮需求澄清");
       return;
     }
 
+    continuePendingRef.current = true;
+    setIsContinuePending(true);
     const triggerText = "继续丰富需求";
     const pmMessage = {
       id: `pm-refine-${Date.now()}-${messages.length}`,
@@ -411,6 +440,7 @@ export default function DSLWorkbench({
       role: "pm",
       time: "刚刚",
       text: triggerText,
+      source: "refinement_request",
       kind: "refinement_request"
     };
     const nextMessages = [...messages, pmMessage];
@@ -449,6 +479,13 @@ export default function DSLWorkbench({
       projectId: activeProject?.id ?? loadedRequirement.projectId ?? "conduit-realworld-example-app",
       requirementId: loadedRequirement.id,
       pmMessages: messagesToRunnerPayload(nextMessages),
+      context: buildContinuationContext({
+        requirement: loadedRequirement,
+        uiState,
+        messages: nextMessages,
+        runState,
+        currentInput: triggerText
+      }),
       codeContextPath: "e2e\\context\\default_code_context_packet.json",
       maxRounds: 3
     };
@@ -511,6 +548,9 @@ export default function DSLWorkbench({
         error: runError
       }));
       onToast("继续丰富需求失败");
+    } finally {
+      continuePendingRef.current = false;
+      setIsContinuePending(false);
     }
   };
 
@@ -647,10 +687,7 @@ export default function DSLWorkbench({
       }));
     } catch (error) {
       const runError = error.payload?.error || { code: "request_failed", message: error.message, details: {} };
-      setMessages((current) => [
-        ...current,
-        systemMessage(buildFailureReply(runError), current.length)
-      ]);
+      setMessages((current) => appendUniqueSystemMessage(current, buildFailureReply(runError)));
     }
   };
 
@@ -707,8 +744,11 @@ export default function DSLWorkbench({
           onToast={onToast}
           realSuggestion={uiState.recommendedQuestion}
           runId={runState.runId}
+          isDslGenerating={isDslGenerating(runState)}
+          canAskQuestion={canAskClarificationQuestion(runState)}
           onContinueRefine={handleContinueRefine}
           onStartConstruction={onStartConstruction}
+          isContinuePending={isContinuePending}
         />
       </section>
 
@@ -755,6 +795,17 @@ function hasActiveClarificationContext(messages = [], requirement = null, runSta
       )
     ))
   );
+}
+
+function isDslGenerating(runState = {}) {
+  const status = String(runState?.status || "");
+  const skillStatus = String(runState?.skillStatus || "");
+  return ["queued", "running"].includes(status) || ["understanding", "generating"].includes(skillStatus);
+}
+
+function canAskClarificationQuestion(runState = {}) {
+  const status = String(runState?.status || "");
+  return ["passed", "completed"].includes(status);
 }
 
 function isClarificationCompleteTurn(skillTurn = {}) {
@@ -841,6 +892,12 @@ function replaceMessage(messages, id, replacement) {
   return replaced ? nextMessages : [...messages, replacement];
 }
 
+function appendUniqueSystemMessage(messages, text, meta = {}) {
+  const latestSystem = [...messages].reverse().find((message) => message.role === "system");
+  if (latestSystem?.text === text) return messages;
+  return [...messages, systemMessage(text, messages.length, meta)];
+}
+
 function buildSkillTurnRequest(requestPayload, nextMessages, uiState, overrides = {}) {
   const recommendedQuestion = uiState?.recommendedQuestion;
   return {
@@ -868,6 +925,93 @@ function buildSkillTurnRequest(requestPayload, nextMessages, uiState, overrides 
     pmMessages: messagesToRunnerPayload(nextMessages).slice(-6),
     ...overrides
   };
+}
+
+function buildContinuationContext({
+  requirement = null,
+  uiState = {},
+  messages = [],
+  runState = {},
+  currentInput = ""
+} = {}) {
+  const originalPmText = firstNonEmptyText(
+    requirement?.rawPmInput,
+    firstPmText(messages)
+  );
+  const lastNonEmptyInput = firstNonEmptyText(
+    lastMeaningfulPmText(messages),
+    isControlRequestText(currentInput) ? "" : currentInput
+  );
+  const clarificationSummary = firstNonEmptyText(
+    uiState?.humanReport?.summary?.text,
+    latestSystemContext(messages),
+    originalPmText
+  );
+  const generatedDslDraft = firstNonEmptyText(
+    compactDraft(uiState?.humanReport),
+    compactDraft(runState?.artifacts?.["12_final_dsl.json"]?.json),
+    compactDraft(runState?.artifacts?.["05_dsl_draft.json"]?.json)
+  );
+  return pruneEmptyValues({
+    projectId: requirement?.projectId,
+    requirementId: requirement?.id,
+    clarificationSummary,
+    generatedDslDraft,
+    pmText: originalPmText,
+    originalPmText,
+    lastNonEmptyInput
+  });
+}
+
+function firstPmText(messages = []) {
+  return (Array.isArray(messages) ? messages : [])
+    .find((message) => message.role === "pm" && String(message.text || "").trim())?.text || "";
+}
+
+function lastMeaningfulPmText(messages = []) {
+  return [...(Array.isArray(messages) ? messages : [])]
+    .reverse()
+    .find((message) => {
+      if (message.role !== "pm") return false;
+      const text = String(message.text || "").trim();
+      return text && !isControlRequestText(text) && message.source !== "refinement_request" && !shouldGateInputIntent(detectInputIntent(text));
+    })?.text || "";
+}
+
+function isControlRequestText(text) {
+  const normalized = String(text || "").trim().replace(/\s+/g, "");
+  return ["继续", "继续丰富需求", "继续完善需求"].includes(normalized);
+}
+
+function latestSystemContext(messages = []) {
+  return [...(Array.isArray(messages) ? messages : [])]
+    .reverse()
+    .find((message) => message.role === "system" && String(message.text || "").trim())?.text || "";
+}
+
+function compactDraft(value) {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  const summary = firstNonEmptyText(value.summary?.text, value.summary, value.text, value.title);
+  if (summary) return summary;
+  if (typeof value !== "object" || Object.keys(value).length === 0) return "";
+  try {
+    return JSON.stringify(value).slice(0, 1600);
+  } catch {
+    return "";
+  }
+}
+
+function firstNonEmptyText(...values) {
+  for (const value of values) {
+    const text = String(value || "").trim();
+    if (text) return text;
+  }
+  return "";
+}
+
+function pruneEmptyValues(value = {}) {
+  return Object.fromEntries(Object.entries(value).filter(([, item]) => String(item || "").trim()));
 }
 
 function skillStatusFromSource(sourceMode) {

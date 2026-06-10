@@ -16,7 +16,7 @@ import {
 } from "./jobStore.js";
 import { redactSecrets } from "./redactionService.js";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
-import { persistDslRunFailed, persistDslRunFinished, persistDslRunStarted } from "./persistence/workbenchPersistenceAdapter.js";
+import { persistDslRunFailed, persistDslRunFinished, persistDslRunStarted, withPersistence } from "./persistence/workbenchPersistenceAdapter.js";
 import { checkStandaloneArtifactRunner, runStandaloneArtifactRunner } from "./standaloneArtifactRunner.js";
 import {
   buildInputGateReply,
@@ -51,11 +51,15 @@ export async function getHealth(config = {}) {
 
 export async function createDslRun(requestBody, config = {}) {
   const merged = { ...defaultConfig, ...config };
-  const gated = inputGateError(requestBody?.pmMessages);
+  const pmMessages = normalizePmMessagesWithFallback(requestBody, merged);
+  const gated = inputGateError(pmMessages);
   if (gated) return gated;
-  const pmMessages = normalizePmMessages(requestBody?.pmMessages);
   if (!pmMessages.length) {
-    return errorPayload("bad_request", "pmMessages must include at least one PM message", {});
+    return inputGateError([]) || errorPayload("input_gated", buildInputGateReply("too_short", ""), {
+      intent: "too_short",
+      skipDslGeneration: true,
+      artifactRunCreated: false
+    });
   }
 
   const health = await getHealth(merged);
@@ -223,13 +227,17 @@ export async function getDslRunArtifacts(runId) {
 
 async function createRunContext(requestBody, config, options = {}) {
   const merged = { ...defaultConfig, ...config };
-  const gated = inputGateError(requestBody?.pmMessages);
+  const pmMessages = normalizePmMessagesWithFallback(requestBody, merged);
+  const gated = inputGateError(pmMessages);
   if (gated) return { ok: false, payload: gated };
-  const pmMessages = normalizePmMessages(requestBody?.pmMessages);
   if (!pmMessages.length) {
     return {
       ok: false,
-      payload: errorPayload("bad_request", "pmMessages must include at least one PM message", {})
+      payload: errorPayload("input_gated", buildInputGateReply("too_short", ""), {
+        intent: "too_short",
+        skipDslGeneration: true,
+        artifactRunCreated: false
+      })
     };
   }
 
@@ -433,8 +441,19 @@ function normalizePmMessages(messages) {
     .map((item) => ({
       role: String(item.role || "pm"),
       content: String(item.content || "").trim(),
-      questionKey: item.questionKey ? String(item.questionKey) : ""
+      questionKey: item.questionKey ? String(item.questionKey) : "",
+      source: item.source ? String(item.source) : ""
     }));
+}
+
+function normalizePmMessagesWithFallback(requestBody = {}, config = {}) {
+  const pmMessages = normalizePmMessages(requestBody?.pmMessages);
+  const context = collectRequirementContext(requestBody, config);
+  if (!needsContextFallback(pmMessages) || !hasContextText(context)) return pmMessages;
+  return dedupeMessages([
+    ...contextToMessages(context),
+    ...pmMessages
+  ]);
 }
 
 function mergePmText(pmMessages) {
@@ -596,15 +615,183 @@ function errorPayload(code, message, details) {
 }
 
 function inputGateError(pmMessages) {
-  if (!Array.isArray(pmMessages) || !pmMessages.length) return null;
-  const latest = [...pmMessages].reverse().find((message) => String(message?.role || "pm") === "pm")?.content || "";
-  const intent = detectInputIntent(latest);
-  if (!shouldGateInputIntent(intent)) return null;
+  if (!Array.isArray(pmMessages) || !pmMessages.length) {
+    return errorPayload("input_gated", buildInputGateReply("too_short", ""), {
+      intent: "too_short",
+      skipDslGeneration: true,
+      artifactRunCreated: false
+    });
+  }
+  const latestPm = [...pmMessages].reverse().find((message) => String(message?.role || "pm") === "pm") || {};
+  const latest = latestPm.content || "";
+  const controlRequest = isControlRequestMessage(latestPm);
+  const intent = controlRequest ? "too_short" : detectInputIntent(latest);
+  if (!controlRequest && !shouldGateInputIntent(intent)) return null;
+  if (pmMessages.some((message) => isMeaningfulContextMessage(message, latest))) return null;
   return errorPayload("input_gated", buildInputGateReply(intent, latest), {
     intent,
     skipDslGeneration: true,
     artifactRunCreated: false
   });
+}
+
+function needsContextFallback(pmMessages = []) {
+  if (!pmMessages.length) return true;
+  const latestPm = [...pmMessages].reverse().find((message) => String(message?.role || "pm") === "pm");
+  if (!latestPm) return true;
+  if (isControlRequestMessage(latestPm)) return true;
+  return shouldGateInputIntent(detectInputIntent(latestPm.content));
+}
+
+function isMeaningfulContextMessage(message, latestContent = "") {
+  const content = String(message?.content || "").trim();
+  if (!content || content === String(latestContent || "").trim()) return false;
+  const role = String(message?.role || "pm");
+  if (role === "system_clarification" || role === "system") return content.length >= 6;
+  if (isControlRequestMessage(message)) return false;
+  return !shouldGateInputIntent(detectInputIntent(content));
+}
+
+function isControlRequestMessage(message = {}) {
+  const source = String(message.source || "");
+  if (source === "refinement_request" || source === "continuation_request") return true;
+  return isControlRequestText(message.content);
+}
+
+function isControlRequestText(text = "") {
+  const normalized = String(text || "").trim().replace(/\s+/g, "");
+  return ["继续", "继续丰富需求", "继续完善需求"].includes(normalized);
+}
+
+function collectRequirementContext(requestBody = {}, config = {}) {
+  const context = requestBody.context || {};
+  const draftContext = requestBody.currentDslDraft || requestBody.dslDraft || requestBody.quickDraft || {};
+  const previousUiState = requestBody.previousUiState || {};
+  const persisted = loadPersistedRequirementContext(requestBody, config);
+  return {
+    clarificationSummary: firstText(
+      context.clarificationSummary,
+      context.clarifiedRequirement,
+      context.currentClarifiedRequirement,
+      context.summary,
+      previousUiState?.humanReport?.summary?.text,
+      persisted.clarificationSummary
+    ),
+    generatedDslDraft: firstText(
+      context.generatedDslDraft,
+      context.dslDraft,
+      context.quickDraft,
+      draftSummaryText(draftContext),
+      draftSummaryText(previousUiState?.humanReport),
+      persisted.generatedDslDraft
+    ),
+    pmText: firstText(
+      context.pmText,
+      context.originalPmText,
+      context.originalRequestText,
+      persisted.pmText
+    ),
+    lastNonEmptyInput: firstText(
+      context.lastNonEmptyInput,
+      latestMeaningfulPmText(requestBody.pmMessages)
+    )
+  };
+}
+
+function loadPersistedRequirementContext(requestBody = {}, config = {}) {
+  const requirementId = String(requestBody.requirementId || "").trim();
+  if (!requirementId) return {};
+  try {
+    return withPersistence(config, (service) => {
+      const requirement = service.requirements.get(requirementId);
+      if (!requirement) return {};
+      const turns = service.clarifications.list(requirementId) || [];
+      return {
+        pmText: requirement.rawPmInput || "",
+        generatedDslDraft: draftSummaryText(requirement.dslJson),
+        clarificationSummary: turns
+          .map((turn) => `${turn.role}: ${turn.content}`)
+          .filter((text) => text.trim())
+          .slice(-8)
+          .join("\n")
+      };
+    }) || {};
+  } catch {
+    return {};
+  }
+}
+
+function contextToMessages(context = {}) {
+  const messages = [];
+  if (context.clarificationSummary) {
+    messages.push({
+      role: "system_clarification",
+      content: context.clarificationSummary,
+      questionKey: "carried_clarification_summary",
+      source: "fallback_context"
+    });
+  }
+  if (context.generatedDslDraft) {
+    messages.push({
+      role: "system_clarification",
+      content: `DSL draft context:\n${context.generatedDslDraft}`,
+      questionKey: "carried_dsl_draft",
+      source: "fallback_context"
+    });
+  }
+  if (context.pmText) {
+    messages.push({ role: "pm", content: context.pmText, source: "fallback_context_pm" });
+  }
+  if (context.lastNonEmptyInput && context.lastNonEmptyInput !== context.pmText) {
+    messages.push({ role: "pm", content: context.lastNonEmptyInput, source: "fallback_context_last_input" });
+  }
+  return normalizePmMessages(messages);
+}
+
+function hasContextText(context = {}) {
+  return Boolean(context.clarificationSummary || context.generatedDslDraft || context.pmText || context.lastNonEmptyInput);
+}
+
+function latestMeaningfulPmText(messages = []) {
+  return [...(Array.isArray(messages) ? messages : [])]
+    .reverse()
+    .find((message) => {
+      const content = String(message?.content || "").trim();
+      return content && !isControlRequestMessage(message) && !shouldGateInputIntent(detectInputIntent(content));
+    })?.content || "";
+}
+
+function draftSummaryText(value) {
+  if (!value) return "";
+  if (typeof value === "string") return value.trim();
+  const summaryText = firstText(value.summary?.text, value.summary, value.text, value.title, value.requirement?.summary);
+  if (summaryText) return summaryText;
+  if (typeof value !== "object" || !Object.keys(value).length) return "";
+  try {
+    return JSON.stringify(value).slice(0, 1600);
+  } catch {
+    return "";
+  }
+}
+
+function firstText(...values) {
+  for (const value of values) {
+    const text = typeof value === "string" ? value.trim() : "";
+    if (text) return text;
+  }
+  return "";
+}
+
+function dedupeMessages(messages = []) {
+  const seen = new Set();
+  const result = [];
+  for (const message of messages) {
+    const key = `${message.role}:${message.content}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(message);
+  }
+  return result;
 }
 
 async function exists(filePath) {

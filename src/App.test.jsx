@@ -1129,6 +1129,68 @@ describe("monitor console and workspace picker", () => {
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/agent"))).toBe(false);
   });
 
+  it("carries requirement context for pending continue and ignores duplicate clicks", async () => {
+    const initialRequirement = "\u6587\u7ae0\u8be6\u60c5\u9875\u9700\u8981\u5c55\u793a\u6d4f\u89c8\u91cf\uff0c\u5e76\u4e14\u540c\u4e00\u7528\u6237 24h \u5185\u53bb\u91cd\u3002";
+    const refinementQuestion = "\u5982\u679c\u6d4f\u89c8\u91cf\u5199\u5165\u5931\u8d25\uff0c\u9875\u9762\u5e94\u8be5\u663e\u793a\u4ec0\u4e48\uff1f";
+    const completeTurn = buildSkillTurn({
+      message: "\u5f53\u524d\u9700\u6c42\u5df2\u7ecf\u5177\u5907\u8fdb\u5165\u8bbe\u8ba1\u89c4\u5212\u7684\u57fa\u7840\u4fe1\u606f\u3002\u4f60\u53ef\u4ee5\u7ee7\u7eed\u4e30\u5bcc\u9700\u6c42\uff0c\u4e5f\u53ef\u4ee5\u5f00\u59cb\u65bd\u5de5\u3002",
+      score: 91,
+      asked: 5,
+      complete: true
+    });
+    const refinementTurn = buildSkillTurn({
+      message: `\u6211\u518d\u8865\u5145\u786e\u8ba4\u4e00\u4e2a\u95ee\u9898\uff1a\n1. ${refinementQuestion}`,
+      question: refinementQuestion,
+      score: 80,
+      clarificationMode: "refinement",
+      asked: 1
+    });
+    let skillCallCount = 0;
+    let resolveContinue;
+    const continuePromise = new Promise((resolve) => {
+      resolveContinue = () => resolve(refinementTurn);
+    });
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      if (target.endsWith("/pm-dsl-turn")) {
+        skillCallCount += 1;
+        if (skillCallCount === 1) return jsonResponse(completeTurn);
+        return jsonResponse(await continuePromise);
+      }
+      if (target.endsWith("/start")) {
+        return jsonResponse({ ...runnerJobForTurn(completeTurn), status: "running", elapsedMs: 0 }, 202);
+      }
+      if (target.includes("/api/agent")) {
+        throw new Error(`agent execution should not be called: ${target}`);
+      }
+      return jsonResponse(runnerJobForTurn(completeTurn));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    await sendWorkbenchAnswer(initialRequirement);
+    await waitFor(() => expect(screen.getByRole("button", { name: "\u7ee7\u7eed\u4e30\u5bcc\u9700\u6c42" })).toBeInTheDocument());
+
+    fireEvent.click(screen.getByRole("button", { name: "\u7ee7\u7eed\u4e30\u5bcc\u9700\u6c42" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "\u7ee7\u7eed\u4e30\u5bcc\u9700\u6c42" })).toBeDisabled());
+    fireEvent.click(screen.getByRole("button", { name: "\u7ee7\u7eed\u4e30\u5bcc\u9700\u6c42" }));
+
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(2));
+    const continueRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body);
+    expect(continueRequest.pmMessages.at(-1).content).toBe("\u7ee7\u7eed\u4e30\u5bcc\u9700\u6c42");
+    expect(continueRequest.context.pmText).toBe(initialRequirement);
+    expect(continueRequest.context.clarificationSummary).toBeTruthy();
+    expect(continueRequest.context.generatedDslDraft).toBeTruthy();
+    expect(continueRequest.context.lastNonEmptyInput).toBe(initialRequirement);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/agent"))).toBe(false);
+
+    resolveContinue();
+    await waitFor(() => expect(screen.getAllByText(refinementQuestion).length).toBeGreaterThan(0));
+  });
+
   it("does not start DSL artifacts when the skill turn gates greeting input", async () => {
     const fetchMock = vi.fn(async (url) => {
       return {
