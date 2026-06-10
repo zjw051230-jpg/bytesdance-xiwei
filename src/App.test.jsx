@@ -671,7 +671,7 @@ describe("monitor console and workspace picker", () => {
     expect(onOpenReport).toHaveBeenCalledTimes(1);
   });
 
-  it("cleans up the DSL workbench bottom input and shows suggestions by interval", () => {
+  it("cleans up the DSL workbench bottom input and shows suggestions by interval", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
@@ -698,23 +698,26 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
 
     expect(screen.getByRole("status")).toHaveTextContent("已追加 PM 回答");
-    expect(screen.getByText("推荐澄清问题")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("推荐澄清问题")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "采用这个问题" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "换一个" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "暂时跳过" })).toBeInTheDocument();
   });
 
-  it("supports suggestion skip and keeps report unavailable before a DSL run", () => {
+  it("supports suggestion skip and keeps report unavailable before a DSL run", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
 
     for (let index = 0; index < 6; index += 1) {
+      fireEvent.change(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL..."), {
+        target: { value: `补充澄清内容 ${index + 1}` }
+      });
       fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
     }
 
-    expect(screen.getByText("推荐澄清问题")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("推荐澄清问题")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: "暂时跳过" }));
     expect(screen.getByRole("status")).toHaveTextContent("已暂时跳过");
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
@@ -808,7 +811,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
     fireEvent.click(document.querySelector(".enter-workbench-button"));
-    fireEvent.change(document.querySelector(".chat-input-row input"), {
+    fireEvent.change(document.querySelector(".chat-input-row textarea, .chat-input-row input"), {
       target: { value: "Login failure hint is too vague; PM wants a clearer next action." }
     });
     fireEvent.click(document.querySelector(".chat-input-row button"));
@@ -921,7 +924,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
     fireEvent.click(document.querySelector(".enter-workbench-button"));
-    fireEvent.change(document.querySelector(".chat-input-row input"), {
+    fireEvent.change(document.querySelector(".chat-input-row textarea, .chat-input-row input"), {
       target: { value: "hello" }
     });
     fireEvent.click(document.querySelector(".chat-input-row button"));
@@ -930,6 +933,101 @@ describe("monitor console and workspace picker", () => {
     expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false);
     expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/dsl/runs/start"))).toBe(false);
     expect(screen.queryByText("登录失败提示优化")).not.toBeInTheDocument();
+  });
+
+  it("keeps a short clarification answer in the active requirement flow instead of input-gating it", async () => {
+    const firstQuestion = "浏览量去重规则按什么算？";
+    const nextQuestion = "未登录用户的浏览量是否也要统计？";
+    const skillTurns = [
+      buildSkillTurn({
+        message: `我先记录候选需求。还需要确认一个关键口径：${firstQuestion}`,
+        question: firstQuestion,
+        score: 62,
+        asked: 1,
+        remaining: 2
+      }),
+      buildSkillTurn({
+        message: `已更新 DSL。还需要确认一个关键口径：${nextQuestion}`,
+        question: nextQuestion,
+        score: 72,
+        asked: 2,
+        remaining: 1
+      })
+    ];
+    let turnIndex = 0;
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      if (target.endsWith("/pm-dsl-turn")) {
+        const data = skillTurns[Math.min(turnIndex, skillTurns.length - 1)];
+        turnIndex += 1;
+        return jsonResponse(data);
+      }
+      if (target.endsWith("/start")) {
+        return jsonResponse({ ...runnerJobForTurn(skillTurns[Math.max(0, turnIndex - 1)]), status: "running", elapsedMs: 0 }, 202);
+      }
+      return jsonResponse(runnerJobForTurn(skillTurns[Math.max(0, turnIndex - 1)]));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    await waitFor(() => expect(document.querySelector(".chat-input-row textarea, .chat-input-row input")).toBeTruthy());
+
+    await sendWorkbenchAnswer("文章详情页要增加浏览量统计，同时改前后端。");
+    await waitFor(() => expect(screen.getByText(firstQuestion)).toBeInTheDocument());
+
+    await sendWorkbenchAnswer("去重");
+    await waitFor(() => expect(screen.getByText(nextQuestion)).toBeInTheDocument());
+
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(2);
+    expect(screen.queryByText("请补充你想澄清或生成 DSL 的需求。")).not.toBeInTheDocument();
+  });
+
+  it("sends DSL clarification with Enter, keeps Shift+Enter as newline, and blocks duplicate Enter while sending", async () => {
+    let resolveSkillTurn;
+    const skillTurnPromise = new Promise((resolve) => {
+      resolveSkillTurn = resolve;
+    });
+    const skillTurn = buildSkillTurn({
+      message: "我先记录候选需求。还需要确认一个关键口径：浏览量去重规则按什么算？",
+      question: "浏览量去重规则按什么算？",
+      score: 62,
+      asked: 1,
+      remaining: 2
+    });
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      if (target.endsWith("/pm-dsl-turn")) {
+        return jsonResponse(await skillTurnPromise);
+      }
+      if (target.endsWith("/start")) {
+        return jsonResponse({ ...runnerJobForTurn(skillTurn), status: "running", elapsedMs: 0 }, 202);
+      }
+      return jsonResponse(runnerJobForTurn(skillTurn));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    await waitFor(() => expect(document.querySelector(".chat-input-row textarea, .chat-input-row input")).toBeTruthy());
+
+    const input = document.querySelector(".chat-input-row textarea, .chat-input-row input");
+    fireEvent.change(input, { target: { value: "文章详情页要显示浏览量" } });
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter", shiftKey: true });
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false);
+
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+    await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1));
+
+    fireEvent.keyDown(input, { key: "Enter", code: "Enter" });
+    expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1);
+
+    resolveSkillTurn(skillTurn);
+    await waitFor(() => expect(screen.getByText("浏览量去重规则按什么算？")).toBeInTheDocument());
   });
 
   it("shows an immediate fast-skill loading state before the skill response resolves", async () => {
@@ -981,7 +1079,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
     fireEvent.click(document.querySelector(".enter-workbench-button"));
-    fireEvent.change(document.querySelector(".chat-input-row input"), {
+    fireEvent.change(document.querySelector(".chat-input-row textarea, .chat-input-row input"), {
       target: { value: "Article details should show reading time." }
     });
     fireEvent.click(document.querySelector(".chat-input-row button"));
@@ -1134,7 +1232,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
     fireEvent.click(document.querySelector(".enter-workbench-button"));
-    fireEvent.change(document.querySelector(".chat-input-row input"), {
+    fireEvent.change(document.querySelector(".chat-input-row textarea, .chat-input-row input"), {
       target: { value: "登录失败文案需要按失败原因区分。" }
     });
     fireEvent.click(document.querySelector(".chat-input-row button"));
@@ -1361,7 +1459,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
     fireEvent.click(document.querySelector(".enter-workbench-button"));
-    fireEvent.change(document.querySelector(".chat-input-row input"), { target: { value: l1Input } });
+    fireEvent.change(document.querySelector(".chat-input-row textarea, .chat-input-row input"), { target: { value: l1Input } });
     fireEvent.click(document.querySelector(".chat-input-row button"));
 
     await waitFor(() => expect(screen.getByText(/\u5019\u9009\u9a8c\u6536\u53e3\u5f84/)).toBeInTheDocument());
@@ -1451,6 +1549,6 @@ function jsonResponse(data, status = 200) {
 }
 
 async function sendWorkbenchAnswer(text) {
-  fireEvent.change(document.querySelector(".chat-input-row input"), { target: { value: text } });
+  fireEvent.change(document.querySelector(".chat-input-row textarea, .chat-input-row input"), { target: { value: text } });
   fireEvent.click(document.querySelector(".chat-input-row button"));
 }

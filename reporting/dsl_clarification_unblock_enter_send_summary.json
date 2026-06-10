@@ -1,0 +1,49 @@
+{
+  "task": "Codex-Flow DSL clarification unblock + Enter send",
+  "status": "passed",
+  "modifiedFiles": [
+    "src/components/ClarificationChat.jsx",
+    "src/components/DSLWorkbench.jsx",
+    "server/services/skillOrchestrator.js",
+    "src/App.test.jsx",
+    "server/server.test.js",
+    "reporting/dsl_clarification_unblock_enter_send_report.md",
+    "reporting/dsl_clarification_unblock_enter_send_summary.json"
+  ],
+  "rootCause": [
+    "Frontend input gate treated short follow-up answers as new invalid requirements even when a clarification context existed.",
+    "Backend skill turn gate checked only the latest PM text and did not account for previous system clarification questions.",
+    "Clarification input had no Enter key submit handling."
+  ],
+  "behavior": {
+    "singleQuestionFlow": true,
+    "completionCta": true,
+    "continueRefineStaysOnDsl": true,
+    "startConstructionNavigatesToDesign": true,
+    "agentExecutionTriggered": false,
+    "realRepoWrites": false,
+    "enterSend": true,
+    "shiftEnterNewline": true,
+    "imeSafe": true,
+    "duplicateEnterBlockedWhileSending": true
+  },
+  "tests": {
+    "npm test": "passed: 14 files, 139 tests",
+    "npm run test:server": "passed: 8 files, 83 tests",
+    "npm run build": "passed"
+  },
+  "notRun": [
+    "npm run dev",
+    "npm run smoke",
+    "npm run verify",
+    "browser manual restart verification"
+  ],
+  "safety": {
+    "touchedAgent2": false,
+    "touchedPerformanceFiles": false,
+    "touchedViteConfig": false,
+    "killed9999": false,
+    "killed8787": false,
+    "committedSecrets": false
+  }
+}

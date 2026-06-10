@@ -32,6 +32,8 @@ import {
   shouldGateInputIntent
 } from "../utils/inputIntentGate.js";
 
+const CLARIFICATION_COMPLETE_MESSAGE = "当前需求已经具备进入设计规划的基础信息。你可以继续补充细节，也可以开始施工。";
+
 export default function DSLWorkbench({
   activeProject,
   activeRequirement,
@@ -126,6 +128,7 @@ export default function DSLWorkbench({
 
   const handleSendAnswer = async (text) => {
     const trimmedText = String(text || "").trim();
+    if (!trimmedText) return;
     const pmMessage = {
       id: `pm-${Date.now()}-${messages.length}`,
       author: "PM",
@@ -135,7 +138,8 @@ export default function DSLWorkbench({
     };
     const nextMessages = trimmedText ? [...messages, pmMessage] : messages;
     const intent = detectInputIntent(trimmedText);
-    if (shouldGateInputIntent(intent)) {
+    const hasClarificationContext = hasActiveClarificationContext(messages, loadedRequirement, runState);
+    if (shouldGateInputIntent(intent) && !hasClarificationContext) {
       setInputGateActive(true);
       const assistantText = buildInputGateReply(intent, trimmedText);
       setMessages([
@@ -253,9 +257,14 @@ export default function DSLWorkbench({
     let skillReplyResolved = false;
     try {
       const skillTurn = await createSkillPmDslTurn(buildSkillTurnRequest(requestPayload, nextMessages, uiState));
-      const assistantText = skillTurn.assistant_message || "模型已生成本轮澄清回复。";
-      const clarificationComplete = Boolean(skillTurn.clarification?.clarificationComplete);
-      setUiState((current) => ({ ...current, ...(skillTurn.uiState || {}) }));
+      const clarificationComplete = isClarificationCompleteTurn(skillTurn);
+      const assistantText = skillTurn.assistant_message || (clarificationComplete
+        ? CLARIFICATION_COMPLETE_MESSAGE
+        : "模型已生成本轮澄清回复。");
+      const skillUiState = clarificationComplete
+        ? markUiStateClarificationComplete(skillTurn.uiState)
+        : (skillTurn.uiState || {});
+      setUiState((current) => ({ ...current, ...skillUiState }));
       setMessages((current) => replaceMessage(
         current,
         loadingId,
@@ -308,9 +317,12 @@ export default function DSLWorkbench({
 
       const result = await runDslFlow(requestPayload, { appendStartMessage: false, suppressLongMessages: true });
       const filteredUiState = applyClarificationDedupToUiState(result.uiState, nextMessages);
-      setUiState((current) => mergeRunnerUiState(current, filteredUiState));
+      const finalUiState = clarificationComplete
+        ? markUiStateClarificationComplete(filteredUiState)
+        : filteredUiState;
+      setUiState((current) => mergeRunnerUiState(current, finalUiState));
       if (!isLocalRequirementId(requirement.id)) {
-        persistRequirementState(requirement.id, result, filteredUiState)
+        persistRequirementState(requirement.id, result, finalUiState)
           .then((updated) => {
             setLoadedRequirement(updated);
             onRequirementChange?.(updated);
@@ -579,6 +591,68 @@ export default function DSLWorkbench({
       ) : null}
     </main>
   );
+}
+
+function hasActiveClarificationContext(messages = [], requirement = null, runState = {}) {
+  return Boolean(
+    requirement?.id ||
+    runState?.runId ||
+    messages.some((message) => (
+      message.role === "system" &&
+      (
+        message.kind === "skill_reply" ||
+        message.kind === "clarification_complete" ||
+        message.questionText ||
+        /[?？]|还需要确认|关键口径/.test(String(message.text || ""))
+      )
+    ))
+  );
+}
+
+function isClarificationCompleteTurn(skillTurn = {}) {
+  if (skillTurn.skipDslGeneration) return false;
+  const clarification = skillTurn.clarification || {};
+  const decision = String(
+    skillTurn.risk_boundary?.handoff_decision ||
+    skillTurn.uiState?.readiness?.handoff_decision ||
+    ""
+  );
+  if (clarification.clarificationComplete || decision === "clarification_complete" || decision === "ready_for_design") {
+    return true;
+  }
+  if (Array.isArray(clarification.questions) && clarification.questions.length === 0 && !clarification.currentQuestion) {
+    return true;
+  }
+  return false;
+}
+
+function markUiStateClarificationComplete(uiState = {}) {
+  return {
+    ...uiState,
+    dslCompletion: {
+      ...(uiState.dslCompletion || {}),
+      displayScore: Math.max(86, Number(uiState.dslCompletion?.displayScore ?? uiState.dslCompletion?.value ?? 86)),
+      value: Math.max(86, Number(uiState.dslCompletion?.value ?? uiState.dslCompletion?.displayScore ?? 86))
+    },
+    readiness: {
+      ...(uiState.readiness || {}),
+      ready_for_agent: false,
+      can_handoff_to_agent: false,
+      handoff_decision: "clarification_complete",
+      source: uiState.readiness?.source || "skill_safety_boundary"
+    },
+    coverageItems: {
+      ...(uiState.coverageItems || {}),
+      pending: []
+    },
+    humanReport: {
+      ...(uiState.humanReport || {}),
+      summary: {
+        ...(uiState.humanReport?.summary || {}),
+        status: "clarification_complete"
+      }
+    }
+  };
 }
 
 function systemMessage(text, index, meta = {}) {

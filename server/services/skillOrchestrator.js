@@ -23,7 +23,7 @@ const CLARIFICATION_TOTAL_QUESTIONS = 3;
 export async function runSkillTurn(requestBody = {}, config = {}) {
   const rawLatestInput = latestRawPmText(requestBody.pmMessages);
   const intent = detectInputIntent(rawLatestInput);
-  if (shouldGateInputIntent(intent)) {
+  if (!String(rawLatestInput || "").trim() || (shouldGateInputIntent(intent) && !hasClarificationQuestionContext(requestBody.pmMessages))) {
     return inputGatedSkillPayload(intent, rawLatestInput);
   }
   const pmMessages = normalizePmMessages(requestBody.pmMessages).slice(-MAX_PM_HISTORY);
@@ -1452,6 +1452,15 @@ function latestRawPmText(messages) {
   return [...(Array.isArray(messages) ? messages : [])]
     .reverse()
     .find((message) => String(message?.role || "pm") === "pm")?.content || "";
+}
+
+function hasClarificationQuestionContext(messages) {
+  return (Array.isArray(messages) ? messages : []).some((message) => {
+    const role = String(message?.role || "");
+    if (!["system", "system_clarification", "assistant"].includes(role)) return false;
+    const content = String(message?.content || message?.text || "");
+    return Boolean(content.trim());
+  });
 }
 
 function objectOrEmpty(value) {

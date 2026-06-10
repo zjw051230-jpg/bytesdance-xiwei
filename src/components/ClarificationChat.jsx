@@ -1,5 +1,5 @@
 import { Send } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { recommendedQuestions } from "../data/dslWorkbenchData.js";
 
 const suggestionIntervals = [6, 8, 10, 7];
@@ -15,6 +15,8 @@ export default function ClarificationChat({
   onStartConstruction
 }) {
   const [draft, setDraft] = useState("");
+  const enterSubmitRef = useRef(false);
+  const composingRef = useRef(false);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [messageCount, setMessageCount] = useState(0);
   const [nextSuggestionAt, setNextSuggestionAt] = useState(suggestionIntervals[0]);
@@ -41,11 +43,24 @@ export default function ClarificationChat({
     setNextSuggestionAt(baseCount + nextInterval);
   };
 
-  const sendAnswer = () => {
+  const sendAnswer = async () => {
     const text = draft.trim();
+    if (!text) return;
     setMessageCount((current) => current + 1);
     setDraft("");
-    onSendAnswer(text);
+    await Promise.resolve(onSendAnswer(text));
+  };
+
+  const handleInputKeyDown = async (event) => {
+    if (event.key !== "Enter" || event.shiftKey || composingRef.current || event.nativeEvent?.isComposing) return;
+    event.preventDefault();
+    if (enterSubmitRef.current) return;
+    enterSubmitRef.current = true;
+    try {
+      await sendAnswer();
+    } finally {
+      enterSubmitRef.current = false;
+    }
   };
 
   const rotateQuestion = () => {
@@ -121,13 +136,35 @@ export default function ClarificationChat({
       ) : null}
 
       <div className="chat-input-row">
-        <input
+        <textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
+          onKeyDown={handleInputKeyDown}
+          onCompositionStart={() => {
+            composingRef.current = true;
+          }}
+          onCompositionEnd={() => {
+            composingRef.current = false;
+          }}
+          rows={1}
+          style={{
+            minWidth: 0,
+            minHeight: 38,
+            maxHeight: 76,
+            border: 0,
+            borderRadius: 10,
+            padding: "9px 12px",
+            color: "#f7fbff",
+            background: "rgba(255, 255, 255, 0.04)",
+            outline: "none",
+            resize: "none",
+            font: "inherit",
+            lineHeight: "20px"
+          }}
           placeholder="请输入你的补充回答，系统会继续更新 DSL..."
           aria-label="请输入你的补充回答，系统会继续更新 DSL"
         />
-        <button type="button" onClick={sendAnswer}><Send size={16} />发送回答</button>
+        <button type="button" onClick={sendAnswer} disabled={!draft.trim()}><Send size={16} />发送回答</button>
       </div>
     </section>
   );

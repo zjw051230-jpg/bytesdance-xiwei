@@ -641,6 +641,48 @@ describe("DSL backend API", () => {
     }
   });
 
+  it("does not gate a short PM answer when it is replying to an active clarification question", async () => {
+    let modelCalls = 0;
+    const result = await runSkillTurn({
+      projectId: "conduit-realworld-example-app",
+      pmMessages: [
+        { role: "pm", content: "文章详情页要增加浏览量统计。" },
+        { role: "system_clarification", content: "浏览量去重规则按什么算？" },
+        { role: "pm", content: "去重" }
+      ]
+    }, {
+      runsRoot: testRunsRoot,
+      dslRuntimeRoot: path.resolve("e2e"),
+      nodeEnv: "development",
+      modelClient: async () => {
+        modelCalls += 1;
+        return JSON.stringify({
+          assistant_message: "已记录去重规则。",
+          dsl_patch: { candidate: true },
+          current_dsl_summary: {
+            title: "Article view count",
+            goal: "Show article views.",
+            scope: ["Article detail view count"],
+            out_of_scope: ["Agent Plan"],
+            acceptance_criteria: ["View count follows dedup rules"],
+            unknowns: ["Guest counting"]
+          },
+          clarification: {
+            should_ask: true,
+            questions: [{ question: "未登录用户的浏览量是否也要统计？", priority: "p0" }]
+          },
+          risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+          source: { mode: "model_generated_real", provider: "test", skills_used: [] }
+        });
+      }
+    });
+
+    expect(result.ok).toBe(true);
+    expect(modelCalls).toBe(1);
+    expect(result.data.skipDslGeneration).not.toBe(true);
+    expect(result.data.clarification.currentQuestion).toBe("未登录用户的浏览量是否也要统计？");
+  });
+
   it("marks skill orchestration fallback explicitly when model generation fails", async () => {
     const result = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
