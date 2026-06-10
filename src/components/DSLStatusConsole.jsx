@@ -29,6 +29,12 @@ export default function DSLStatusConsole({
   const elapsedMs = Number(runState?.elapsedMs || 0);
   const draftReportMode = ["failed", "timeout"].includes(runStatus) && ["done", "fallback"].includes(skillStatus);
   const reportCta = resolveReportCta(runState, artifactsStatus, draftReportMode);
+  const clarificationComplete = readiness.handoff_decision === "clarification_complete" ||
+    readiness.handoff_decision === "ready_for_design";
+  const readinessLabel = readiness.ready_for_agent ? "ready" : clarificationComplete ? "ready_for_design" : "not ready";
+  const readinessNote = clarificationComplete
+    ? "澄清已完成，可进入设计规划；不会自动交给 Agent 执行"
+    : "当前仍需澄清，不会交给 Agent 执行";
 
   return (
     <aside className="dsl-status-console" aria-label="DSL 状态控制台">
@@ -107,7 +113,7 @@ export default function DSLStatusConsole({
       <section className="dsl-panel readiness-panel">
         <div className="readiness-header">
           <h3>Readiness 状态</h3>
-          <span>{readiness.ready_for_agent ? "ready" : "not ready"}</span>
+          <span>{readinessLabel}</span>
         </div>
         <div className="readiness-grid">
           <dl>
@@ -117,7 +123,11 @@ export default function DSLStatusConsole({
           </dl>
           <div className="readiness-note">
             <Info size={17} />
-            <p>当前仍需澄清，<strong>不会交给 Agent 执行</strong></p>
+            <p>{readinessNote.includes("不会") ? (
+              <>
+                {readinessNote.split("不会")[0]}<strong>不会{readinessNote.split("不会")[1]}</strong>
+              </>
+            ) : readinessNote}</p>
           </div>
         </div>
       </section>
@@ -226,7 +236,7 @@ function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}) {
   const rawScore = Number.isFinite(Number(artifactRawScore))
     ? Number(artifactRawScore)
     : Number(dslCompletion.rawScore ?? dslCompletion.value ?? 72);
-  const displayScore = Number.isFinite(Number(dslCompletion.displayScore)) && artifactRawScore === null
+  const displayScore = Number.isFinite(Number(dslCompletion.displayScore))
     ? Number(dslCompletion.displayScore)
     : clamp(Math.round(rawScore), 86, 94);
   return {

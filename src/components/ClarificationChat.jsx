@@ -10,7 +10,9 @@ export default function ClarificationChat({
   onAdoptSuggestion,
   onToast,
   realSuggestion,
-  runId
+  runId,
+  onContinueRefine,
+  onStartConstruction
 }) {
   const [draft, setDraft] = useState("");
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -64,6 +66,13 @@ export default function ClarificationChat({
     onToast("已暂时跳过");
   };
 
+  const renderCompletionActions = () => (
+    <div className="clarification-complete-actions">
+      <button type="button" onClick={() => onContinueRefine?.()}>继续完善需求</button>
+      <button type="button" onClick={() => onStartConstruction?.()}>开始施工</button>
+    </div>
+  );
+
   return (
     <section className={`clarification-chat ${shouldShowSuggestion ? "has-suggestion" : ""}`} aria-label="需求澄清对话区">
       <div className="chat-stream">
@@ -88,6 +97,7 @@ export default function ClarificationChat({
                 <time>{message.time}</time>
               </div>
               <p>{message.text}</p>
+              {message.kind === "clarification_complete" ? renderCompletionActions() : null}
             </div>
           </article>
         ))}

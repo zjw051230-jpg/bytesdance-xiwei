@@ -3605,6 +3605,30 @@ dt,
   background: linear-gradient(180deg, rgba(10, 132, 255, 0.16), rgba(10, 132, 255, 0.09));
 }
 
+.clarification-complete-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 9px;
+}
+
+.clarification-complete-actions button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 8px;
+  color: #f7fbff;
+  background: rgba(15, 23, 42, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.clarification-complete-actions button:last-child {
+  border-color: rgba(42, 198, 143, 0.34);
+  background: rgba(42, 198, 143, 0.18);
+}
+
 .suggested-question {
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;

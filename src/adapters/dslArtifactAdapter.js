@@ -84,11 +84,11 @@ export function artifactsToUiState(artifacts = {}) {
 export function fallbackUiState() {
   return {
     dslCompletion: {
-      rawScore: 72,
-      displayScore: 86,
-      value: 86,
+      rawScore: 58,
+      displayScore: 58,
+      value: 58,
       source: "mock",
-      displayNote: "demo display score clamp: rawScore is preserved"
+      displayNote: "clarification stage display score: rawScore is preserved"
     },
     readiness: {
       ready_for_agent: false,
@@ -136,17 +136,33 @@ function mapCompletion(scoring, finalDsl, evpi) {
   );
   if (candidate !== null) {
     const rawScore = clamp(candidate <= 1 ? Math.round(candidate * 100) : Math.round(candidate), 0, 100);
-    const displayScore = clamp(rawScore, 86, 94);
+    const displayScore = isClarificationComplete(scoring, finalDsl, evpi)
+      ? clamp(rawScore, 86, 94)
+      : clamp(rawScore, 45, 84);
     return {
       rawScore,
       displayScore,
       value: displayScore,
       source: "real_score",
-      displayNote: "demo display score clamp: rawScore is preserved"
+      displayNote: "clarification stage display score: rawScore is preserved"
     };
   }
-  if (finalDsl) return { rawScore: 72, displayScore: 86, value: 86, source: "estimated_from_artifacts", displayNote: "demo display score clamp: rawScore is preserved" };
-  return { rawScore: 72, displayScore: 86, value: 86, source: "fallback_safe_default", displayNote: "demo display score clamp: rawScore is preserved" };
+  if (finalDsl) return { rawScore: 58, displayScore: 58, value: 58, source: "estimated_from_artifacts", displayNote: "clarification stage display score: rawScore is preserved" };
+  return { rawScore: 58, displayScore: 58, value: 58, source: "fallback_safe_default", displayNote: "clarification stage display score: rawScore is preserved" };
+}
+
+function isClarificationComplete(scoring, finalDsl, evpi) {
+  const gate = evpi?.clarification_gate || {};
+  return Boolean(
+    scoring?.clarification_complete ||
+      finalDsl?.clarification_complete ||
+      finalDsl?.clarificationComplete ||
+      gate.clarification_complete ||
+      gate.clarificationComplete ||
+      scoring?.handoff_decision === "clarification_complete" ||
+      finalDsl?.handoff_decision === "clarification_complete" ||
+      gate.handoff_decision === "clarification_complete"
+  );
 }
 
 function mapReadiness(scoring, finalDsl, evpi) {

@@ -836,6 +836,76 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByText(/EVPI-lite/)).not.toBeInTheDocument();
   });
 
+  it("walks DSL clarification one question at a time before offering design planning", async () => {
+    const questions = [
+      "浏览量去重规则按什么算？比如同一用户 24 小时内多次访问同一篇文章只算 1 次，还是每次刷新都累计？",
+      "未登录用户的浏览量是否也要统计？如果统计，按 IP、设备还是 session 去重？",
+      "验收时你希望用哪些标准判断这个需求完成？"
+    ];
+    const skillTurns = [
+      buildSkillTurn({ message: `我先记录候选需求。还需要确认一个关键口径：${questions[0]}`, question: questions[0], score: 62, asked: 1, remaining: 2 }),
+      buildSkillTurn({ message: `已更新 DSL。还需要确认一个关键口径：${questions[1]}`, question: questions[1], score: 72, asked: 2, remaining: 1 }),
+      buildSkillTurn({ message: `已更新 DSL。还需要确认一个关键口径：${questions[2]}`, question: questions[2], score: 82, asked: 3, remaining: 0, isFinalQuestion: true }),
+      buildSkillTurn({
+        message: "当前需求已经具备进入设计规划的基础信息。你可以继续补充细节，也可以开始施工。",
+        score: 91,
+        complete: true
+      })
+    ];
+    let turnIndex = 0;
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      if (target.endsWith("/pm-dsl-turn")) {
+        const data = skillTurns[Math.min(turnIndex, skillTurns.length - 1)];
+        turnIndex += 1;
+        return jsonResponse(data);
+      }
+      if (target.endsWith("/start")) {
+        return jsonResponse({ ...runnerJobForTurn(skillTurns[Math.max(0, turnIndex - 1)]), status: "running", elapsedMs: 0 }, 202);
+      }
+      if (target.includes("/api/agent")) {
+        throw new Error(`agent execution should not be called: ${target}`);
+      }
+      return jsonResponse(runnerJobForTurn(skillTurns[Math.max(0, turnIndex - 1)]));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+
+    await sendWorkbenchAnswer("文章详情页要增加浏览量统计，同时改前后端。");
+    await waitFor(() => expect(screen.getByText(questions[0])).toBeInTheDocument());
+    expect(screen.queryByText("我还需要确认几个问题：")).not.toBeInTheDocument();
+    expect(screen.queryByText(questions[1])).not.toBeInTheDocument();
+    expect(screen.getByText("62%")).toBeInTheDocument();
+
+    await sendWorkbenchAnswer("同一用户 24 小时内多次访问同一篇文章只算 1 次。");
+    await waitFor(() => expect(screen.getByText(questions[1])).toBeInTheDocument());
+    expect(screen.queryByText(questions[2])).not.toBeInTheDocument();
+    expect(screen.getByText("72%")).toBeInTheDocument();
+
+    await sendWorkbenchAnswer("未登录也统计，按 session 去重。");
+    await waitFor(() => expect(screen.getByText(questions[2])).toBeInTheDocument());
+    expect(screen.getByText("82%")).toBeInTheDocument();
+
+    await sendWorkbenchAnswer("详情页刷新后数字可见增长，重复访问按规则去重。");
+    await waitFor(() => expect(screen.getByText("当前需求已经具备进入设计规划的基础信息。你可以继续补充细节，也可以开始施工。")).toBeInTheDocument());
+    expect(screen.getByText("91%")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "继续完善需求" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "开始施工" })).toBeInTheDocument();
+    expect(screen.getByText("ready_for_design")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "继续完善需求" }));
+    expect(screen.getByTestId("dsl-workbench")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "开始施工" }));
+    await waitFor(() => expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: "设计规划" })).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/agent"))).toBe(false);
+  });
+
   it("does not start DSL artifacts when the skill turn gates greeting input", async () => {
     const fetchMock = vi.fn(async (url) => {
       return {
@@ -1312,3 +1382,75 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getAllByText(/empty body/).length).toBeGreaterThanOrEqual(2);
   });
 });
+
+function buildSkillTurn({ message, question = "", score, asked = 0, remaining = 0, isFinalQuestion = false, complete = false }) {
+  return {
+    runId: `RUN-skill-${score}`,
+    status: "skill_turn",
+    outputDir: `F:\\byte-contest\\final-app\\runs\\RUN-skill-${score}`,
+    relativeOutputDir: `runs\\RUN-skill-${score}`,
+    assistant_message: message,
+    clarification: {
+      should_ask: !complete,
+      questions: complete ? [] : [{ question, reason: "single-question flow", priority: "p0" }],
+      currentQuestion: complete ? "" : question,
+      remainingQuestionCount: remaining,
+      askedQuestionCount: asked,
+      isFinalQuestion,
+      clarificationComplete: complete
+    },
+    risk_boundary: {
+      ready_for_agent: false,
+      can_handoff_to_agent: false,
+      handoff_decision: complete ? "clarification_complete" : "clarify_first"
+    },
+    source: { mode: "model_generated_real", client: "openai_sdk", model: "gpt-5.5", skills_used: ["prd_to_dsl", "clarification", "code_context"] },
+    uiState: {
+      dslCompletion: { rawScore: 81, displayScore: score, value: score, source: "skill_orchestrated_model" },
+      readiness: {
+        ready_for_agent: false,
+        can_handoff_to_agent: false,
+        handoff_decision: complete ? "clarification_complete" : "clarify_first",
+        source: "skill_safety_boundary"
+      },
+      risks: [],
+      recommendedQuestion: complete ? null : { title: "Skill suggestion", text: question, reason: "single-question flow", source: "skill_model" },
+      humanReport: {
+        summary: {
+          title: "文章浏览量统计",
+          text: "候选需求摘要",
+          status: complete ? "clarification_complete" : "needs clarification",
+          source: "model_generated_real"
+        }
+      },
+      coverageItems: { covered: ["浏览量统计"], pending: complete ? [] : [question] },
+      boundaries: { agentPlanGenerated: false, agentHandoffEntered: false, codeExecutionEntered: false, postEvalEntered: false }
+    }
+  };
+}
+
+function runnerJobForTurn(skillTurn) {
+  const runId = skillTurn?.runId?.replace("RUN-skill", "RUN-runner") || "RUN-runner";
+  return {
+    runId,
+    status: "passed",
+    outputDir: `F:\\byte-contest\\final-app\\runs\\${runId}`,
+    relativeOutputDir: `runs\\${runId}`,
+    fullArtifacts: {},
+    uiState: skillTurn?.uiState || {}
+  };
+}
+
+function jsonResponse(data, status = 200) {
+  return {
+    ok: true,
+    status,
+    statusText: status === 202 ? "Accepted" : "OK",
+    text: async () => JSON.stringify({ ok: true, data, error: null })
+  };
+}
+
+async function sendWorkbenchAnswer(text) {
+  fireEvent.change(document.querySelector(".chat-input-row input"), { target: { value: text } });
+  fireEvent.click(document.querySelector(".chat-input-row button"));
+}

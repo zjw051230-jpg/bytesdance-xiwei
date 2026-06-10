@@ -38,7 +38,8 @@ export default function DSLWorkbench({
   onRequirementChange,
   requirementError,
   toast,
-  onToast
+  onToast,
+  onStartConstruction
 }) {
   const [messages, setMessages] = useState([]);
   const [loadedRequirement, setLoadedRequirement] = useState(activeRequirement || null);
@@ -253,11 +254,15 @@ export default function DSLWorkbench({
     try {
       const skillTurn = await createSkillPmDslTurn(buildSkillTurnRequest(requestPayload, nextMessages, uiState));
       const assistantText = skillTurn.assistant_message || "模型已生成本轮澄清回复。";
+      const clarificationComplete = Boolean(skillTurn.clarification?.clarificationComplete);
       setUiState((current) => ({ ...current, ...(skillTurn.uiState || {}) }));
       setMessages((current) => replaceMessage(
         current,
         loadingId,
-        systemMessage(assistantText, current.length, { id: loadingId })
+        systemMessage(assistantText, current.length, {
+          id: loadingId,
+          kind: clarificationComplete ? "clarification_complete" : "skill_reply"
+        })
       ));
       createClarification(requirement.id, {
         role: "system",
@@ -281,6 +286,7 @@ export default function DSLWorkbench({
       }));
       onToast("Skill turn generated");
       skillReplyResolved = true;
+      longStageRef.current = "clarified";
 
       if (skillTurn.skipDslGeneration) {
         setRunState((current) => ({
@@ -300,7 +306,7 @@ export default function DSLWorkbench({
         return;
       }
 
-      const result = await runDslFlow(requestPayload, { appendStartMessage: false });
+      const result = await runDslFlow(requestPayload, { appendStartMessage: false, suppressLongMessages: true });
       const filteredUiState = applyClarificationDedupToUiState(result.uiState, nextMessages);
       setUiState((current) => mergeRunnerUiState(current, filteredUiState));
       if (!isLocalRequirementId(requirement.id)) {
@@ -363,7 +369,7 @@ export default function DSLWorkbench({
   const runDslFlow = async (requestPayload, options = {}) => {
     const started = await startDslRun(requestPayload);
     pollRef.current = started.runId;
-    longStageRef.current = "";
+    longStageRef.current = options.suppressLongMessages ? "clarified" : "";
     setRunState((current) => ({
       ...current,
       ...jobToRunState(started),
@@ -416,6 +422,7 @@ export default function DSLWorkbench({
     const firstThreshold = getGlobalNumber("__DSL_LONG_RUN_FIRST_MS__", 15000);
     const secondThreshold = getGlobalNumber("__DSL_LONG_RUN_SECOND_MS__", 60000);
     if (job.status !== "running") return;
+    if (longStageRef.current === "clarified") return;
     if (elapsedMs >= secondThreshold && longStageRef.current !== "60s") {
       longStageRef.current = "60s";
       setMessages((current) => [
@@ -541,6 +548,8 @@ export default function DSLWorkbench({
           onToast={onToast}
           realSuggestion={uiState.recommendedQuestion}
           runId={runState.runId}
+          onContinueRefine={() => onToast("继续完善需求")}
+          onStartConstruction={onStartConstruction}
         />
       </section>
 

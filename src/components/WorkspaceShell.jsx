@@ -99,6 +99,7 @@ export default function WorkspaceShell({
             requirementError={requirementError}
             toast={toast}
             onToast={onToast}
+            onStartConstruction={() => onWorkspacePageChange("design")}
           />
         ) : null}
         {workspacePage === "design" ? (

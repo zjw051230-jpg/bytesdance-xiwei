@@ -62,8 +62,8 @@ describe("artifactsToUiState", () => {
     });
 
     expect(uiState.dslCompletion.rawScore).toBe(82);
-    expect(uiState.dslCompletion.displayScore).toBe(86);
-    expect(uiState.dslCompletion.value).toBe(86);
+    expect(uiState.dslCompletion.displayScore).toBe(82);
+    expect(uiState.dslCompletion.value).toBe(82);
     expect(uiState.readiness.ready_for_agent).toBe(false);
     expect(uiState.readiness.handoff_decision).toBe("clarify_first");
     expect(uiState.risks[0].key).toBe("test_oracle_unclear");
@@ -84,19 +84,25 @@ describe("artifactsToUiState", () => {
     expect(uiState.recommendedQuestion.source).toBe("本地 fallback");
   });
 
-  it("keeps raw completion score while clamping demo display score to 86-94", () => {
+  it("keeps raw completion score while staging display score until clarification completes", () => {
     const low = artifactsToUiState({
       "09_scoring.json": { exists: true, json: { dsl_completion_score: 0.42 } }
     });
     const high = artifactsToUiState({
       "09_scoring.json": { exists: true, json: { dsl_completion_score: 0.99 } }
     });
+    const complete = artifactsToUiState({
+      "09_scoring.json": { exists: true, json: { dsl_completion_score: 0.99, handoff_decision: "clarification_complete" } }
+    });
 
     expect(low.dslCompletion.rawScore).toBe(42);
-    expect(low.dslCompletion.displayScore).toBe(86);
-    expect(low.dslCompletion.value).toBe(86);
+    expect(low.dslCompletion.displayScore).toBe(45);
+    expect(low.dslCompletion.value).toBe(45);
     expect(high.dslCompletion.rawScore).toBe(99);
-    expect(high.dslCompletion.displayScore).toBe(94);
-    expect(high.dslCompletion.value).toBe(94);
+    expect(high.dslCompletion.displayScore).toBe(84);
+    expect(high.dslCompletion.value).toBe(84);
+    expect(complete.dslCompletion.rawScore).toBe(99);
+    expect(complete.dslCompletion.displayScore).toBe(94);
+    expect(complete.dslCompletion.value).toBe(94);
   });
 });

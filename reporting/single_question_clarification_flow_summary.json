@@ -1,0 +1,46 @@
+{
+  "task": "Single Question Clarification Flow",
+  "status": "pushed",
+  "behavior": {
+    "oneQuestionPerTurn": true,
+    "questionListRemoved": true,
+    "initialDisplayScoreBelow85": true,
+    "finalDisplayScoreBetween86And94": true,
+    "completionMessageShown": true,
+    "continueRefineOption": true,
+    "startConstructionOption": true,
+    "startConstructionNavigatesToDesignPlanning": true,
+    "agentExecutionTriggered": false
+  },
+  "parallelSafety": {
+    "agent2FilesTouched": false,
+    "agentExecutionServiceTouched": false,
+    "requiredRestart": false,
+    "preExistingAgent2DirtyFiles": true
+  },
+  "frontendProtection": {
+    "killed9999": false,
+    "restartedDevServer": false
+  },
+  "tests": {
+    "npmTest": "passed: 13 files / 131 tests",
+    "serverTest": "passed: 7 files / 81 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verify": "skipped: forbidden by task"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "realRepoWritePerformed": false
+  },
+  "git": {
+    "commit": "79b40eb",
+    "pushed": true,
+    "branch": "main"
+  }
+}
