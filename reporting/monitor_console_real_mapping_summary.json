@@ -1,0 +1,50 @@
+{
+  "task": "Monitor Console Real Mapping",
+  "status": "blocked_due_conflict",
+  "audit": {
+    "totalMatches": 4219,
+    "productionMockRemaining": 0,
+    "testFixturesKept": 819,
+    "safeFallbackKept": 181,
+    "unknownNeedsReview": 2551
+  },
+  "monitorMapping": {
+    "projectMappedToPersistence": true,
+    "dslMappedToArtifacts": true,
+    "scoreMappedToAdapter": true,
+    "risksMappedToDslState": true,
+    "readinessMappedToDslState": true,
+    "agentMappedToAgentRuns": true,
+    "reviewMappedToPersistenceOrAgent": true,
+    "prMappedToPersistenceOrAgent": true,
+    "reportCtaMappedToArtifact": true
+  },
+  "scope": {
+    "dslScoreFormulaTouched": false,
+    "dslQuestionGateTouched": false,
+    "agent2Touched": false,
+    "skillsTouched": false,
+    "performanceFilesTouched": false
+  },
+  "verification": {
+    "mockAudit": "passed",
+    "build": "passed",
+    "npmTest": "failed_due_dsl_gate_conflict",
+    "testServer": "failed_due_dsl_gate_conflict",
+    "appTest": "failed_due_dsl_gate_conflict"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "realRepoWritePerformed": false
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "main"
+  }
+}

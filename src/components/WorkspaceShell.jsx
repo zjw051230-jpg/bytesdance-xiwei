@@ -34,7 +34,7 @@ export default function WorkspaceShell({
     if (!activeProject?.id) return () => {
       active = false;
     };
-    if (/^(pending|mock)-/.test(String(activeProject.id))) return () => {
+    if (/^pending-/.test(String(activeProject.id))) return () => {
       active = false;
     };
 

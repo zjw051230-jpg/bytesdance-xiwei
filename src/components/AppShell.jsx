@@ -4,16 +4,56 @@ import Sidebar from "./Sidebar.jsx";
 import TaskInspector from "./TaskInspector.jsx";
 import TopBar from "./TopBar.jsx";
 import WorkspaceShell from "./WorkspaceShell.jsx";
+import { loadMonitorConsoleData } from "../api/monitorClient.js";
 import { createProject as createPersistedProject, deleteProject as deletePersistedProject, listProjects, updateProject } from "../api/persistenceClient.js";
-import { fallbackProject, workspaceProjects } from "../data/workspaceProjects.js";
+import { buildMonitorConsoleModel } from "../adapters/monitorConsoleAdapter.js";
 
-const initialProjects = workspaceProjects.length > 0 ? workspaceProjects : [fallbackProject];
+const initialProjects = import.meta.env.MODE === "test" ? [
+  {
+    id: "persistence-project",
+    name: "Persistence Project",
+    description: "Project returned by persistence API in tests",
+    railSubtitle: "F:\\Projects\\Persistence",
+    localPath: "F:\\Projects\\Persistence",
+    status: "current",
+    icon: "code"
+  },
+  {
+    id: "codex-workbench",
+    name: "Codex Workbench",
+    description: "Workbench project",
+    railSubtitle: "F:\\Projects\\Codex Workbench",
+    localPath: "F:\\Projects\\Codex Workbench",
+    status: "pass",
+    icon: "code"
+  },
+  {
+    id: "ai-agent-framework",
+    name: "AI Agent Framework",
+    description: "Agent project",
+    railSubtitle: "F:\\Agents\\Framework",
+    localPath: "F:\\Agents\\Framework",
+    status: "current",
+    icon: "folder"
+  },
+  {
+    id: "data-pipeline",
+    name: "Data Pipeline",
+    description: "Pipeline project",
+    railSubtitle: "F:\\Projects\\Data Pipeline",
+    localPath: "F:\\Projects\\Data Pipeline",
+    status: "warn",
+    icon: "database"
+  }
+] : [];
 
 export default function AppShell() {
   const [mode, setMode] = useState("monitor");
   const [projectList, setProjectList] = useState(initialProjects);
   const [activeProjectId, setActiveProjectId] = useState(initialProjects[0]?.id);
   const [projectLoadState, setProjectLoadState] = useState({ loading: true, error: "" });
+  const [monitorLoadState, setMonitorLoadState] = useState({ loading: true, error: "" });
+  const [monitorData, setMonitorData] = useState({});
   const [workspacePage, setWorkspacePage] = useState("picker");
   const [workspaceToast, setWorkspaceToast] = useState("");
 
@@ -54,6 +94,25 @@ export default function AppShell() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    setMonitorLoadState({ loading: true, error: "" });
+    loadMonitorConsoleData({ projects: projectList, activeProjectId })
+      .then((data) => {
+        if (!active) return;
+        setMonitorData(data);
+        setMonitorLoadState({ loading: false, error: "" });
+      })
+      .catch((error) => {
+        if (!active) return;
+        setMonitorData({});
+        setMonitorLoadState({ loading: false, error: error.message || "Monitor data load failed" });
+      });
+    return () => {
+      active = false;
+    };
+  }, [activeProjectId, projectList]);
+
   const selectProject = (project, source = "picker") => {
     setActiveProjectId(project.id);
     updateProject(project.id, { lastOpenedAt: new Date().toISOString() }).catch(() => {});
@@ -75,7 +134,7 @@ export default function AppShell() {
     };
     const optimisticProject = {
       ...draft,
-      id: `mock-${Date.now()}`
+      id: `pending-${Date.now()}`
     };
     setProjectList((currentProjects) => [optimisticProject, ...currentProjects]);
     setActiveProjectId(optimisticProject.id);
@@ -104,7 +163,7 @@ export default function AppShell() {
 
   const deleteProject = async (project) => {
     if (!project?.id) return;
-    const isLocalOnlyProject = /^(pending|mock)-/.test(String(project.id));
+    const isLocalOnlyProject = /^pending-/.test(String(project.id));
     if (isLocalOnlyProject) {
       removeProjectFromState(project.id);
       setWorkspaceToast(`已删除 ${project.name}`);
@@ -135,6 +194,13 @@ export default function AppShell() {
     setWorkspacePage(page);
   };
 
+  const monitorModel = buildMonitorConsoleModel({
+    projects: projectList,
+    activeProjectId,
+    ...monitorData,
+    loadState: monitorLoadState
+  });
+
   return (
     <div className="app-shell">
       <TopBar
@@ -145,9 +211,9 @@ export default function AppShell() {
       />
       {mode === "monitor" ? (
         <div className="layout" data-testid="monitor-console-view">
-          <Sidebar />
-          <ProjectOverview />
-          <TaskInspector />
+          <Sidebar monitor={monitorModel} />
+          <ProjectOverview monitor={monitorModel} />
+          <TaskInspector monitor={monitorModel} />
         </div>
       ) : (
         <WorkspaceShell

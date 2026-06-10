@@ -4,7 +4,8 @@ import StatusBadge from "./StatusBadge.jsx";
 const icons = {
   pass: CheckCircle2,
   warn: AlertTriangle,
-  fail: XCircle
+  fail: XCircle,
+  pending: AlertTriangle
 };
 
 export default function RunList({ runs }) {
@@ -15,8 +16,8 @@ export default function RunList({ runs }) {
         <button className="filter-button">全部状态 <SlidersHorizontal size={13} /></button>
       </div>
       <div className="run-list">
-        {runs.map((run) => {
-          const Icon = icons[run.status];
+        {runs.length ? runs.map((run) => {
+          const Icon = icons[run.status] || AlertTriangle;
           return (
             <button key={run.id} className="run-row">
               <Icon className={`run-icon ${run.status}`} size={16} />
@@ -27,7 +28,7 @@ export default function RunList({ runs }) {
               <StatusBadge status={run.status} />
             </button>
           );
-        })}
+        }) : <p className="monitor-empty-state">暂无真实运行记录。</p>}
       </div>
     </section>
   );

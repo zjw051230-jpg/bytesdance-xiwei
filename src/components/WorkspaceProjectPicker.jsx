@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import NewProjectModal from "./NewProjectModal.jsx";
 import ProjectSelectCard from "./ProjectSelectCard.jsx";
-import { workspaceProjects } from "../data/workspaceProjects.js";
 
 const newProjectCard = {
   id: "new-project",
@@ -10,7 +9,7 @@ const newProjectCard = {
 };
 
 export default function WorkspaceProjectPicker({
-  projects = workspaceProjects,
+  projects = [],
   activeProjectId,
   onProjectSelect,
   onProjectCreate,
