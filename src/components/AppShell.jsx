@@ -49,6 +49,7 @@ export default function AppShell() {
   const createProject = async ({ name, localPath }) => {
     const draft = {
       name,
+      localPath,
       description: localPath ? `本地路径：${localPath}` : "刚刚创建的项目",
       railSubtitle: localPath || "刚刚创建",
       status: "current",
@@ -56,13 +57,14 @@ export default function AppShell() {
     };
     const optimisticProject = {
       ...draft,
-      id: `pending-${Date.now()}`
+      id: `mock-${Date.now()}`
     };
     setProjectList((currentProjects) => [optimisticProject, ...currentProjects]);
     setActiveProjectId(optimisticProject.id);
     setWorkspaceToast(`已创建 ${name}`);
     try {
       const createdProject = await createPersistedProject(draft);
+      if (!createdProject?.id || !createdProject?.name) return;
       setProjectList((currentProjects) => [
         createdProject,
         ...currentProjects.filter((project) => project.id !== optimisticProject.id && project.id !== createdProject.id)

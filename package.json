@@ -34,6 +34,7 @@
     "smoke:e2e-real:dry-run": "node scripts/smoke-e2e-real.mjs --dry-run",
     "smoke:standalone-artifacts": "node scripts/smoke-standalone-artifacts.mjs",
     "smoke:agent-integration": "node scripts/smoke-agent-integration.mjs",
+    "smoke:audit-preview": "node scripts/smoke-audit-preview.mjs",
     "verify": "node scripts/verify-render.mjs",
     "start:workbench": "cmd /c start-workbench.bat"
   },

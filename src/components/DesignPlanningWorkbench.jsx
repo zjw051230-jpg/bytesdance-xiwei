@@ -292,7 +292,7 @@ function AgentExecutionPanel({ agentWorkflow = {}, onContextPreview, onPlanPrevi
         <button type="button" onClick={onContextPreview}><Eye size={15} />查看 Agent 输入 Context</button>
         <button type="button" onClick={onPlanPreview}><ClipboardList size={15} />仅生成执行计划</button>
         <button type="button" onClick={onPlanPreview}><Play size={15} />开始执行当前任务</button>
-        <button type="button" onClick={onOpenReview}>打开审阅检查</button>
+        <button type="button" onClick={onOpenReview}>打开审计页面</button>
         <button type="button" onClick={onOpenPr}>打开 PR 页面</button>
       </div>
       <div className="agent-entry-grid">

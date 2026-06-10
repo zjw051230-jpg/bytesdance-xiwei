@@ -32,8 +32,8 @@ function projectRepository(database) {
       const now = timestamp();
       const id = safeId(input.id, "project");
       database.prepare(`
-        INSERT INTO projects (id, name, description, status, icon, rail_subtitle, created_at, updated_at, last_opened_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO projects (id, name, description, status, icon, rail_subtitle, local_path, created_at, updated_at, last_opened_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         cleanText(input.name || "Untitled Project"),
@@ -41,6 +41,7 @@ function projectRepository(database) {
         cleanText(input.status || "current"),
         cleanText(input.icon || "folder"),
         cleanText(input.railSubtitle || input.rail_subtitle || input.localPath || ""),
+        cleanText(input.localPath || input.local_path || ""),
         now,
         now,
         input.lastOpenedAt || input.last_opened_at || now
@@ -53,7 +54,7 @@ function projectRepository(database) {
       const next = { ...existing, ...input };
       const now = timestamp();
       database.prepare(`
-        UPDATE projects SET name = ?, description = ?, status = ?, icon = ?, rail_subtitle = ?, updated_at = ?, last_opened_at = ?
+        UPDATE projects SET name = ?, description = ?, status = ?, icon = ?, rail_subtitle = ?, local_path = ?, updated_at = ?, last_opened_at = ?
         WHERE id = ?
       `).run(
         cleanText(next.name),
@@ -61,6 +62,7 @@ function projectRepository(database) {
         cleanText(next.status || "current"),
         cleanText(next.icon || "folder"),
         cleanText(next.railSubtitle || next.rail_subtitle || ""),
+        cleanText(next.localPath || next.local_path || ""),
         now,
         next.lastOpenedAt || next.last_opened_at || existing.lastOpenedAt || now,
         id
@@ -494,6 +496,7 @@ function mapProject(row) {
     status: row.status,
     icon: row.icon,
     railSubtitle: row.rail_subtitle,
+    localPath: row.local_path || "",
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     lastOpenedAt: row.last_opened_at

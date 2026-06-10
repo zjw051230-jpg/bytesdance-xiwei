@@ -6,6 +6,7 @@ import DSLStatusConsole from "./components/DSLStatusConsole.jsx";
 describe("monitor console and workspace picker", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
+    window.localStorage.clear();
   });
 
   it("renders the monitor console shell by default", () => {
@@ -33,7 +34,7 @@ describe("monitor console and workspace picker", () => {
 
     expect(screen.getByRole("button", { name: "DSL 澄清台" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "设计规划" })).toHaveAttribute("aria-pressed", "false");
-    expect(screen.getByRole("button", { name: "审阅检查" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "审计页面" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "PR 页面" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "选择你的项目" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "新建项目" })).toBeInTheDocument();
@@ -43,7 +44,7 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByTestId("monitor-console-view")).not.toBeInTheDocument();
   });
 
-  it("switches between the DSL page, design planning page, and placeholder pages from top tabs", () => {
+  it("switches between the DSL page, design planning page, and placeholder pages from top tabs", async () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
@@ -64,10 +65,12 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("heading", { name: "需求澄清工作台" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "DSL 状态控制台" })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "审阅检查" }));
+    fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
     expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "审阅检查" })).toBeInTheDocument();
-    expect(screen.getByText("Agent 修改摘要")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "审计页面" })).toBeInTheDocument();
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("该项目未绑定本地路径。")).toBeInTheDocument());
+    expect(screen.getByText("用户可见变化")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "PR 页面" }));
     expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
@@ -170,10 +173,13 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelectorAll(".agent-action-row button")[3]);
     expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();
-    expect(screen.getByText("src/components/LoginForm.jsx")).toBeInTheDocument();
+    expect(screen.getAllByText("src/components/LoginForm.jsx").length).toBeGreaterThan(0);
     expect(screen.getByText("Agent dry-run prepared a human-reviewable patch plan.")).toBeInTheDocument();
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText("该项目未绑定本地路径。")).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: /src\/components\/LoginForm\.jsx/ }));
 
-    fireEvent.click(document.querySelector(".review-side button"));
+    fireEvent.click(document.querySelector(".audit-pr-button"));
     expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
     expect(screen.getByText("RUN-agent-ui")).toBeInTheDocument();
     expect(screen.getByText("Improve login failure guidance")).toBeInTheDocument();
@@ -241,6 +247,314 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByRole("dialog", { name: "新建项目" })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Research Workspace" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("status")).toHaveTextContent("已创建 Research Workspace");
+  });
+
+  it("keeps the created project localPath and starts the audit preview from it", async () => {
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const target = String(url);
+      const body = JSON.parse(options.body);
+      const data = target.endsWith("/status")
+        ? {
+            status: "not_running",
+            available: false,
+            previewUrl: "http://127.0.0.1:4555/#/login",
+            port: 4555,
+            projectRoot: body.localPath,
+            message: "not running"
+          }
+        : {
+            status: "running",
+            available: true,
+            previewUrl: "http://127.0.0.1:4555/#/login",
+            port: 4555,
+            projectRoot: body.localPath,
+            message: "started"
+          };
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Conduit Local" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), {
+      target: { value: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+    fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/preview/status",
+      expect.objectContaining({ method: "POST" })
+    ));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/preview/start",
+      expect.objectContaining({ method: "POST" })
+    ));
+    const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/status"))[1].body);
+    expect(statusBody).toMatchObject({
+      projectId: expect.stringMatching(/^mock-/),
+      localPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app"
+    });
+    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4555/#/login"));
+    fireEvent.click(screen.getByRole("button", { name: /src\/components\/LoginForm\.jsx/ }));
+    expect(screen.getByRole("button", { name: /src\/components\/LoginForm\.jsx/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("reloads preview status when the active project localPath changes", async () => {
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const body = JSON.parse(options.body);
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({
+          ok: true,
+          data: {
+            status: "running",
+            available: true,
+            previewUrl: body.localPath.includes("conduit-a")
+              ? "http://127.0.0.1:4556/#/login"
+              : "http://127.0.0.1:4557/#/login",
+            port: body.localPath.includes("conduit-a") ? 4556 : 4557,
+            projectRoot: body.localPath,
+            requestedProjectRoot: body.localPath,
+            runningProjectRoot: body.localPath,
+            owner: "workbench",
+            actionRequired: "none",
+            message: "running"
+          },
+          error: null
+        })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Conduit A" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), {
+      target: { value: "C:\\Users\\www30\\Desktop\\conduit-a" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Conduit B" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), {
+      target: { value: "C:\\Users\\www30\\Desktop\\conduit-b" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+    fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
+
+    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4557/#/login"));
+
+    fireEvent.click(screen.getByRole("button", { name: "展开项目切换栏" }));
+    fireEvent.click(screen.getByRole("button", { name: "切换到 Conduit A" }));
+
+    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4556/#/login"));
+    const statusBodies = fetchMock.mock.calls
+      .filter(([url]) => String(url).endsWith("/api/preview/status"))
+      .map(([, options]) => JSON.parse(options.body));
+    expect(statusBodies.map((body) => body.localPath)).toEqual([
+      "C:\\Users\\www30\\Desktop\\conduit-b",
+      "C:\\Users\\www30\\Desktop\\conduit-a"
+    ]);
+  });
+
+  it("does not render the iframe when the preview port is owned by an external process", async () => {
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const body = JSON.parse(options.body);
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({
+          ok: true,
+          data: {
+            status: "port_in_use_external",
+            available: false,
+            previewUrl: "http://127.0.0.1:3000/#/login",
+            port: 3000,
+            projectRoot: body.localPath,
+            requestedProjectRoot: body.localPath,
+            runningProjectRoot: "",
+            owner: "external",
+            actionRequired: "close_external_port",
+            message: "Port 3000 is already used by an external process."
+          },
+          error: null
+        })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "External Port Conduit" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), {
+      target: { value: "C:\\Users\\www30\\Desktop\\external-port-conduit" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+    fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
+
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("3000 被外部进程占用，未打开当前项目"));
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false);
+  });
+
+  it("renders the iframe when the external preview process is verified against the project path", async () => {
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const body = JSON.parse(options.body);
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({
+          ok: true,
+          data: {
+            status: "external_verified",
+            available: true,
+            previewUrl: "http://127.0.0.1:3000/#/login",
+            port: 3000,
+            projectRoot: body.localPath,
+            requestedProjectRoot: body.localPath,
+            runningProjectRoot: body.localPath,
+            owner: "external_verified",
+            actionRequired: "none",
+            message: "External preview process matches the requested project path."
+          },
+          error: null
+        })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Verified External Conduit" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), {
+      target: { value: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+    fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
+
+    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:3000/#/login"));
+    expect(screen.getByText(/外部可信复用/)).toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false);
+  });
+
+  it("starts a new preview when Workbench reports another project on the same port", async () => {
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const target = String(url);
+      const body = JSON.parse(options.body);
+      const data = target.endsWith("/status")
+        ? {
+            status: "workbench_project_mismatch",
+            available: false,
+            previewUrl: "http://127.0.0.1:4777/#/login",
+            port: 4777,
+            projectRoot: body.localPath,
+            requestedProjectRoot: body.localPath,
+            runningProjectRoot: "C:\\Users\\www30\\Desktop\\old-conduit",
+            owner: "workbench",
+            canRestart: true,
+            actionRequired: "none",
+            message: "Workbench is running a different project."
+          }
+        : {
+            status: "running",
+            available: true,
+            previewUrl: "http://127.0.0.1:4777/#/login",
+            port: 4777,
+            projectRoot: body.localPath,
+            requestedProjectRoot: body.localPath,
+            runningProjectRoot: body.localPath,
+            owner: "workbench",
+            actionRequired: "none",
+            message: "switched"
+          };
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Switchable Conduit" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), {
+      target: { value: "C:\\Users\\www30\\Desktop\\switchable-conduit" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+    fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
+      "/api/preview/start",
+      expect.objectContaining({ method: "POST" })
+    ));
+    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4777/#/login"));
+  });
+
+  it("shows the audit preview fallback when backend startup fails", async () => {
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const body = JSON.parse(options.body);
+      const data = String(url).endsWith("/status")
+        ? {
+            status: "not_running",
+            available: false,
+            previewUrl: "http://127.0.0.1:4666/#/login",
+            port: 4666,
+            projectRoot: body.localPath,
+            message: "not running"
+          }
+        : {
+            status: "dependency_missing",
+            available: false,
+            previewUrl: "http://127.0.0.1:4666/#/login",
+            port: 4666,
+            projectRoot: body.localPath,
+            message: "Vite binary was not found."
+          };
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        json: async () => ({ ok: true, data, error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    fireEvent.click(screen.getByRole("button", { name: "新建项目" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Broken Conduit" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), {
+      target: { value: "C:\\Users\\www30\\Desktop\\broken-conduit" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+    fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
+
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("Vite binary was not found."));
+    expect(screen.getByText("用户可见变化")).toBeInTheDocument();
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
   });
 
   it("enters the DSL workbench from the project picker", () => {
