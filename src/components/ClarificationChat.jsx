@@ -40,7 +40,7 @@ export default function ClarificationChat({
   };
 
   const sendAnswer = () => {
-    const text = draft.trim() || "补充：账户锁定时提示联系客服，并说明可稍后重试。";
+    const text = draft.trim();
     setMessageCount((current) => current + 1);
     setDraft("");
     onSendAnswer(text);

@@ -22,6 +22,7 @@ const requiredFiles = [
   "src/api/dslClient.js",
   "src/api/agentClient.js",
   "src/adapters/dslArtifactAdapter.js",
+  "src/utils/inputIntentGate.js",
   "src/data/agentWorkflowData.js",
   "src/components/ProjectSelectCard.jsx",
   "src/components/NewProjectModal.jsx",

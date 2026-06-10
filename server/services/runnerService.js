@@ -18,6 +18,11 @@ import { redactSecrets } from "./redactionService.js";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { persistDslRunFailed, persistDslRunFinished, persistDslRunStarted } from "./persistence/workbenchPersistenceAdapter.js";
 import { checkStandaloneArtifactRunner, runStandaloneArtifactRunner } from "./standaloneArtifactRunner.js";
+import {
+  buildInputGateReply,
+  detectInputIntent,
+  shouldGateInputIntent
+} from "../../src/utils/inputIntentGate.js";
 
 export const defaultConfig = {
   dslRuntimeRoot: path.resolve("e2e"),
@@ -46,6 +51,8 @@ export async function getHealth(config = {}) {
 
 export async function createDslRun(requestBody, config = {}) {
   const merged = { ...defaultConfig, ...config };
+  const gated = inputGateError(requestBody?.pmMessages);
+  if (gated) return gated;
   const pmMessages = normalizePmMessages(requestBody?.pmMessages);
   if (!pmMessages.length) {
     return errorPayload("bad_request", "pmMessages must include at least one PM message", {});
@@ -216,6 +223,8 @@ export async function getDslRunArtifacts(runId) {
 
 async function createRunContext(requestBody, config, options = {}) {
   const merged = { ...defaultConfig, ...config };
+  const gated = inputGateError(requestBody?.pmMessages);
+  if (gated) return { ok: false, payload: gated };
   const pmMessages = normalizePmMessages(requestBody?.pmMessages);
   if (!pmMessages.length) {
     return {
@@ -584,6 +593,18 @@ function errorPayload(code, message, details) {
       details
     })
   };
+}
+
+function inputGateError(pmMessages) {
+  if (!Array.isArray(pmMessages) || !pmMessages.length) return null;
+  const latest = [...pmMessages].reverse().find((message) => String(message?.role || "pm") === "pm")?.content || "";
+  const intent = detectInputIntent(latest);
+  if (!shouldGateInputIntent(intent)) return null;
+  return errorPayload("input_gated", buildInputGateReply(intent, latest), {
+    intent,
+    skipDslGeneration: true,
+    artifactRunCreated: false
+  });
 }
 
 async function exists(filePath) {

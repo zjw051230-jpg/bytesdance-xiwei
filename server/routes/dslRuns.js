@@ -68,7 +68,7 @@ export async function handleDslRuns(request, response, config) {
 }
 
 function statusFromError(code) {
-  if (code === "bad_request") return 400;
+  if (code === "bad_request" || code === "input_gated") return 400;
   if (code === "not_found") return 404;
   if (["config_missing", "runner_missing", "standalone_runner_missing", "standalone_config_missing"].includes(code)) return 503;
   return 500;

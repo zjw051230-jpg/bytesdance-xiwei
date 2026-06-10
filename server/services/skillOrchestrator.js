@@ -5,6 +5,11 @@ import { redactSecrets, redactString } from "./redactionService.js";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { createChatCompletionWithLocalConfig, readOpenAiCompatibleConfig } from "./openAiCompatibleClient.js";
 import { createDoubaoChatCompletionWithLocalConfig, readDoubaoArkConfig } from "./doubaoArkClient.js";
+import {
+  buildInputGateReply,
+  detectInputIntent,
+  shouldGateInputIntent
+} from "../../src/utils/inputIntentGate.js";
 
 const RAW_EVPI_ACCEPTANCE_QUESTION = "你希望用什么用户可见现象或测试结果判断这个需求已经完成？";
 const DEFAULT_FAST_SKILL_TIMEOUT_MS = 60_000;
@@ -14,6 +19,11 @@ const SKILL_SUMMARY_MAX_CHARS = 560;
 const SKILL_MODEL_RESULT_MARKER = "__skillModelResult";
 
 export async function runSkillTurn(requestBody = {}, config = {}) {
+  const rawLatestInput = latestRawPmText(requestBody.pmMessages);
+  const intent = detectInputIntent(rawLatestInput);
+  if (shouldGateInputIntent(intent)) {
+    return inputGatedSkillPayload(intent, rawLatestInput);
+  }
   const pmMessages = normalizePmMessages(requestBody.pmMessages).slice(-MAX_PM_HISTORY);
   if (!pmMessages.length) {
     return errorPayload("bad_request", "pmMessages must include at least one PM message", {});
@@ -1117,6 +1127,12 @@ function latestPmText(messages) {
   return [...(messages || [])].reverse().find((message) => message.role === "pm")?.content || "";
 }
 
+function latestRawPmText(messages) {
+  return [...(Array.isArray(messages) ? messages : [])]
+    .reverse()
+    .find((message) => String(message?.role || "pm") === "pm")?.content || "";
+}
+
 function objectOrEmpty(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
@@ -1149,4 +1165,96 @@ function errorPayload(code, message, details) {
     data: null,
     error: redactSecrets({ code, message, details })
   };
+}
+
+function inputGatedSkillPayload(intent, latestInput) {
+  const assistant = buildInputGateReply(intent, latestInput);
+  const data = redactSecrets({
+    runId: "",
+    outputDir: "",
+    relativeOutputDir: "",
+    status: "input_gated",
+    intent,
+    skipDslGeneration: true,
+    assistant_message: assistant,
+    dsl_patch: { candidate: false, confirmed: false },
+    current_dsl_summary: {
+      title: "",
+      goal: "",
+      scope: [],
+      out_of_scope: [],
+      acceptance_criteria: [],
+      unknowns: []
+    },
+    clarification: {
+      should_ask: intent !== "greeting",
+      questions: intent === "ambiguous_requirement"
+        ? [{
+            question: assistant,
+            reason: "PM input is too broad to form a RequirementDSL candidate.",
+            target_fields: ["target_user", "scenario", "expected_outcome"],
+            risk_factors: ["ambiguous_requirement"],
+            priority: "p0"
+          }]
+        : []
+    },
+    risk_boundary: {
+      ready_for_agent: false,
+      can_handoff_to_agent: false,
+      handoff_decision: "clarify_first",
+      reasons: ["local_input_gate", intent]
+    },
+    readiness: {
+      ready_for_agent: false,
+      can_handoff_to_agent: false,
+      handoff_decision: "clarify_first",
+      reason: "local_input_gate"
+    },
+    human_report_patch: {
+      summary: "",
+      in_scope: [],
+      out_of_scope: [],
+      risks: [],
+      pending_confirmations: intent === "ambiguous_requirement" ? [assistant] : [],
+      next_actions: [assistant]
+    },
+    source: {
+      mode: "local_input_gate",
+      provider: "local_rule",
+      client: "none",
+      model: "",
+      skills_used: []
+    },
+    uiState: {
+      dslCompletion: { value: 0, source: "local_input_gate" },
+      readiness: {
+        ready_for_agent: false,
+        can_handoff_to_agent: false,
+        handoff_decision: "clarify_first",
+        source: "local_input_gate"
+      },
+      risks: [],
+      recommendedQuestion: null,
+      humanReport: {
+        summary: {
+          title: "",
+          text: "",
+          status: "input_gated",
+          source: "local_input_gate"
+        },
+        scope: { inScope: [], outOfScope: [] },
+        riskCards: [],
+        note: "Local input gate stopped DSL generation before any model or artifact run."
+      },
+      coverageItems: { covered: [], pending: [] },
+      reportQuality: [],
+      boundaries: {
+        agentPlanGenerated: false,
+        agentHandoffEntered: false,
+        codeExecutionEntered: false,
+        postEvalEntered: false
+      }
+    }
+  });
+  return { ok: true, data, error: null };
 }

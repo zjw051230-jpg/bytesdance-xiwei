@@ -633,11 +633,17 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
 
     for (let index = 0; index < 5; index += 1) {
+      fireEvent.change(screen.getByPlaceholderText("输入 PM 回答或补充需求..."), {
+        target: { value: `Login failure hint needs clearer next action ${index + 1}.` }
+      });
       fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
     }
 
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
 
+    fireEvent.change(screen.getByPlaceholderText("输入 PM 回答或补充需求..."), {
+      target: { value: "Login failure hint needs clearer next action 6." }
+    });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
 
     expect(screen.getByRole("status")).toHaveTextContent("已追加 PM 回答");
@@ -788,6 +794,32 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText(/candidate acceptance criteria/i)).toBeInTheDocument();
     expect(screen.queryByText(/DSL draft/)).not.toBeInTheDocument();
     expect(screen.queryByText(/EVPI-lite/)).not.toBeInTheDocument();
+  });
+
+  it("does not start DSL artifacts when the skill turn gates greeting input", async () => {
+    const fetchMock = vi.fn(async (url) => {
+      return {
+        ok: true,
+        status: 200,
+        statusText: "OK",
+        text: async () => JSON.stringify({ ok: true, data: [], error: null })
+      };
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    fireEvent.click(document.querySelector(".enter-workbench-button"));
+    fireEvent.change(document.querySelector(".chat-input-row input"), {
+      target: { value: "hello" }
+    });
+    fireEvent.click(document.querySelector(".chat-input-row button"));
+
+    await waitFor(() => expect(screen.getByText("你好，请输入你想澄清或生成 DSL 的需求。")).toBeInTheDocument());
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/dsl/runs/start"))).toBe(false);
+    expect(screen.queryByText("登录失败提示优化")).not.toBeInTheDocument();
   });
 
   it("shows an immediate fast-skill loading state before the skill response resolves", async () => {

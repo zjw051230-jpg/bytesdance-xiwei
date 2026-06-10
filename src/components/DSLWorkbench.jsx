@@ -26,6 +26,11 @@ import {
   applyClarificationDedupToUiState,
   normalizeQuestionKey
 } from "../utils/clarificationDedup.js";
+import {
+  buildInputGateReply,
+  detectInputIntent,
+  shouldGateInputIntent
+} from "../utils/inputIntentGate.js";
 
 export default function DSLWorkbench({
   activeProject,
@@ -37,6 +42,7 @@ export default function DSLWorkbench({
 }) {
   const [messages, setMessages] = useState([]);
   const [loadedRequirement, setLoadedRequirement] = useState(activeRequirement || null);
+  const [inputGateActive, setInputGateActive] = useState(false);
   const [historyError, setHistoryError] = useState("");
   const [uiState, setUiState] = useState(() => fallbackUiState());
   const [isReportOpen, setIsReportOpen] = useState(false);
@@ -118,15 +124,71 @@ export default function DSLWorkbench({
   };
 
   const handleSendAnswer = async (text) => {
+    const trimmedText = String(text || "").trim();
     const pmMessage = {
       id: `pm-${Date.now()}-${messages.length}`,
       author: "PM",
       role: "pm",
       time: "刚刚",
-      text
+      text: trimmedText
     };
-    const nextMessages = [...messages, pmMessage];
+    const nextMessages = trimmedText ? [...messages, pmMessage] : messages;
+    const intent = detectInputIntent(trimmedText);
+    if (shouldGateInputIntent(intent)) {
+      setInputGateActive(true);
+      const assistantText = buildInputGateReply(intent, trimmedText);
+      setMessages([
+        ...nextMessages,
+        systemMessage(assistantText, nextMessages.length, {
+          kind: "input_gate",
+          intent
+        })
+      ]);
+      setUiState((current) => ({
+        ...current,
+        dslCompletion: { value: 0, source: "local_input_gate" },
+        readiness: {
+          ready_for_agent: false,
+          can_handoff_to_agent: false,
+          handoff_decision: "clarify_first",
+          source: "local_input_gate"
+        },
+        humanReport: {
+          ...(current.humanReport || {}),
+          summary: {
+            title: "",
+            text: "",
+            status: "input_gated",
+            source: "local_input_gate"
+          }
+        },
+        coverageItems: { covered: [], pending: [] },
+        boundaries: {
+          agentPlanGenerated: false,
+          agentHandoffEntered: false,
+          codeExecutionEntered: false,
+          postEvalEntered: false
+        }
+      }));
+      setRunState((current) => ({
+        ...current,
+        runId: "",
+        status: "input_gated",
+        skillStatus: "idle",
+        skillSourceMode: "local_input_gate",
+        skillModel: "",
+        skillClient: "",
+        skillProvider: "local_rule",
+        outputDir: "",
+        relativeOutputDir: "",
+        artifacts: {},
+        error: null
+      }));
+      onToast("璇疯緭鍏ュ畬鏁撮渶姹?");
+      return;
+    }
     const loadingId = `system-loading-${Date.now()}-${messages.length}`;
+    setInputGateActive(false);
     const loadingMessage = systemMessage("正在生成 DSL draft...", nextMessages.length, {
       id: loadingId,
       kind: "skill_loading"
@@ -150,8 +212,8 @@ export default function DSLWorkbench({
     if (!requirement?.id) {
       try {
         const createdRequirement = await createRequirement(activeProject?.id ?? "conduit-realworld-example-app", {
-          title: inferRequirementTitle(text),
-          rawPmInput: text,
+          title: inferRequirementTitle(trimmedText),
+          rawPmInput: trimmedText,
           dslJson: {},
           readinessStatus: "clarify_first",
           readyForAgent: false,
@@ -160,12 +222,12 @@ export default function DSLWorkbench({
         });
         requirement = hasRequirementId(createdRequirement)
           ? createdRequirement
-          : localRequirement(activeProject?.id, text);
+          : localRequirement(activeProject?.id, trimmedText);
         createdRequirementForTurn = hasRequirementId(createdRequirement);
         setLoadedRequirement(requirement);
         if (hasRequirementId(createdRequirement)) onRequirementChange?.(requirement);
       } catch (error) {
-        requirement = localRequirement(activeProject?.id, text);
+        requirement = localRequirement(activeProject?.id, trimmedText);
         setLoadedRequirement(requirement);
         setHistoryError(`需求创建失败：${error.message || "Persistence API request failed"}；本轮仍会继续，但刷新后可能无法恢复。`);
       }
@@ -183,7 +245,7 @@ export default function DSLWorkbench({
 
     createClarification(requirement.id, {
       role: "pm",
-      content: text,
+      content: trimmedText,
       source: "pm_input"
     }).catch((error) => setHistoryError(`PM 输入保存失败：${error.message || "Persistence API request failed"}`));
 
@@ -219,6 +281,24 @@ export default function DSLWorkbench({
       }));
       onToast("Skill turn generated");
       skillReplyResolved = true;
+
+      if (skillTurn.skipDslGeneration) {
+        setRunState((current) => ({
+          ...current,
+          runId: "",
+          status: "input_gated",
+          skillStatus: "idle",
+          skillSourceMode: skillTurn.source?.mode || "local_input_gate",
+          skillModel: "",
+          skillClient: skillTurn.source?.client || "",
+          skillProvider: skillTurn.source?.provider || "local_rule",
+          outputDir: "",
+          relativeOutputDir: "",
+          artifacts: {},
+          error: null
+        }));
+        return;
+      }
 
       const result = await runDslFlow(requestPayload, { appendStartMessage: false });
       const filteredUiState = applyClarificationDedupToUiState(result.uiState, nextMessages);
@@ -445,7 +525,7 @@ export default function DSLWorkbench({
         <section className="dsl-task-card" aria-label="当前需求任务">
           <span className="dsl-task-icon" aria-hidden="true"><FileText size={28} /></span>
           <div>
-            <h2>{loadedRequirement?.title || dslTask.title}</h2>
+            <h2>{inputGateActive ? "等待输入需求" : (loadedRequirement?.title || dslTask.title)}</h2>
             <p>阶段 <strong>{dslTask.phase}</strong></p>
           </div>
           <div>

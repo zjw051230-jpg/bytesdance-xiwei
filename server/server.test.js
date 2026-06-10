@@ -572,6 +572,68 @@ describe("DSL backend API", () => {
     expect(result.data.source.mode).not.toBe("model_generated_real");
   });
 
+  it("gates greetings and short ambiguous PM inputs before model and artifact runs", async () => {
+    const cases = [
+      {
+        text: "",
+        intent: "too_short",
+        reply: "请补充你想澄清或生成 DSL 的需求。"
+      },
+      {
+        text: "hello",
+        intent: "greeting",
+        reply: "你好，请输入你想澄清或生成 DSL 的需求。"
+      },
+      {
+        text: "你好",
+        intent: "greeting",
+        reply: "你好，请描述你要做的产品需求，我会帮你澄清并生成 DSL。"
+      },
+      {
+        text: "加一个功能",
+        intent: "ambiguous_requirement",
+        reply: "你想加什么功能？请补充目标用户、使用场景和期望结果。"
+      }
+    ];
+
+    for (const item of cases) {
+      let modelCalls = 0;
+      const runsRoot = path.join(testRunsRoot, `input-gate-${item.intent}`);
+      await fs.rm(runsRoot, { recursive: true, force: true });
+
+      const result = await runSkillTurn({
+        projectId: "conduit-realworld-example-app",
+        pmMessages: [
+          { role: "pm", content: "登录失败提示太模糊，希望用户知道下一步怎么做。" },
+          { role: "pm", content: item.text }
+        ],
+        currentDslDraft: {
+          summary: { title: "登录失败提示优化" }
+        }
+      }, {
+        runsRoot,
+        dslRuntimeRoot: path.resolve("e2e"),
+        nodeEnv: "development",
+        modelClient: async () => {
+          modelCalls += 1;
+          throw new Error("model should not be called for gated input");
+        }
+      });
+
+      expect(result.ok).toBe(true);
+      expect(result.data.intent).toBe(item.intent);
+      expect(result.data.skipDslGeneration).toBe(true);
+      expect(result.data.assistant_message).toBe(item.reply);
+      expect(result.data.runId).toBe("");
+      expect(result.data.current_dsl_summary.title).toBe("");
+      expect(result.data.risk_boundary.ready_for_agent).toBe(false);
+      expect(result.data.risk_boundary.can_handoff_to_agent).toBe(false);
+      expect(result.data.risk_boundary.handoff_decision).toBe("clarify_first");
+      expect(modelCalls).toBe(0);
+      await expect(fs.readdir(runsRoot)).rejects.toMatchObject({ code: "ENOENT" });
+    }
+  });
+
   it("marks skill orchestration fallback explicitly when model generation fails", async () => {
     const result = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
