@@ -371,11 +371,95 @@
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.38fr);
-  gap: 10px;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
   padding: 10px;
   overflow: hidden;
   background: #f8fafc;
+}
+
+.audit-overview-header {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(520px, 1.4fr);
+  gap: 12px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  padding: 12px;
+  background: #ffffff;
+}
+
+.audit-overview-header > div {
+  min-width: 0;
+}
+
+.audit-overview-header span {
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.audit-overview-header h1 {
+  margin: 3px 0 5px;
+  color: #0f172a;
+  font-size: 24px;
+  line-height: 1.08;
+}
+
+.audit-overview-header p {
+  margin: 0;
+  color: #475569;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.audit-run-metrics {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.audit-run-metrics div {
+  min-width: 0;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  padding: 8px;
+  background: #f8fafc;
+}
+
+.audit-run-metrics dt {
+  color: #64748b;
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.audit-run-metrics dd {
+  overflow: hidden;
+  margin: 4px 0 0;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audit-workspace-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 0.68fr) minmax(340px, 0.32fr);
+  gap: 12px;
+  overflow: hidden;
+}
+
+.audit-main-panel {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(40vh, 1fr);
+  gap: 10px;
+  overflow: hidden;
 }
 
 .audit-preview-pane,
@@ -389,7 +473,52 @@
 
 .audit-preview-pane {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) minmax(160px, 0.34fr);
+  grid-template-rows: auto auto minmax(260px, 42vh);
+}
+
+.audit-preview-pane.collapsed {
+  grid-template-rows: auto;
+}
+
+.audit-preview-collapse-header {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  background: #ffffff;
+}
+
+.audit-preview-collapse-header div {
+  min-width: 0;
+}
+
+.audit-preview-collapse-header span {
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.audit-preview-collapse-header p {
+  overflow: hidden;
+  margin: 3px 0 0;
+  color: #64748b;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audit-preview-collapse-header button {
+  flex: 0 0 auto;
+  min-height: 32px;
+  border: 1px solid rgba(37, 99, 235, 0.22);
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #1d4ed8;
+  background: #eff6ff;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .audit-preview-toolbar {
@@ -459,7 +588,7 @@
 
 .audit-browser-frame {
   position: relative;
-  min-height: 0;
+  min-height: 260px;
   display: grid;
   place-items: stretch center;
   overflow: hidden;
@@ -568,6 +697,13 @@
   line-height: 1.08;
 }
 
+.audit-side-heading h2 {
+  margin: 4px 0;
+  color: #0f172a;
+  font-size: 18px;
+  line-height: 1.12;
+}
+
 .audit-side-heading p {
   color: #64748b;
   font-size: 12px;
@@ -588,6 +724,27 @@
   border-radius: 8px;
   padding: 11px;
   background: #ffffff;
+}
+
+.audit-section-heading-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.audit-section-heading-row h2 {
+  margin: 0;
+}
+
+.audit-section-heading-row strong {
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: #1d4ed8;
+  background: #eff6ff;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .audit-section h2 {
@@ -615,6 +772,16 @@
 .audit-file-list {
   display: grid;
   gap: 8px;
+}
+
+.audit-primary-files {
+  min-height: 0;
+}
+
+.audit-primary-files .audit-file-list {
+  max-height: 24vh;
+  overflow: auto;
+  padding-right: 2px;
 }
 
 .audit-file-card-shell {
@@ -722,13 +889,15 @@
 .audit-pr-button {
   justify-content: center;
   flex: 0 0 auto;
+  margin-top: auto;
 }
 
 .audit-diff-viewer {
-  min-height: 0;
+  min-height: 40vh;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
   background: #0f172a;
 }
 
@@ -763,11 +932,48 @@
   min-height: 0;
   overflow: auto;
   margin: 0;
-  padding: 12px;
+  padding: 14px;
   color: #dbeafe;
-  font-size: 11px;
+  font-family: "SF Mono", "JetBrains Mono", ui-monospace, Consolas, monospace;
+  font-size: 12px;
   line-height: 1.45;
   white-space: pre-wrap;
+}
+
+.audit-compact-list {
+  display: grid;
+  gap: 6px;
+  max-height: 150px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.audit-compact-list li {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 7px;
+  padding: 7px 8px;
+  background: #f8fafc;
+}
+
+.audit-compact-list span {
+  overflow: hidden;
+  color: #0f172a;
+  font-size: 12px;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.audit-compact-list small {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .rollback-inspector dl {
@@ -917,9 +1123,21 @@
   }
 
   .review-check-workbench {
-    grid-template-columns: minmax(0, 1fr) minmax(330px, 0.42fr);
     gap: 8px;
     padding: 8px;
+  }
+
+  .audit-overview-header {
+    grid-template-columns: 1fr;
+  }
+
+  .audit-run-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .audit-workspace-grid {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.38fr);
+    gap: 8px;
   }
 
   .audit-side-panel {
@@ -933,6 +1151,29 @@
 
   .audit-side-heading h1 {
     font-size: 22px;
+  }
+}
+
+@media (max-width: 980px) {
+  .review-check-workbench {
+    overflow: auto;
+  }
+
+  .audit-workspace-grid {
+    overflow: visible;
+    grid-template-columns: 1fr;
+  }
+
+  .audit-main-panel {
+    grid-template-rows: auto minmax(420px, 1fr);
+  }
+
+  .audit-diff-viewer {
+    min-height: 420px;
+  }
+
+  .audit-run-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

@@ -1,0 +1,31 @@
+{
+  "task": "Review Audit Page Visibility",
+  "status": "committed_not_pushed",
+  "ui": {
+    "diffViewerPromoted": true,
+    "previewCollapsed": true,
+    "changedFilesVisible": true,
+    "auditPanelReadable": true,
+    "prEntryVisible": true
+  },
+  "scope": {
+    "realAgentBackendTouched": false,
+    "dslTouched": false,
+    "monitorTouched": false,
+    "riskChatTouched": false,
+    "agentWorkMatrixTouched": false,
+    "skillsTouched": false,
+    "agent2RawTouched": false,
+    "conduitForkTouched": false
+  },
+  "tests": {
+    "skipped": true,
+    "reason": "per user instruction; run in integration gate",
+    "staticCheck": "git diff --check passed with CRLF warnings only"
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "ZJWNB"
+  }
+}

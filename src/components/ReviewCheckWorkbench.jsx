@@ -59,6 +59,7 @@ export default function ReviewCheckWorkbench({
   const [previewState, setPreviewState] = useState(initialPreviewState);
   const [viewport, setViewport] = useState("desktop");
   const [previewKey, setPreviewKey] = useState(0);
+  const [previewExpanded, setPreviewExpanded] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [rollbackMessage, setRollbackMessage] = useState("");
   const workflowReview = agentWorkflow.review || null;
@@ -214,6 +215,13 @@ export default function ReviewCheckWorkbench({
   }), [agentWorkflow.review?.summary, displayItems, workflowReview, loadingReview, normalizedWorkflowItems.length, reviewItems]);
 
   const auditModel = useMemo(() => buildAuditModel(reviewForAudit, previewState.previewUrl), [reviewForAudit, previewState.previewUrl]);
+  const changedFileCount = changes.length || auditModel.changedFiles.length;
+  const verificationStatus = changesState.data?.verificationStatus || agentWorkflow.verificationStatus || "unknown";
+  const rollbackStatus = getRollbackSummaryStatus(runId, changesState);
+  const selectedFileLabel = selectedChange?.filePath || auditModel.selectedFile || "未选择文件";
+  const changedFileRows = changes.length
+    ? changes.map((change) => ({ id: change.id, filePath: change.filePath, status: change.status }))
+    : auditModel.changedFiles.map((file) => ({ id: file.id || file.file, filePath: file.file, status: file.humanStatus || file.risk || "pending" }));
 
   const loadPreview = useCallback(async () => {
     const sequence = requestSequence.current + 1;
@@ -279,134 +287,189 @@ export default function ReviewCheckWorkbench({
 
   return (
     <main className="review-check-workbench" data-testid="review-check-workbench">
-      <section className="audit-preview-pane" aria-label="Conduit 页面预览">
-        <PreviewToolbar
-          auditModel={auditModel}
-          localPath={localPath}
-          previewState={previewState}
-          viewport={viewport}
-          onViewportChange={setViewport}
-          onRefresh={refreshPreview}
-          onOpenPreview={openPreview}
-        />
-        <div className={`audit-browser-frame ${viewport}`} data-testid="audit-preview-frame">
-          {previewState.available && auditModel.previewUrl ? (
-            <iframe
-              key={`${previewKey}-${viewport}-${auditModel.previewUrl}`}
-              title={auditModel.previewTitle}
-              src={auditModel.previewUrl}
-              onError={() => setPreviewState((current) => ({
-                ...current,
-                available: false,
-                status: "iframe_error",
-                message: "iframe 无法加载后端返回的预览地址。"
-              }))}
-            />
-          ) : null}
-          {!previewState.available ? (
-            <PreviewUnavailable
-              isLoading={previewState.loading}
-              message={previewState.message}
-              path={previewState.requestedProjectRoot || previewState.projectRoot || localPath}
-              runningPath={previewState.runningProjectRoot}
-              owner={previewState.owner}
-              actionRequired={previewState.actionRequired}
-              port={previewState.port}
-              status={previewState.status}
-              url={auditModel.previewUrl}
-              onOpenPreview={openPreview}
-              onRetry={loadPreview}
-            />
-          ) : null}
+      <header className="audit-overview-header">
+        <div>
+          <span>Agent real-run audit</span>
+          <h1>审计页面</h1>
+          <p>{reviewForAudit.summary}</p>
         </div>
+        <dl className="audit-run-metrics" aria-label="Agent run 审计状态">
+          <div><dt>项目</dt><dd>{activeProject?.name || activeProject?.id || "未选择"}</dd></div>
+          <div><dt>runId</dt><dd>{runId || "no run"}</dd></div>
+          <div><dt>realWritePerformed</dt><dd>{String(Boolean(agentWorkflow.realWritePerformed))}</dd></div>
+          <div><dt>changed files</dt><dd>{changedFileCount}</dd></div>
+          <div><dt>verification</dt><dd>{verificationStatus}</dd></div>
+          <div><dt>rollback</dt><dd>{rollbackStatus}</dd></div>
+        </dl>
+      </header>
 
-        <section className="audit-diff-viewer" aria-label="Diff Viewer">
-          <header>
-            <div>
-              <span>Diff Viewer</span>
-              <h2>{selectedChange?.filePath || "未选择文件"}</h2>
+      <div className="audit-workspace-grid">
+        <section className="audit-main-panel" aria-label="变更文件和 diff">
+          <section className="audit-section audit-file-section audit-primary-files">
+            <header className="audit-section-heading-row">
+              <h2><FileCheck2 size={16} />Changed Files</h2>
+              <strong>{changedFileCount}</strong>
+            </header>
+            <div className="audit-file-list">
+              {changes.length ? changes.map((change) => (
+                <ChangeCard
+                  key={change.id}
+                  change={change}
+                  selected={selectedChangeId === change.id}
+                  onSelect={() => setSelectedChangeId(change.id)}
+                  onRevert={() => setConfirmAction({ type: "file", change })}
+                />
+              )) : auditModel.changedFiles.length ? auditModel.changedFiles.map((file) => (
+                <ReviewFileCard
+                  key={file.file}
+                  file={file}
+                  onHumanStatusChange={handleHumanStatusChange}
+                />
+              )) : <p className="audit-empty-state">暂无变更文件。请先运行真实 Agent，或确认 changed files 是否返回。</p>}
             </div>
-            <small>{diffState.loading ? "loading" : selectedChange?.status || "empty"}</small>
-          </header>
-          {diffState.error ? <p className="run-error-text" role="alert">{diffState.error}</p> : null}
-          <pre>{diffState.diff?.unifiedDiff || "暂无 diff。旧 run 没有 baseline 时无法展示可回退 diff。"}</pre>
-        </section>
-      </section>
+          </section>
 
-      <aside className="audit-side-panel" aria-label="审计说明">
-        <header className="audit-side-heading">
-          <div>
-            <span>Agent real-run audit</span>
-            <h1>审计页面</h1>
-            <p>{reviewForAudit.summary}</p>
-          </div>
-          <strong>{reviewForAudit.status}</strong>
-        </header>
-        {reviewError ? <p className="run-error-text" role="alert">{reviewError}</p> : null}
-        {rollbackMessage ? <p className="run-status-panel" role="status">{rollbackMessage}</p> : null}
-
-        <RollbackInspector
-          runId={runId}
-          changesState={changesState}
-          onReset={() => setConfirmAction({ type: "run" })}
-        />
-
-        <section className="audit-section audit-file-section">
-          <h2><FileCheck2 size={16} />Changed Files</h2>
-          <div className="audit-file-list">
-            {changes.length ? changes.map((change) => (
-              <ChangeCard
-                key={change.id}
-                change={change}
-                selected={selectedChangeId === change.id}
-                onSelect={() => setSelectedChangeId(change.id)}
-                onRevert={() => setConfirmAction({ type: "file", change })}
-              />
-            )) : auditModel.changedFiles.length ? auditModel.changedFiles.map((file) => (
-              <ReviewFileCard
-                key={file.file}
-                file={file}
-                onHumanStatusChange={handleHumanStatusChange}
-              />
-            )) : <p className="audit-empty-state">暂无变更文件</p>}
-          </div>
-        </section>
-
-        <section className="audit-section audit-visible-change">
-          <h2><ShieldCheck size={16} />用户可见变化</h2>
-          <ul>{auditModel.visibleChanges.map((item) => <li key={item}>{item}</li>)}</ul>
-        </section>
-
-        <section className="audit-section">
-          <h2><CheckCircle2 size={16} />验收点映射</h2>
-          <dl className="audit-mapping-list">
-            {auditModel.acceptanceMappings.map((item) => (
-              <div key={item.label}>
-                <dt>{item.label}</dt>
-                <dd>{item.value}</dd>
+          <section className="audit-diff-viewer" aria-label="Diff Viewer">
+            <header>
+              <div>
+                <span>Diff Viewer</span>
+                <h2>{selectedFileLabel}</h2>
               </div>
-            ))}
-          </dl>
+              <small>{diffState.loading ? "loading" : selectedChange?.status || "empty"}</small>
+            </header>
+            {diffState.error ? <p className="run-error-text" role="alert">{diffState.error}</p> : null}
+            <pre>{diffState.diff?.unifiedDiff || "暂无 diff。请先运行真实 Agent，或确认 changed files 是否返回。"}</pre>
+          </section>
         </section>
 
-        <section className="audit-section audit-test-section">
-          <h2><CheckCircle2 size={16} />测试证据</h2>
-          {reviewForAudit.tests.length ? reviewForAudit.tests.map((test) => (
-            <p key={test.command}><code>{test.command}</code><span>{test.status}</span></p>
-          )) : <p><code>npm test</code><span>pending</span></p>}
-        </section>
+        <aside className="audit-side-panel" aria-label="审计说明">
+          <header className="audit-side-heading">
+            <div>
+              <span>Audit summary</span>
+              <h2>审计结论</h2>
+              <p>{changedFileCount ? `${changedFileCount} 个文件等待审阅，diff 和回退状态在左侧可直接查看。` : "暂无变更文件，等待 Agent real-run 输出。"}</p>
+            </div>
+            <strong>{reviewForAudit.status}</strong>
+          </header>
+          {reviewError ? <p className="run-error-text" role="alert">{reviewError}</p> : null}
+          {rollbackMessage ? <p className="run-status-panel" role="status">{rollbackMessage}</p> : null}
 
-        <section className="audit-section audit-risk-section">
-          <h2><TriangleAlert size={16} />Rollback History</h2>
-          <ul>
-            {(changesState.data?.rollbackHistory || []).length
-              ? changesState.data.rollbackHistory.map((item) => <li key={item.id}>{item.operationType}: {item.status}</li>)
-              : <li>暂无回退记录</li>}
-          </ul>
-        </section>
+          <RollbackInspector
+            runId={runId}
+            changesState={changesState}
+            onReset={() => setConfirmAction({ type: "run" })}
+          />
 
-        <button className="audit-pr-button" type="button" onClick={onOpenPr}>进入 PR 页面 <ArrowRight size={15} /></button>
-      </aside>
+          <section className="audit-section audit-file-summary-section">
+            <header className="audit-section-heading-row">
+              <h2><FileCheck2 size={16} />Changed Files</h2>
+              <strong>{changedFileCount}</strong>
+            </header>
+            {changedFileRows.length ? (
+              <ul className="audit-compact-list">
+                {changedFileRows.map((file) => (
+                  <li key={file.id || file.filePath}>
+                    <span>{file.filePath}</span>
+                    <small>{file.status}</small>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="audit-empty-state">暂无 changed files。</p>}
+          </section>
+
+          <section className="audit-section audit-visible-change">
+            <h2><ShieldCheck size={16} />用户可见变化</h2>
+            <ul>{auditModel.visibleChanges.map((item) => <li key={item}>{item}</li>)}</ul>
+          </section>
+
+          <section className="audit-section">
+            <h2><CheckCircle2 size={16} />验收点映射</h2>
+            {auditModel.acceptanceMappings.length ? (
+              <dl className="audit-mapping-list">
+                {auditModel.acceptanceMappings.map((item) => (
+                  <div key={item.label}>
+                    <dt>{item.label}</dt>
+                    <dd>{item.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : <p className="audit-empty-state">暂无验收映射。</p>}
+          </section>
+
+          <section className="audit-section audit-test-section">
+            <h2><CheckCircle2 size={16} />测试证据</h2>
+            {reviewForAudit.tests.length ? reviewForAudit.tests.map((test) => (
+              <p key={test.command}><code>{test.command}</code><span>{test.status}</span></p>
+            )) : <p><code>暂无测试证据</code><span>pending</span></p>}
+          </section>
+
+          <section className="audit-section audit-risk-section">
+            <h2><TriangleAlert size={16} />Rollback History</h2>
+            <ul>
+              {(changesState.data?.rollbackHistory || []).length
+                ? changesState.data.rollbackHistory.map((item) => <li key={item.id}>{item.operationType}: {item.status}</li>)
+                : <li>暂无回退记录</li>}
+            </ul>
+          </section>
+
+          <button className="audit-pr-button" type="button" onClick={onOpenPr}>进入 PR 页面 <ArrowRight size={15} /></button>
+        </aside>
+      </div>
+
+      <section className={`audit-preview-pane ${previewExpanded ? "expanded" : "collapsed"}`} aria-label="页面预览">
+        <header className="audit-preview-collapse-header">
+          <div>
+            <span>页面预览</span>
+            <p>{previewState.available && auditModel.previewUrl ? auditModel.previewUrl : "暂无可用页面预览，请查看 diff 和审计结果。"}</p>
+          </div>
+          <button type="button" onClick={() => setPreviewExpanded((current) => !current)}>
+            {previewExpanded ? "收起预览" : "展开预览"}
+          </button>
+        </header>
+        {previewExpanded ? (
+          <>
+            <PreviewToolbar
+              auditModel={auditModel}
+              localPath={localPath}
+              previewState={previewState}
+              viewport={viewport}
+              onViewportChange={setViewport}
+              onRefresh={refreshPreview}
+              onOpenPreview={openPreview}
+            />
+            <div className={`audit-browser-frame ${viewport}`} data-testid="audit-preview-frame">
+              {previewState.available && auditModel.previewUrl ? (
+                <iframe
+                  key={`${previewKey}-${viewport}-${auditModel.previewUrl}`}
+                  title={auditModel.previewTitle}
+                  src={auditModel.previewUrl}
+                  onError={() => setPreviewState((current) => ({
+                    ...current,
+                    available: false,
+                    status: "iframe_error",
+                    message: "iframe 无法加载后端返回的预览地址。"
+                  }))}
+                />
+              ) : null}
+              {!previewState.available ? (
+                <PreviewUnavailable
+                  isLoading={previewState.loading}
+                  message={previewState.message}
+                  path={previewState.requestedProjectRoot || previewState.projectRoot || localPath}
+                  runningPath={previewState.runningProjectRoot}
+                  owner={previewState.owner}
+                  actionRequired={previewState.actionRequired}
+                  port={previewState.port}
+                  status={previewState.status}
+                  url={auditModel.previewUrl}
+                  onOpenPreview={openPreview}
+                  onRetry={loadPreview}
+                />
+              ) : null}
+            </div>
+          </>
+        ) : null}
+      </section>
 
       {confirmAction ? (
         <div className="rollback-confirm-backdrop">
@@ -475,6 +538,17 @@ function getRollbackUnavailableReason(runId, changesState) {
     return data.reason ? `当前 run workspace 不可回退：${data.reason}` : "当前 run workspace 不可回退。";
   }
   return "";
+}
+
+function getRollbackSummaryStatus(runId, changesState) {
+  if (!runId) return "no run";
+  if (changesState.loading) return "loading";
+  if (changesState.error) return "unavailable";
+  const data = changesState.data;
+  if (!data) return "pending";
+  if (data.available === false) return "unavailable";
+  if (data?.baselineSnapshot?.id) return "ready";
+  return "unknown";
 }
 
 function ChangeCard({ change, selected, onSelect, onRevert }) {
