@@ -567,6 +567,8 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("heading", { name: "需求澄清工作台" })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: "DSL 状态控制台" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /打开需求报告/ })).toBeInTheDocument();
+    expect(screen.getByText("conduit-realworld-example-app")).toBeInTheDocument();
+    expect(document.querySelector(".report-cta")).not.toHaveTextContent("conduit-realworld-example-app");
   });
 
   it("labels skill reply source as real, fallback, or mock in the status console", () => {
@@ -620,6 +622,55 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText("回复来源：External blocked · openai_sdk · gpt-5.5")).toBeInTheDocument();
   });
 
+  it("keeps the report CTA mapped to report readiness instead of the selected project", () => {
+    const onOpenReport = vi.fn();
+    render(
+      <DSLStatusConsole
+        uiState={{ coverageItems: { covered: [], pending: [] }, risks: [] }}
+        runState={{ runId: "", status: "idle", artifacts: {} }}
+        onOpenReport={onOpenReport}
+        onCancelRun={vi.fn()}
+        onRetryRun={vi.fn()}
+        onOpenPartialArtifacts={vi.fn()}
+      />
+    );
+
+    const reportCta = screen.getByRole("button", { name: /打开需求报告/ });
+    expect(reportCta).toBeDisabled();
+    expect(reportCta).toHaveTextContent("当前还没有可打开的 DSL 报告");
+    expect(reportCta).toHaveTextContent("未生成");
+    expect(reportCta).not.toHaveTextContent("conduit-realworld-example-app");
+
+    fireEvent.click(reportCta);
+    expect(onOpenReport).not.toHaveBeenCalled();
+  });
+
+  it("opens the current run report only when the report CTA is ready", () => {
+    const onOpenReport = vi.fn();
+    render(
+      <DSLStatusConsole
+        uiState={{ coverageItems: { covered: [], pending: [] }, risks: [] }}
+        runState={{
+          runId: "RUN-report-ready",
+          status: "passed",
+          artifactStatus: "done",
+          artifacts: { "13_case_summary.md": { exists: true } }
+        }}
+        onOpenReport={onOpenReport}
+        onCancelRun={vi.fn()}
+        onRetryRun={vi.fn()}
+        onOpenPartialArtifacts={vi.fn()}
+      />
+    );
+
+    const reportCta = screen.getByRole("button", { name: /打开需求报告/ });
+    expect(reportCta).toBeEnabled();
+    expect(reportCta).toHaveTextContent("以人类可读方式审阅当前 DSL");
+    expect(reportCta).toHaveTextContent("DSL run passed");
+    fireEvent.click(reportCta);
+    expect(onOpenReport).toHaveBeenCalledTimes(1);
+  });
+
   it("cleans up the DSL workbench bottom input and shows suggestions by interval", () => {
     render(<App />);
 
@@ -653,7 +704,7 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("button", { name: "暂时跳过" })).toBeInTheDocument();
   });
 
-  it("supports suggestion skip and report modal controls without persistent engineering actions", () => {
+  it("supports suggestion skip and keeps report unavailable before a DSL run", () => {
     render(<App />);
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
@@ -668,21 +719,10 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByRole("status")).toHaveTextContent("已暂时跳过");
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /打开需求报告/ }));
-
-    expect(screen.getByRole("dialog", { name: "需求报告（人类可读版）" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "复制报告" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "导出 JSON" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "导出 Markdown" })).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole("button", { name: "复制报告" }));
-    expect(screen.getByRole("status")).toHaveTextContent("已复制报告");
-    fireEvent.click(screen.getByRole("button", { name: "导出 JSON" }));
-    expect(screen.getByRole("status")).toHaveTextContent("已导出 JSON（mock）");
-    fireEvent.click(screen.getByRole("button", { name: "导出 Markdown" }));
-    expect(screen.getByRole("status")).toHaveTextContent("已导出 Markdown（mock）");
-
-    fireEvent.keyDown(window, { key: "Escape" });
+    const reportCta = screen.getByRole("button", { name: /打开需求报告/ });
+    expect(reportCta).toBeDisabled();
+    expect(reportCta).toHaveTextContent("当前还没有可打开的 DSL 报告");
+    expect(reportCta).toHaveTextContent("未生成");
     expect(screen.queryByRole("dialog", { name: "需求报告（人类可读版）" })).not.toBeInTheDocument();
   });
 
@@ -1038,10 +1078,10 @@ describe("monitor console and workspace picker", () => {
     expect(document.body.textContent).not.toContain("runner_missing");
     expect(screen.getByText("not ready")).toBeInTheDocument();
     expect(screen.getByText("clarify_first")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /打开草稿报告/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /打开需求报告/ })).toHaveTextContent("report ready");
     expect(screen.queryByText(/本轮 DSL 生成失败/)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: /打开草稿报告/ }));
+    fireEvent.click(screen.getByRole("button", { name: /打开需求报告/ }));
     await waitFor(() => expect(screen.getByRole("dialog", { name: "草稿报告（人类可读版）" })).toBeInTheDocument());
     expect(screen.getByText("草稿可审阅")).toBeInTheDocument();
     expect(screen.getByText(/fast skill 草稿/)).toBeInTheDocument();

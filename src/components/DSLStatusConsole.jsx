@@ -28,6 +28,7 @@ export default function DSLStatusConsole({
   const secondLongRunThreshold = getGlobalNumber("__DSL_LONG_RUN_SECOND_MS__", 60000);
   const elapsedMs = Number(runState?.elapsedMs || 0);
   const draftReportMode = ["failed", "timeout"].includes(runStatus) && ["done", "fallback"].includes(skillStatus);
+  const reportCta = resolveReportCta(runState, artifactsStatus, draftReportMode);
 
   return (
     <aside className="dsl-status-console" aria-label="DSL 状态控制台">
@@ -135,11 +136,17 @@ export default function DSLStatusConsole({
         </div>
       </section>
 
-      <button className="report-cta" type="button" onClick={onOpenReport}>
+      <button
+        className={`report-cta ${reportCta.ready ? "ready" : "empty"}`}
+        type="button"
+        onClick={reportCta.ready ? onOpenReport : undefined}
+        disabled={!reportCta.ready}
+      >
         <span className="report-cta-icon" aria-hidden="true"><FileText size={25} /></span>
-        <span>
-          <strong>{draftReportMode ? "打开草稿报告" : "打开需求报告"}</strong>
-          <small>以人类可读方式审阅当前 DSL</small>
+        <span className="report-cta-copy">
+          <strong>{reportCta.title}</strong>
+          <small>{reportCta.subtitle}</small>
+          <span className={`report-cta-badge ${reportCta.ready ? "ready" : "empty"}`}>{reportCta.badge}</span>
         </span>
         <ArrowRight size={20} aria-hidden="true" />
       </button>
@@ -173,6 +180,36 @@ function formatArtifactStatus(runStatus) {
   if (["queued", "running"].includes(runStatus)) return "running";
   if (["failed", "timeout", "cancelled"].includes(runStatus)) return "failed";
   return "idle";
+}
+
+function resolveReportCta(runState = {}, artifactsStatus = "", draftReportMode = false) {
+  const runStatus = runState?.status || "idle";
+  const artifacts = runState?.artifacts || {};
+  const hasReportArtifact = Boolean(
+    artifacts["13_case_summary.md"]?.exists ||
+    artifacts["12_final_dsl.json"]?.exists ||
+    artifacts["09_scoring.json"]?.exists ||
+    runState?.reportPath ||
+    runState?.reportUrl
+  );
+  const passed = ["passed", "completed"].includes(runStatus);
+  const ready = Boolean(runState?.runId && (passed || artifactsStatus === "done" || hasReportArtifact || draftReportMode));
+
+  if (!ready) {
+    return {
+      ready: false,
+      title: "打开需求报告",
+      subtitle: "当前还没有可打开的 DSL 报告",
+      badge: "未生成"
+    };
+  }
+
+  return {
+    ready: true,
+    title: "打开需求报告",
+    subtitle: "以人类可读方式审阅当前 DSL",
+    badge: passed ? "DSL run passed" : "report ready"
+  };
 }
 
 function completionFromArtifacts(artifacts = {}) {

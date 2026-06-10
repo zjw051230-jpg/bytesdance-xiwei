@@ -1,0 +1,41 @@
+{
+  "task": "Fix DSL Status Console Report CTA Mapping",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "implemented": {
+    "reportCtaUsesRunReportState": true,
+    "projectNameRemovedFromReportCta": true,
+    "noRunDisabledState": true,
+    "reportReadyBadgeAdded": true,
+    "currentRunReportClickPreserved": true
+  },
+  "mapping": {
+    "reportFields": ["runId", "runStatus", "artifactStatus", "artifacts", "reportPath", "reportUrl"],
+    "projectFieldsExcluded": ["activeProject.name", "selectedProject.name"],
+    "readyBadges": ["DSL run passed", "report ready"],
+    "emptyBadge": "未生成"
+  },
+  "tests": {
+    "appTest": "passed: npx vitest --run src/App.test.jsx, 29 tests",
+    "npmTest": "passed: 126 tests",
+    "serverTest": "passed: 77 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verify": "passed"
+  },
+  "layout": {
+    "viewportsVerified": ["1920x1080", "1440x900"],
+    "pageVerticalScroll": false
+  },
+  "safety": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "agentDryRunTouched": false,
+    "dslCoreModulesTouched": false,
+    "auditPreviewLauncherTouched": false
+  }
+}
