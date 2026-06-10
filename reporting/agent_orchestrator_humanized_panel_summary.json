@@ -1,0 +1,52 @@
+{
+  "task": "Agent Orchestrator Humanized Panel",
+  "status": "pushed",
+  "ui": {
+    "mockTextRemoved": true,
+    "realWriteButtonRenamed": true,
+    "redundantCardsMerged": true,
+    "safetyBoundaryVisible": true,
+    "humanReadableChineseCopy": true
+  },
+  "data": {
+    "usesDryRunField": true,
+    "usesRealWritePerformedField": true,
+    "usesLatestAgentRun": true,
+    "fakeLatestResponseBlocked": true,
+    "fakeArtifactsBlocked": true
+  },
+  "actions": {
+    "contextActionKept": true,
+    "dryRunPlanActionKept": true,
+    "reviewActionKept": true,
+    "prActionKept": true,
+    "realWriteActionExposed": false
+  },
+  "scope": {
+    "agentWorkMatrixTouched": false,
+    "stageEventsInitTouched": false,
+    "riskBlockerChatTouched": false,
+    "dslScoreTouched": false,
+    "monitorMappingTouched": false,
+    "agent2RawTouched": false,
+    "skillsTouched": false
+  },
+  "tests": {
+    "skipped": true,
+    "reason": "per user instruction; run in integration gate"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "dbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "realRepoWritePerformed": false
+  },
+  "git": {
+    "commit": "8c14d8c feat: polish agent dry-run execution console",
+    "pushed": true,
+    "branch": "ZJWNB"
+  }
+}
