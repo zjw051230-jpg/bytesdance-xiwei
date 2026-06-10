@@ -1,0 +1,46 @@
+{
+  "task": "Task 13.10 Audit Preview Branch Merge",
+  "status": "committed_not_pushed",
+  "source": {
+    "branch": "codex/audit-preview-launcher",
+    "commit": "a9409a6"
+  },
+  "merged": {
+    "previewLauncher": true,
+    "auditPage": true,
+    "projectLocalPath": true,
+    "persistencePreserved": true,
+    "agentDryRunPreserved": true,
+    "standaloneArtifactsPreserved": true
+  },
+  "tests": {
+    "npmTest": "passed: 10 files / 112 tests",
+    "serverTest": "passed: 4 files / 66 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verify": "passed",
+    "dbSmoke": "passed",
+    "persistenceSmoke": "passed",
+    "standaloneCheck": "passed",
+    "standaloneArtifacts": "passed",
+    "auditPreviewSmoke": "passed"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "conduitSourceModified": false,
+    "conduitNpmInstallExecuted": false,
+    "forcePushUsed": false
+  },
+  "git": {
+    "targetBranch": "main",
+    "integrationMergeCommit": "a003bd7",
+    "mergeCommit": "6af9dfa",
+    "finalCommit": "report commit on top of merge commit 6af9dfa",
+    "pushed": false
+  }
+}
