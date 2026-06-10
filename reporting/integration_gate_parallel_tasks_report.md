@@ -61,9 +61,10 @@
   - `9720453 fix: improve local dev load performance`
   - `418ae63 fix: replace mock data with real workbench mappings`
   - `8aedacd chore: organize runnable skills registry`
+  - `fdb7c1c docs: report integration gate closure`
 - pre-existing unpushed commit retained:
   - `edb685a fix: unblock DSL clarification flow and support enter send`
-- pushed: pending at report creation.
+- pushed: false, `git push origin main` failed with `Recv failure: Connection was reset`.
 - branch: `main`
 
 ### 9. 是否建议返工

@@ -35,8 +35,10 @@
     "commits": [
       "9720453 fix: improve local dev load performance",
       "418ae63 fix: replace mock data with real workbench mappings",
-      "8aedacd chore: organize runnable skills registry"
+      "8aedacd chore: organize runnable skills registry",
+      "fdb7c1c docs: report integration gate closure"
     ],
+    "pushError": "git push origin main failed: Recv failure: Connection was reset",
     "pushed": false,
     "branch": "main"
   }
