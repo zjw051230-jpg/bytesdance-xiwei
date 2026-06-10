@@ -1,3 +1,5 @@
+import { logSlowRequest, markRequestStart } from "./performance.js";
+
 export async function getPreviewStatus(payload = {}) {
   return postJson("/api/preview/status", payload);
 }
@@ -11,11 +13,14 @@ export async function stopProjectPreview(payload = {}) {
 }
 
 async function postJson(url, payload) {
-  const response = await fetch(url, {
+  const startedAt = markRequestStart();
+  const options = {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload)
-  });
+  };
+  const response = await fetch(url, options);
+  logSlowRequest(url, startedAt, options);
   return unwrap(response);
 }
 

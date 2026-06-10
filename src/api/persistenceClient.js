@@ -1,3 +1,5 @@
+import { logSlowRequest, markRequestStart } from "./performance.js";
+
 export async function listProjects() {
   return requestJson("/api/projects");
 }
@@ -103,6 +105,7 @@ function patchJson(url, payload) {
 }
 
 async function requestJson(url, options) {
+  const startedAt = markRequestStart();
   let response;
   try {
     response = await fetch(url, options);
@@ -132,6 +135,8 @@ async function requestJson(url, options) {
       }
     });
   }
+
+  logSlowRequest(url, startedAt, options);
 
   if (!response.ok || payload?.ok !== true) {
     throw payloadError(payload?.error ? payload : {

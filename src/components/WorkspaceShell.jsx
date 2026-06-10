@@ -27,6 +27,7 @@ export default function WorkspaceShell({
 
   useEffect(() => {
     let active = true;
+    const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
     setActiveRequirement(null);
     setRequirementError("");
     if (!activeProject?.id) return () => {
@@ -45,7 +46,10 @@ export default function WorkspaceShell({
           return;
         }
         const requirement = await getRequirement(latest.id);
-        if (active) setActiveRequirement(requirement);
+        if (active) {
+          setActiveRequirement(requirement);
+          logDevDuration("workbench:active-tab-data-load", startedAt);
+        }
       })
       .catch((error) => {
         if (!active) return;
@@ -134,4 +138,10 @@ export default function WorkspaceShell({
       </div>
     </div>
   );
+}
+
+function logDevDuration(label, startedAt) {
+  if (!import.meta.env.DEV || import.meta.env.MODE === "test") return;
+  const elapsedMs = Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - startedAt);
+  console.info(`[${label}]`, `${elapsedMs}ms`);
 }

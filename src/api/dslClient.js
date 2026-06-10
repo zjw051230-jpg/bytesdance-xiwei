@@ -1,3 +1,5 @@
+import { logSlowRequest, markRequestStart } from "./performance.js";
+
 export async function createDslRun(payload) {
   return postJson("/api/dsl/runs", payload);
 }
@@ -27,16 +29,19 @@ export async function getDslRunArtifacts(runId) {
 }
 
 async function postJson(url, payload) {
+  const startedAt = markRequestStart();
+  const options = {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload)
+  };
   let response;
   try {
-    response = await fetch(url, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+    response = await fetch(url, options);
   } catch (error) {
     throw apiError("network_error", `Failed to reach DSL API: ${String(error.message || error)}`, {});
   }
+  logSlowRequest(url, startedAt, options);
 
   const data = await readJsonEnvelope(response);
   if (!response.ok || data?.ok !== true) {
@@ -46,12 +51,14 @@ async function postJson(url, payload) {
 }
 
 async function requestJson(url) {
+  const startedAt = markRequestStart();
   let response;
   try {
     response = await fetch(url);
   } catch (error) {
     throw apiError("network_error", `Failed to reach DSL API: ${String(error.message || error)}`, {});
   }
+  logSlowRequest(url, startedAt);
 
   const data = await readJsonEnvelope(response);
   if (!response.ok || data?.ok !== true) {

@@ -18,7 +18,19 @@ export default function AppShell() {
   const [workspaceToast, setWorkspaceToast] = useState("");
 
   useEffect(() => {
+    if (
+      !import.meta.env.DEV ||
+      import.meta.env.MODE === "test" ||
+      !window.__workbenchFirstRenderTimingStarted ||
+      window.__workbenchFirstRenderTimingEnded
+    ) return;
+    window.__workbenchFirstRenderTimingEnded = true;
+    console.timeEnd("workbench:first-render");
+  }, []);
+
+  useEffect(() => {
     let active = true;
+    const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
     setProjectLoadState({ loading: true, error: "" });
     listProjects()
       .then((projects) => {
@@ -26,10 +38,12 @@ export default function AppShell() {
         setProjectList(projects);
         setActiveProjectId((current) => projects.some((project) => project.id === current) ? current : projects[0]?.id);
         setProjectLoadState({ loading: false, error: "" });
+        logDevDuration("workbench:project-load", startedAt);
       })
       .catch((error) => {
         if (!active) return;
         setProjectLoadState({ loading: false, error: error.message || "项目 API 加载失败" });
+        logDevDuration("workbench:project-load", startedAt);
       });
     return () => {
       active = false;
@@ -120,4 +134,10 @@ export default function AppShell() {
       )}
     </div>
   );
+}
+
+function logDevDuration(label, startedAt) {
+  if (!import.meta.env.DEV || import.meta.env.MODE === "test") return;
+  const elapsedMs = Math.round((typeof performance !== "undefined" ? performance.now() : Date.now()) - startedAt);
+  console.info(`[${label}]`, `${elapsedMs}ms`);
 }

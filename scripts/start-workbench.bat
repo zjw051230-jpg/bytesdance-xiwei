@@ -10,7 +10,7 @@ echo.
 echo Codex Workbench Windows bootstrap
 echo Project directory: %CD%
 echo.
-echo [1/6] Checking Node.js / npm
+echo [1/7] Checking Node.js / npm
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -30,7 +30,13 @@ node -v
 call npm -v
 
 echo.
-echo [2/6] Checking dependencies
+echo [2/7] Stopping previous Workbench processes
+call :killworkbenchprocesses
+call :killport 9999
+call :killport 8787
+
+echo.
+echo [3/7] Checking dependencies
 if not exist "node_modules\" (
   echo node_modules was not found. Running npm install...
   call npm install
@@ -44,7 +50,7 @@ if not exist "node_modules\" (
 )
 
 echo.
-echo [3/6] Checking local API config
+echo [4/7] Checking local API config
 if not exist "configs\" (
   mkdir "configs"
 )
@@ -67,7 +73,7 @@ if not exist "configs\api_config.local.json" (
 )
 
 echo.
-echo [4/6] Initializing database
+echo [5/7] Initializing database
 call npm run db:init
 if errorlevel 1 (
   echo Database initialization failed. Please check the error above.
@@ -76,7 +82,7 @@ if errorlevel 1 (
 )
 
 echo.
-echo [5/6] Cleaning old port listeners on 9999 / 8787
+echo [6/7] Verifying ports 9999 / 8787 are free
 call :killport 9999
 call :killport 8787
 
@@ -87,7 +93,7 @@ if "%START_WORKBENCH_PRECHECK_ONLY%"=="1" (
 )
 
 echo.
-echo [6/6] Starting development environment
+echo [7/7] Starting development environment
 echo URL: http://127.0.0.1:9999
 echo.
 echo Starting backend API on http://127.0.0.1:8787 ...
@@ -110,6 +116,14 @@ if not "%DEV_EXIT%"=="0" (
 pause
 exit /b %DEV_EXIT%
 
+:killworkbenchprocesses
+set "WORKBENCH_ROOT=%CD%"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$root=[System.IO.Path]::GetFullPath($env:WORKBENCH_ROOT); $pattern=[regex]::Escape($root); $targets=Get-CimInstance Win32_Process | Where-Object { $_.ProcessId -ne $PID -and $_.CommandLine -and $_.CommandLine -match $pattern -and $_.Name -match '^(node|npm|cmd)\.exe$' -and ($_.CommandLine -match 'server[\\/]+index\.js|scripts[\\/]+run-web-dev\.mjs|node_modules[\\/]+vite|npm(\.cmd)?\s+run\s+(dev|dev:server)') }; if (-not $targets) { Write-Host 'No old Workbench node processes found.' } else { $targets | ForEach-Object { Write-Host ('Stopping old Workbench process PID {0} ({1})' -f $_.ProcessId,$_.Name); Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue } }"
+if errorlevel 1 (
+  echo Process scan failed. Continuing with port cleanup.
+)
+exit /b 0
+
 :killport
 set "TARGET_PORT=%~1"
 set "FOUND_PORT_PID="
@@ -120,7 +134,7 @@ for /f "tokens=5" %%P in ('netstat -ano -p tcp ^| findstr /R /C:":%TARGET_PORT% 
     if errorlevel 1 (
       set "FOUND_PORT_PID=!FOUND_PORT_PID! %%P "
       echo Port %TARGET_PORT% is occupied by PID %%P. Stopping old process...
-      taskkill /PID %%P /F >nul 2>nul
+      taskkill /PID %%P /T /F >nul 2>nul
       if errorlevel 1 (
         echo Failed to stop PID %%P on port %TARGET_PORT%. Please check manually.
       ) else (

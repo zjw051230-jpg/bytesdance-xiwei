@@ -1,0 +1,100 @@
+{
+  "ok": true,
+  "task": "Local Dev Load Performance Fix",
+  "processControl": {
+    "killed9999": false,
+    "killed8787": false,
+    "taskkillUsed": false,
+    "devServerRestarted": false,
+    "backendRestarted": false
+  },
+  "diagnosis": {
+    "htmlResponseMsApprox": 112,
+    "possibleRootCause": [
+      "Vite config did not ignore large local directories such as agent(2), runs, reporting, data, dist",
+      "First-screen module graph includes multiple workbench pages",
+      "Need slow API timing to identify request waterfalls or repeated failing requests"
+    ]
+  },
+  "changes": {
+    "watchIgnoredDirs": [
+      "**/agent(1)/**",
+      "**/agent(2)/**",
+      "**/runs/**",
+      "**/reporting/**",
+      "**/data/**",
+      "**/dist/**",
+      "**/node_modules/**"
+    ],
+    "warmupFiles": [
+      "./src/main.jsx",
+      "./src/components/WorkspaceShell.jsx",
+      "./src/components/DSLWorkbench.jsx",
+      "./src/components/ClarificationChat.jsx",
+      "./src/components/DSLStatusConsole.jsx"
+    ],
+    "lazyLoadedPages": [],
+    "slowApiLogging": {
+      "enabledInDev": true,
+      "thresholdMs": 800,
+      "oncePerMethodAndPath": true,
+      "printsPayload": false
+    },
+    "timing": [
+      "workbench:first-render",
+      "workbench:project-load",
+      "workbench:active-tab-data-load"
+    ]
+  },
+  "tests": {
+    "npmTest": {
+      "status": "failed",
+      "passed": 128,
+      "failed": 10
+    },
+    "npmRunBuild": {
+      "status": "passed"
+    },
+    "skipped": [
+      {
+        "command": "npm run dev",
+        "reason": "forbidden; would disturb current dev process"
+      },
+      {
+        "command": "npm run verify",
+        "reason": "forbidden"
+      },
+      {
+        "command": "npm run smoke",
+        "reason": "forbidden"
+      },
+      {
+        "command": "npm run test:server",
+        "reason": "npm test already included server tests and failed"
+      },
+      {
+        "command": "taskkill",
+        "reason": "forbidden"
+      }
+    ]
+  },
+  "requiresRestart": {
+    "value": true,
+    "reason": "Vite watch ignore and warmup config require a later manual Vite restart; current process was not restarted."
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "realRepoWritePerformed": false
+  },
+  "git": {
+    "branch": "main",
+    "commit": false,
+    "pushed": false,
+    "reason": "npm test failed"
+  }
+}
