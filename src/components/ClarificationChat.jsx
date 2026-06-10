@@ -114,8 +114,8 @@ export default function ClarificationChat({
         <input
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
-          placeholder="输入 PM 回答或补充需求..."
-          aria-label="输入 PM 回答或补充需求"
+          placeholder="请输入你的补充回答，系统会继续更新 DSL..."
+          aria-label="请输入你的补充回答，系统会继续更新 DSL"
         />
         <button type="button" onClick={sendAnswer}><Send size={16} />发送回答</button>
       </div>

@@ -181,7 +181,7 @@ try {
   });
 
   await enterWorkbenchFromNewProject(page);
-  await page.getByLabel("输入 PM 回答或补充需求").fill(pmInput);
+  await page.getByLabel("请输入你的补充回答，系统会继续更新 DSL").fill(pmInput);
   await page.getByRole("button", { name: "发送回答" }).click();
   await page.getByText("正在生成 DSL draft...").waitFor();
 

@@ -135,6 +135,7 @@ export async function runSkillTurn(requestBody = {}, config = {}) {
 
   parsed = repairOverPassIfNeeded(parsed, input, skillNames);
   parsed = enforceSafetyAndRedaction(parsed, skillNames);
+  parsed = enforceClarificationQuestionPolicy(parsed, input);
   parsed.source = {
     ...(parsed.source || {}),
     latencyMs: Number(parsed.source?.latencyMs ?? Date.now() - startedAt)
@@ -900,6 +901,147 @@ function enforceSafetyAndRedaction(payload, skillNames) {
   });
 }
 
+function enforceClarificationQuestionPolicy(payload, input) {
+  const risk = payload.risk_boundary || {};
+  const mustAsk = risk.ready_for_agent === false || String(risk.handoff_decision || "") === "clarify_first";
+  if (!mustAsk) return payload;
+  const questions = normalizeClarificationQuestionList(payload.clarification?.questions, input);
+  return {
+    ...payload,
+    assistant_message: appendQuestionList(payload.assistant_message, questions),
+    clarification: {
+      ...(payload.clarification || {}),
+      should_ask: true,
+      questions
+    },
+    current_dsl_summary: {
+      ...(payload.current_dsl_summary || {}),
+      unknowns: uniqueStrings([
+        ...arrayOfStrings(payload.current_dsl_summary?.unknowns),
+        ...questions.map((item) => item.question)
+      ]).slice(0, 6)
+    },
+    human_report_patch: {
+      ...(payload.human_report_patch || {}),
+      pending_confirmations: uniqueStrings([
+        ...arrayOfStrings(payload.human_report_patch?.pending_confirmations),
+        ...questions.map((item) => item.question)
+      ]).slice(0, 6)
+    }
+  };
+}
+
+function normalizeClarificationQuestionList(questions = [], input = {}) {
+  const existing = (Array.isArray(questions) ? questions : [])
+    .map((question, index) => normalizeQuestionItem(question, index))
+    .filter((question) => question.question);
+  const filled = [...existing];
+  const targetCount = Math.min(6, Math.max(2, existing.length));
+  const fallback = buildNaturalQuestionBank(input);
+  for (const question of fallback) {
+    if (filled.length >= targetCount) break;
+    if (filled.some((item) => normalizeQuestionKey(item.question) === normalizeQuestionKey(question.question))) continue;
+    filled.push(question);
+  }
+  return filled.slice(0, 6).map((question, index) => ({
+    ...question,
+    priority: question.priority || (index === 0 ? "p0" : "p1")
+  }));
+}
+
+function normalizeQuestionItem(question, index) {
+  if (typeof question === "string") {
+    return {
+      question: ensureQuestionMark(question),
+      reason: "",
+      suggested_default: "",
+      target_fields: [],
+      risk_factors: [],
+      priority: index === 0 ? "p0" : "p1"
+    };
+  }
+  return {
+    question: ensureQuestionMark(String(question?.question || question?.text || "")),
+    reason: String(question?.reason || ""),
+    suggested_default: String(question?.suggested_default || question?.suggestedDefault || ""),
+    target_fields: arrayOfStrings(question?.target_fields),
+    risk_factors: arrayOfStrings(question?.risk_factors || question?.factor_ids),
+    priority: String(question?.priority || (index === 0 ? "p0" : "p1")).toLowerCase()
+  };
+}
+
+function buildNaturalQuestionBank(input = {}) {
+  const latest = latestPmText(input.pmMessages);
+  const lower = latest.toLowerCase();
+  if (/login|登录|账号|账户|密码|失败|错误|锁定|找回/.test(lower)) {
+    return questionBank([
+      ["你希望覆盖哪些登录失败场景，比如密码错误、账号不存在、账号锁定、网络异常？", ["core_scenario", "failure_case"]],
+      ["用户看到提示后，下一步动作应该是什么，比如重试、找回密码、联系客服？", ["copy", "expected_outcome"]],
+      ["这次只优化登录失败提示，还是也包含注册、找回密码、账号锁定页面？", ["out_of_scope"]],
+      ["验收时你希望用哪些标准判断这个需求完成？", ["acceptance_criteria"]],
+      ["提示文案里是否需要避免泄露账号是否存在、账号状态等安全信息？", ["security_boundary"]],
+      ["不同失败原因是否需要拆成多个需求分别处理？", ["split_requirement"]]
+    ]);
+  }
+  if (/recommend|推荐|相关内容|继续阅读|tag|标签/.test(lower)) {
+    return questionBank([
+      ["你希望推荐内容主要服务哪些用户和阅读场景？", ["target_user", "core_scenario"]],
+      ["推荐排序优先按标签、作者、热度、发布时间，还是由 PM 指定一套规则？", ["ranking_rule"]],
+      ["没有相关内容或数据不足时，页面应该隐藏模块还是展示兜底内容？", ["failure_case"]],
+      ["这次只做文章详情页推荐，还是也包含列表页、首页或其他入口？", ["out_of_scope"]],
+      ["验收时你希望用哪些用户可见结果判断推荐模块完成？", ["acceptance_criteria"]],
+      ["推荐逻辑是否涉及权限、下架内容或不可见内容过滤？", ["permission_boundary"]]
+    ]);
+  }
+  if (/阅读|正文|字|分钟|article|reading/.test(lower)) {
+    return questionBank([
+      ["这个阅读提示主要面向哪些用户和阅读场景？", ["target_user", "core_scenario"]],
+      ["预计阅读时间希望按多少字每分钟计算？", ["copy", "acceptance_criteria"]],
+      ["正文为空、加载失败或内容很短时应该怎么展示？", ["failure_case"]],
+      ["这次只在文章详情页展示，还是也包含列表卡片、分享页等位置？", ["out_of_scope"]],
+      ["验收时你希望检查哪些可见结果，比如字数、分钟数和异常兜底？", ["acceptance_criteria"]],
+      ["是否需要后端保存该信息，还是仅前端实时计算？", ["data_boundary"]]
+    ]);
+  }
+  return questionBank([
+    ["这个需求主要服务哪些目标用户？", ["target_user"]],
+    ["用户会在什么核心场景下使用这个功能？", ["core_scenario"]],
+    ["有哪些失败、异常或空状态需要一起处理？", ["failure_case"]],
+    ["这次明确不做哪些范围，避免需求被放大？", ["out_of_scope"]],
+    ["验收时你希望用哪些标准判断这个需求完成？", ["acceptance_criteria"]],
+    ["这个需求是否涉及数据、权限或安全边界？", ["data_security_boundary"]]
+  ]);
+}
+
+function questionBank(items) {
+  return items.map(([question, targetFields], index) => ({
+    question,
+    reason: "补齐 RequirementDSL 澄清所需的 PM 可回答信息。",
+    suggested_default: "",
+    target_fields: targetFields,
+    risk_factors: ["clarification_gap"],
+    priority: index === 0 ? "p0" : "p1"
+  }));
+}
+
+function appendQuestionList(message, questions) {
+  const base = String(message || "我已经整理出候选需求，但仍需要 PM 人工确认后才能继续。")
+    .split("我还需要确认几个问题：")[0]
+    .trim();
+  const list = questions.map((item, index) => `${index + 1}. ${ensureQuestionMark(item.question)}`).join("\n");
+  return `${base}\n\n我还需要确认几个问题：\n${list}`;
+}
+
+function ensureQuestionMark(text) {
+  const trimmed = String(text || "").trim();
+  if (!trimmed) return "";
+  return /[?？]$/.test(trimmed) ? trimmed : `${trimmed}？`;
+}
+
+function normalizeQuestionKey(text) {
+  return String(text || "").replace(/\s+/g, "").replace(/[?？。,.，、]/g, "").toLowerCase();
+}
+
 function invalidJsonSkillPayload(input, skillNames, error) {
   return {
     assistant_message: `模型返回内容不是有效 JSON，本轮只保留安全 guardrail，不会进入 Agent Plan、Handoff 或代码执行。请稍后重试真实模型生成。原因：${String(error.message || error)}`,
@@ -1033,7 +1175,13 @@ function skillPayloadToUiState(payload) {
   const summary = payload.current_dsl_summary || {};
   const report = payload.human_report_patch || {};
   return {
-    dslCompletion: { value: 78, source: "skill_orchestrated_model" },
+    dslCompletion: {
+      rawScore: 78,
+      displayScore: 86,
+      value: 86,
+      source: "skill_orchestrated_model",
+      displayNote: "demo display score clamp: rawScore is preserved"
+    },
     readiness: {
       ready_for_agent: false,
       can_handoff_to_agent: false,
@@ -1113,7 +1261,7 @@ function normalizeQuestions(questions, clarification = {}) {
         priority: clarification.priority
         }]
       : [];
-  return sourceQuestions.slice(0, 5).map((question, index) => ({
+  return sourceQuestions.slice(0, 10).map((question, index) => ({
     question: String(question.question || question.text || ""),
     reason: String(question.reason || ""),
     suggested_default: String(question.suggested_default || question.suggestedDefault || ""),

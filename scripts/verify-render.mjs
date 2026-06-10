@@ -163,6 +163,35 @@ function assertNoVerticalPageScroll(metrics, label) {
   }
 }
 
+function isGenericNotFoundConsoleEntry(entry) {
+  return entry?.type === "error" && /Failed to load resource: the server responded with a status of 404/.test(entry.text || "");
+}
+
+function isExpectedMissingDesignPlanResponse(response) {
+  if (response?.status !== 404) return false;
+  try {
+    const parsed = new URL(response.url);
+    return /^\/api\/requirements\/[^/]+\/design-plan$/.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+function collectUnexpectedDesignPlanningIssues(consoleEntries, pageErrors, responseErrors) {
+  const unexpectedResponses = responseErrors.filter((response) => !isExpectedMissingDesignPlanResponse(response));
+  const onlyExpectedDesignPlanMisses = responseErrors.length > 0 && unexpectedResponses.length === 0;
+  const unexpectedConsoleEntries = onlyExpectedDesignPlanMisses
+    ? consoleEntries.filter((entry) => !isGenericNotFoundConsoleEntry(entry))
+    : consoleEntries;
+
+  return {
+    unexpectedConsoleEntries,
+    pageErrors,
+    unexpectedResponses,
+    expectedDesignPlanMisses: responseErrors.filter(isExpectedMissingDesignPlanResponse)
+  };
+}
+
 function assertPortAvailable(port) {
   return new Promise((resolve, reject) => {
     const server = net.createServer();
@@ -199,6 +228,7 @@ async function verifyViewport(width, height) {
   const page = await browser.newPage({ viewport: { width, height } });
   const consoleEntries = [];
   const pageErrors = [];
+  const responseErrors = [];
 
   page.on("console", (msg) => {
     if (["error", "warning"].includes(msg.type())) {
@@ -206,6 +236,11 @@ async function verifyViewport(width, height) {
     }
   });
   page.on("pageerror", (err) => pageErrors.push(err.message));
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      responseErrors.push({ status: response.status(), url: response.url() });
+    }
+  });
 
   await enterWorkbench(page);
   const chromeChecks = await assertWorkspaceChrome(page);
@@ -230,7 +265,7 @@ async function verifyViewport(width, height) {
   };
   assertNoVerticalPageScroll(initialMetrics.scroll, `DSL initial ${width}x${height}`);
 
-  await page.getByLabel("输入 PM 回答或补充需求").fill("登录失败提示太模糊，希望用户知道下一步怎么做。");
+  await page.getByLabel("请输入你的补充回答，系统会继续更新 DSL").fill("登录失败提示太模糊，希望用户知道下一步怎么做。");
   await page.getByRole("button", { name: "发送回答" }).click();
   await page.getByText("正在生成 DSL draft...").waitFor();
 
@@ -240,7 +275,7 @@ async function verifyViewport(width, height) {
   await page.screenshot({ path: runningScreenshotPath, fullPage: false });
 
   await page.locator(".run-status-panel code", { hasText: "RUN-" }).waitFor({ timeout: 20_000 });
-  await page.getByText("81%").waitFor({ timeout: 20_000 });
+  await page.getByText("86%").waitFor({ timeout: 20_000 });
 
   const resultScreenshotPath = width === 1920
     ? path.join(outDir, "real-dsl-workbench-result-1920x1080.png")
@@ -251,7 +286,7 @@ async function verifyViewport(width, height) {
     runIdText: await page.locator(".run-status-panel code").textContent(),
     statusPassedVisible: await page.locator(".run-state-pill.passed").first().isVisible(),
     artifactsDoneVisible: await page.locator(".status-split-grid .run-state-pill.done").isVisible(),
-    completionVisible: await page.getByText("81%").isVisible(),
+    completionVisible: await page.getByText("86%").isVisible(),
     evpiSourceVisible: await page.getByText("来源：EVPI-lite").isVisible(),
     noAgentPlanText: (await page.textContent("body")).includes("不会交给 Agent 执行"),
     scroll: await pageScrollMetrics(page)
@@ -297,7 +332,8 @@ async function verifyViewport(width, height) {
     resultMetrics,
     modalMetrics,
     consoleEntries,
-    pageErrors
+    pageErrors,
+    responseErrors
   };
 }
 
@@ -310,6 +346,7 @@ async function verifyDesignPlanningViewport(width, height) {
   const page = await browser.newPage({ viewport: { width, height } });
   const consoleEntries = [];
   const pageErrors = [];
+  const responseErrors = [];
 
   page.on("console", (msg) => {
     if (["error", "warning"].includes(msg.type())) {
@@ -317,6 +354,11 @@ async function verifyDesignPlanningViewport(width, height) {
     }
   });
   page.on("pageerror", (err) => pageErrors.push(err.message));
+  page.on("response", (response) => {
+    if (response.status() >= 400) {
+      responseErrors.push({ status: response.status(), url: response.url() });
+    }
+  });
 
   await enterDesignPlanning(page);
   const chromeChecks = await assertWorkspaceChrome(page);
@@ -372,8 +414,11 @@ async function verifyDesignPlanningViewport(width, height) {
   if (metrics.scroll.hasVerticalPageScroll) {
     throw new Error(`Design planning page has vertical page scroll at ${width}x${height}`);
   }
-  if (consoleEntries.length > 0 || pageErrors.length > 0) {
-    throw new Error(`Design planning page console/page errors at ${width}x${height}`);
+  const pageIssues = collectUnexpectedDesignPlanningIssues(consoleEntries, pageErrors, responseErrors);
+  if (pageIssues.unexpectedConsoleEntries.length > 0 || pageIssues.pageErrors.length > 0 || pageIssues.unexpectedResponses.length > 0) {
+    throw new Error(
+      `Design planning page console/page errors at ${width}x${height}: ${JSON.stringify(pageIssues, null, 2)}`
+    );
   }
 
   return {
@@ -386,7 +431,9 @@ async function verifyDesignPlanningViewport(width, height) {
     },
     metrics,
     consoleEntries,
-    pageErrors
+    pageErrors,
+    responseErrors,
+    expectedDesignPlanMisses: pageIssues.expectedDesignPlanMisses
   };
 }
 

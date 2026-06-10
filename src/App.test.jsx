@@ -626,14 +626,14 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
 
-    expect(screen.getByPlaceholderText("输入 PM 回答或补充需求...")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL...")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "发送回答" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "生成 DSL" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "重新生成问题" })).not.toBeInTheDocument();
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
 
     for (let index = 0; index < 5; index += 1) {
-      fireEvent.change(screen.getByPlaceholderText("输入 PM 回答或补充需求..."), {
+      fireEvent.change(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL..."), {
         target: { value: `Login failure hint needs clearer next action ${index + 1}.` }
       });
       fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -641,7 +641,7 @@ describe("monitor console and workspace picker", () => {
 
     expect(screen.queryByText("推荐澄清问题")).not.toBeInTheDocument();
 
-    fireEvent.change(screen.getByPlaceholderText("输入 PM 回答或补充需求..."), {
+    fireEvent.change(screen.getByPlaceholderText("请输入你的补充回答，系统会继续更新 DSL..."), {
       target: { value: "Login failure hint needs clearer next action 6." }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -694,7 +694,7 @@ describe("monitor console and workspace picker", () => {
       relativeOutputDir: "runs\\RUN-test-api",
       fullArtifacts: {},
       uiState: {
-        dslCompletion: { value: 81, source: "real_score" },
+        dslCompletion: { rawScore: 81, displayScore: 86, value: 86, source: "real_score" },
         readiness: {
           ready_for_agent: false,
           handoff_decision: "clarify_first",
@@ -790,7 +790,7 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText("快速澄清")).toBeInTheDocument();
     expect(screen.getByText("完整 DSL artifacts")).toBeInTheDocument();
     expect(screen.getByText("回复来源：Real model · openai_sdk · gpt-5.5")).toBeInTheDocument();
-    expect(screen.getByText("81%")).toBeInTheDocument();
+    expect(screen.getByText("86%")).toBeInTheDocument();
     expect(screen.getByText(/candidate acceptance criteria/i)).toBeInTheDocument();
     expect(screen.queryByText(/DSL draft/)).not.toBeInTheDocument();
     expect(screen.queryByText(/EVPI-lite/)).not.toBeInTheDocument();
@@ -925,7 +925,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
-    fireEvent.change(screen.getByLabelText("输入 PM 回答或补充需求"), {
+    fireEvent.change(screen.getByLabelText("请输入你的补充回答，系统会继续更新 DSL"), {
       target: { value: "文章详情页需要阅读信息提示。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -1091,7 +1091,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
-    fireEvent.change(screen.getByLabelText("输入 PM 回答或补充需求"), {
+    fireEvent.change(screen.getByLabelText("请输入你的补充回答，系统会继续更新 DSL"), {
       target: { value: "需要验证 cancel flow。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));
@@ -1175,7 +1175,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "工作台" }));
     fireEvent.click(screen.getByRole("button", { name: "进入工作台" }));
-    fireEvent.change(screen.getByLabelText("输入 PM 回答或补充需求"), {
+    fireEvent.change(screen.getByLabelText("请输入你的补充回答，系统会继续更新 DSL"), {
       target: { value: "需要验证 timeout flow。" }
     });
     fireEvent.click(screen.getByRole("button", { name: "发送回答" }));

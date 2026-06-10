@@ -1,0 +1,70 @@
+{
+  "task": "Clarification Question Count and Display Score",
+  "status": "passed",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "implemented": {
+    "minimumClarificationQuestions": true,
+    "maximumClarificationQuestions": true,
+    "clarifyFirstAlwaysAsksQuestions": true,
+    "naturalPmQuestions": true,
+    "rawScorePreserved": true,
+    "displayScoreClamp": true,
+    "placeholderUpdated": true,
+    "mockOnlyVerification": true
+  },
+  "questionPolicy": {
+    "min": 2,
+    "max": 6,
+    "appliesWhen": [
+      "ready_for_agent=false",
+      "handoff_decision=clarify_first"
+    ],
+    "fallbackDirections": [
+      "target_user",
+      "core_scenario",
+      "failure_case",
+      "copy",
+      "out_of_scope",
+      "acceptance_criteria",
+      "data_permission_security_boundary",
+      "split_requirement"
+    ]
+  },
+  "scorePolicy": {
+    "rawScorePreserved": true,
+    "displayScoreMin": 86,
+    "displayScoreMax": 94,
+    "valueUsesDisplayScore": true,
+    "note": "demo display score clamp; real pass/fail is not changed"
+  },
+  "tests": {
+    "npmTest": "passed: 10 files / 116 tests",
+    "serverTest": "passed: 4 files / 69 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verify": "passed"
+  },
+  "renderVerification": {
+    "viewportsVerified": [
+      "1920x1080",
+      "1440x900"
+    ],
+    "pageVerticalScroll": false,
+    "expectedDesignPlanMissesAllowed": true
+  },
+  "security": {
+    "enteredAgent": false,
+    "realRepoWriteByAgent": false,
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "main"
+  }
+}

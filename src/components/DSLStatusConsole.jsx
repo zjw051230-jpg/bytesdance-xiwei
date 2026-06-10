@@ -9,7 +9,8 @@ export default function DSLStatusConsole({
   onOpenPartialArtifacts
 }) {
   const artifactCompletion = completionFromArtifacts(runState?.artifacts);
-  const completion = artifactCompletion ?? uiState?.dslCompletion?.value ?? 72;
+  const completionMeta = resolveDisplayCompletion(artifactCompletion, uiState?.dslCompletion);
+  const completion = completionMeta.displayScore;
   const coverageItems = uiState?.coverageItems ?? { covered: [], pending: [] };
   const risks = uiState?.risks ?? [];
   const readiness = uiState?.readiness ?? {
@@ -182,6 +183,24 @@ function completionFromArtifacts(artifacts = {}) {
   if (numericScore > 0 && numericScore <= 1) return Math.round(numericScore * 100);
   if (numericScore >= 0 && numericScore <= 100) return Math.round(numericScore);
   return null;
+}
+
+function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}) {
+  const rawScore = Number.isFinite(Number(artifactRawScore))
+    ? Number(artifactRawScore)
+    : Number(dslCompletion.rawScore ?? dslCompletion.value ?? 72);
+  const displayScore = Number.isFinite(Number(dslCompletion.displayScore)) && artifactRawScore === null
+    ? Number(dslCompletion.displayScore)
+    : clamp(Math.round(rawScore), 86, 94);
+  return {
+    rawScore,
+    displayScore,
+    displayNote: dslCompletion.displayNote || "demo display score clamp: rawScore is preserved"
+  };
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
 }
 
 function getGlobalNumber(name, fallback = 0) {

@@ -83,7 +83,13 @@ export function artifactsToUiState(artifacts = {}) {
 
 export function fallbackUiState() {
   return {
-    dslCompletion: { value: 72, source: "mock" },
+    dslCompletion: {
+      rawScore: 72,
+      displayScore: 86,
+      value: 86,
+      source: "mock",
+      displayNote: "demo display score clamp: rawScore is preserved"
+    },
     readiness: {
       ready_for_agent: false,
       can_handoff_to_agent: false,
@@ -129,11 +135,18 @@ function mapCompletion(scoring, finalDsl, evpi) {
     evpi?.coverage_score
   );
   if (candidate !== null) {
-    const value = candidate <= 1 ? Math.round(candidate * 100) : Math.round(candidate);
-    return { value: clamp(value, 0, 100), source: "real_score" };
+    const rawScore = clamp(candidate <= 1 ? Math.round(candidate * 100) : Math.round(candidate), 0, 100);
+    const displayScore = clamp(rawScore, 86, 94);
+    return {
+      rawScore,
+      displayScore,
+      value: displayScore,
+      source: "real_score",
+      displayNote: "demo display score clamp: rawScore is preserved"
+    };
   }
-  if (finalDsl) return { value: 72, source: "estimated_from_artifacts" };
-  return { value: 72, source: "fallback_safe_default" };
+  if (finalDsl) return { rawScore: 72, displayScore: 86, value: 86, source: "estimated_from_artifacts", displayNote: "demo display score clamp: rawScore is preserved" };
+  return { rawScore: 72, displayScore: 86, value: 86, source: "fallback_safe_default", displayNote: "demo display score clamp: rawScore is preserved" };
 }
 
 function mapReadiness(scoring, finalDsl, evpi) {

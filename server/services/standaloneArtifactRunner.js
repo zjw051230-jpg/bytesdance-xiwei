@@ -360,11 +360,18 @@ function normalizeRisks(risks) {
 function buildClarificationQuestions(requirementDsl, readiness) {
   const reasons = normalizeStringList(readiness.reasons);
   const firstReason = reasons[0] || "Acceptance criteria still require human confirmation.";
-  return [{
-    question: "Which visible acceptance result should confirm this requirement is complete?",
-    reason: firstReason,
-    factor_ids: ["standalone_acceptance_confirmation"]
-  }];
+  return [
+    {
+      question: "Which visible acceptance result should confirm this requirement is complete?",
+      reason: firstReason,
+      factor_ids: ["standalone_acceptance_confirmation"]
+    },
+    {
+      question: "What should stay out of scope for this round so the DSL does not expand too far?",
+      reason: "clarify_first requires PM-owned scope boundaries before any Agent handoff.",
+      factor_ids: ["standalone_scope_boundary"]
+    }
+  ];
 }
 
 function estimateCompletion(requirementDsl, readiness) {

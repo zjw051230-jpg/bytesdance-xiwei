@@ -135,6 +135,13 @@ afterEach(async () => {
   );
 });
 
+function questionLineCount(text) {
+  return String(text || "")
+    .split("\n")
+    .filter((line) => /^\s*\d+\.\s+.+[?？]\s*$/.test(line))
+    .length;
+}
+
 describe("DSL backend API", () => {
   it("reads local OpenAI-compatible config and constructs SDK client with exact baseURL", async () => {
     const calls = { constructor: [], create: [] };
@@ -804,6 +811,73 @@ describe("DSL backend API", () => {
     expect(result.data.assistant_message).not.toMatch(/需求已完成|可以继续|进入 Agent/);
     expect(result.data.risk_boundary.ready_for_agent).toBe(false);
     expect(result.data.risk_boundary.handoff_decision).toBe("clarify_first");
+  });
+
+  it("normalizes clarification questions to a natural 2-6 question list", async () => {
+    const oneQuestionResult = await runSkillTurn({
+      projectId: "conduit-realworld-example-app",
+      pmMessages: [{ role: "pm", content: "Login failure hint is too vague; users need to know the next step." }]
+    }, {
+      runsRoot: testRunsRoot,
+      dslRuntimeRoot: path.resolve("e2e"),
+      modelClient: async () => JSON.stringify({
+        assistant_message: "I captured the candidate requirement and need one confirmation.",
+        dsl_patch: { candidate: true },
+        current_dsl_summary: {
+          title: "Login failure hint",
+          goal: "Make login failures actionable.",
+          scope: ["Improve login failure messages"],
+          out_of_scope: ["Agent Plan"],
+          acceptance_criteria: ["Users see a clear next action"],
+          unknowns: ["Failure scenarios"]
+        },
+        clarification: {
+          should_ask: true,
+          questions: [{ question: "Which login failure scenarios should be covered?", priority: "p0" }]
+        },
+        risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+        source: { mode: "model_generated_real", provider: "test", skills_used: [] }
+      })
+    });
+
+    expect(oneQuestionResult.ok).toBe(true);
+    expect(oneQuestionResult.data.clarification.questions).toHaveLength(2);
+    expect(oneQuestionResult.data.assistant_message).toContain("我还需要确认几个问题：");
+    expect(questionLineCount(oneQuestionResult.data.assistant_message)).toBeGreaterThanOrEqual(2);
+    expect(questionLineCount(oneQuestionResult.data.assistant_message)).toBeLessThanOrEqual(6);
+
+    const manyQuestionResult = await runSkillTurn({
+      projectId: "conduit-realworld-example-app",
+      pmMessages: [{ role: "pm", content: "Article page needs a new recommendation module after reading." }]
+    }, {
+      runsRoot: testRunsRoot,
+      dslRuntimeRoot: path.resolve("e2e"),
+      modelClient: async () => JSON.stringify({
+        assistant_message: "I captured the candidate requirement.",
+        dsl_patch: { candidate: true },
+        current_dsl_summary: {
+          title: "Recommendation module",
+          goal: "Recommend related content.",
+          scope: ["Article detail recommendation"],
+          out_of_scope: ["Agent Plan"],
+          acceptance_criteria: ["User sees related content"],
+          unknowns: ["Ranking rules"]
+        },
+        clarification: {
+          should_ask: true,
+          questions: Array.from({ length: 10 }, (_, index) => ({
+            question: `Question ${index + 1}: what should PM confirm?`,
+            priority: index === 0 ? "p0" : "p1"
+          }))
+        },
+        risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+        source: { mode: "model_generated_real", provider: "test", skills_used: [] }
+      })
+    });
+
+    expect(manyQuestionResult.ok).toBe(true);
+    expect(manyQuestionResult.data.clarification.questions).toHaveLength(6);
+    expect(questionLineCount(manyQuestionResult.data.assistant_message)).toBe(6);
   });
 
   it("uses a compact fast skill prompt with recent six messages and lightweight response schema", async () => {
