@@ -1,0 +1,35 @@
+{
+  "task": "DSL Score Monotonic Question Gate",
+  "status": "pushed",
+  "score": {
+    "emptyStateScoreZero": true,
+    "runningDoesNotJumpTo45": true,
+    "inputGatedDoesNotShow45": true,
+    "scoreCalculatedFromDsl": true,
+    "displayScoreMonotonic": true,
+    "newRequirementResetsScore": true
+  },
+  "questions": {
+    "minAnsweredBeforeStart": 5,
+    "minDimensionsBeforeStart": 4,
+    "genericTargetUserBlocked": true,
+    "questionDimensionsEnabled": true
+  },
+  "cta": {
+    "startConstructionBlockedBeforeFiveAnswers": true,
+    "startConstructionNavigates": true,
+    "agentTriggered": false
+  },
+  "scope": {
+    "onlyDslTouched": true,
+    "agent2Touched": false,
+    "skillsTouched": false,
+    "performanceFilesTouched": false,
+    "mockMappingTouched": false
+  },
+  "git": {
+    "commit": "",
+    "pushed": true,
+    "branch": "main"
+  }
+}

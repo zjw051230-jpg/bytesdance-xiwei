@@ -111,8 +111,8 @@ describe("artifactsToUiState", () => {
     });
 
     expect(low.dslCompletion.rawScore).toBe(42);
-    expect(low.dslCompletion.displayScore).toBe(45);
-    expect(low.dslCompletion.value).toBe(45);
+    expect(low.dslCompletion.displayScore).toBe(42);
+    expect(low.dslCompletion.value).toBe(42);
     expect(high.dslCompletion.rawScore).toBe(99);
     expect(high.dslCompletion.displayScore).toBe(84);
     expect(high.dslCompletion.value).toBe(84);

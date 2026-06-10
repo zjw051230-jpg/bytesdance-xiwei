@@ -265,7 +265,7 @@ export default function DSLWorkbench({
       const skillUiState = clarificationComplete
         ? markUiStateClarificationComplete(skillTurn.uiState)
         : (skillTurn.uiState || {});
-      setUiState((current) => ({ ...current, ...skillUiState }));
+      setUiState((current) => mergeRunnerUiState(current, skillUiState));
       setMessages((current) => replaceMessage(
         current,
         loadingId,
@@ -408,9 +408,9 @@ export default function DSLWorkbench({
       ...current,
       dslCompletion: {
         ...(current.dslCompletion || {}),
-        displayScore: clampNumber(Number(current.dslCompletion?.displayScore ?? current.dslCompletion?.value ?? 80), 75, 84),
-        value: current.dslCompletion?.value ?? current.dslCompletion?.displayScore ?? 80,
-        displayNote: "refinement reopened; displayScore is clamped for demo pacing"
+        displayScore: Number(current.dslCompletion?.displayScore ?? current.dslCompletion?.value ?? 0),
+        value: Number(current.dslCompletion?.displayScore ?? current.dslCompletion?.value ?? 0),
+        displayNote: "refinement reopened; displayScore stays stable until a new DSL score arrives"
       },
       readiness: {
         ...(current.readiness || {}),
@@ -449,7 +449,7 @@ export default function DSLWorkbench({
         clarificationMode: "refinement"
       }));
       const assistantText = skillTurn.assistant_message || "我再补充确认两个不同方向的问题：";
-      setUiState((current) => ({ ...current, ...(skillTurn.uiState || {}) }));
+      setUiState((current) => mergeRunnerUiState(current, skillTurn.uiState || {}));
       setMessages((current) => replaceMessage(
         current,
         loadingId,
@@ -746,6 +746,7 @@ function isClarificationCompleteTurn(skillTurn = {}) {
     skillTurn.uiState?.readiness?.handoff_decision ||
     ""
   );
+  if (!hasStartConstructionGate(clarification, skillTurn.uiState)) return false;
   if (clarification.clarificationComplete || decision === "clarification_complete" || decision === "ready_for_design") {
     return true;
   }
@@ -755,13 +756,29 @@ function isClarificationCompleteTurn(skillTurn = {}) {
   return false;
 }
 
+function hasStartConstructionGate(clarification = {}, uiState = {}) {
+  const answered = Number(
+    clarification.answeredQuestionCount ??
+    clarification.askedQuestionCount ??
+    uiState?.clarification?.answeredQuestionCount ??
+    uiState?.clarification?.askedQuestionCount ??
+    0
+  );
+  const dimensions = new Set([
+    ...arrayOfStrings(clarification.coveredDimensions),
+    ...arrayOfStrings(uiState?.clarification?.coveredDimensions)
+  ]);
+  return answered >= 5 && dimensions.size >= 4;
+}
+
 function markUiStateClarificationComplete(uiState = {}) {
+  const existingDisplay = Number(uiState.dslCompletion?.displayScore ?? uiState.dslCompletion?.value ?? uiState.dslCompletion?.rawScore ?? 0);
   return {
     ...uiState,
     dslCompletion: {
       ...(uiState.dslCompletion || {}),
-      displayScore: Math.max(86, Number(uiState.dslCompletion?.displayScore ?? uiState.dslCompletion?.value ?? 86)),
-      value: Math.max(86, Number(uiState.dslCompletion?.value ?? uiState.dslCompletion?.displayScore ?? 86))
+      displayScore: Number.isFinite(existingDisplay) ? existingDisplay : 0,
+      value: Number.isFinite(existingDisplay) ? existingDisplay : 0
     },
     readiness: {
       ...(uiState.readiness || {}),
@@ -841,15 +858,34 @@ function skillStatusFromSource(sourceMode) {
 }
 
 function mergeRunnerUiState(current, runnerUiState) {
+  const next = applyMonotonicDisplayScore(current, runnerUiState);
   return {
     ...current,
-    ...runnerUiState,
+    ...next,
     recommendedQuestion: current.recommendedQuestion?.source === "skill_model"
       ? current.recommendedQuestion
-      : runnerUiState.recommendedQuestion,
+      : next.recommendedQuestion,
     humanReport: shouldPreserveSkillReport(current.humanReport?.summary?.source)
       ? current.humanReport
-      : (runnerUiState.humanReport || current.humanReport)
+      : (next.humanReport || current.humanReport)
+  };
+}
+
+function applyMonotonicDisplayScore(current = {}, nextUiState = {}) {
+  const currentScore = Number(current.dslCompletion?.displayScore ?? current.dslCompletion?.value ?? 0);
+  const nextCompletion = nextUiState.dslCompletion || {};
+  const nextDisplay = Number(nextCompletion.displayScore ?? nextCompletion.value ?? nextCompletion.rawScore ?? 0);
+  const displayScore = Math.max(
+    Number.isFinite(currentScore) ? currentScore : 0,
+    Number.isFinite(nextDisplay) ? nextDisplay : 0
+  );
+  return {
+    ...nextUiState,
+    dslCompletion: {
+      ...nextCompletion,
+      displayScore,
+      value: displayScore
+    }
   };
 }
 
@@ -907,11 +943,11 @@ function markUiStateInitialRequirement(current, pmInput) {
   return {
     ...current,
     dslCompletion: {
-      rawScore: 45,
-      displayScore: 45,
-      value: 45,
+      rawScore: 0,
+      displayScore: 0,
+      value: 0,
       source: "pm_input_initial",
-      displayNote: "initial requirement entered; awaiting clarification"
+      displayNote: "initial requirement entered; DSL score is calculating"
     },
     readiness: {
       ready_for_agent: false,
@@ -944,7 +980,7 @@ function hasMeaningfulRequirement(requirement) {
 function resolveRequirementCompletion(requirement) {
   const persisted = Number(requirement?.completionPercent);
   if (Number.isFinite(persisted) && persisted > 0) return Math.round(persisted);
-  return 45;
+  return 0;
 }
 
 async function persistRequirementState(requirementId, result, uiState) {
@@ -1117,4 +1153,10 @@ function getGlobalNumber(name, fallback = 0) {
 function clampNumber(value, min, max) {
   const numeric = Number.isFinite(value) ? value : min;
   return Math.min(max, Math.max(min, Math.round(numeric)));
+}
+
+function arrayOfStrings(value) {
+  return (Array.isArray(value) ? value : [])
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
 }

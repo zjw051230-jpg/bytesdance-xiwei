@@ -10,7 +10,7 @@ export default function DSLStatusConsole({
 }) {
   const artifactCompletion = completionFromArtifacts(runState?.artifacts);
   const emptyState = isNotStartedState(uiState, runState);
-  const completionMeta = resolveDisplayCompletion(artifactCompletion, uiState?.dslCompletion, emptyState);
+  const completionMeta = resolveDisplayCompletion(artifactCompletion, uiState?.dslCompletion, emptyState, runState);
   const completion = completionMeta.displayScore;
   const coverageItems = uiState?.coverageItems ?? { covered: [], pending: [] };
   const risks = uiState?.risks ?? [];
@@ -235,7 +235,7 @@ function completionFromArtifacts(artifacts = {}) {
   return null;
 }
 
-function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}, emptyState = false) {
+function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}, emptyState = false, runState = {}) {
   if (emptyState || dslCompletion?.source === "not_started") {
     return {
       rawScore: 0,
@@ -243,16 +243,30 @@ function resolveDisplayCompletion(artifactRawScore, dslCompletion = {}, emptySta
       displayNote: dslCompletion.displayNote || "DSL generation has not started"
     };
   }
+  const runStatus = String(runState?.status || "");
+  const skillStatus = String(runState?.skillStatus || "");
+  const calculating = ["queued", "running", "skill_turn", "input_gated"].includes(runStatus) ||
+    ["understanding", "generating"].includes(skillStatus) ||
+    dslCompletion?.source === "local_input_gate";
+  const explicitDisplayScore = Number(dslCompletion.displayScore ?? dslCompletion.value);
+  if (calculating && !Number.isFinite(Number(artifactRawScore))) {
+    const stableScore = Number.isFinite(explicitDisplayScore) ? explicitDisplayScore : 0;
+    return {
+      rawScore: Number.isFinite(Number(dslCompletion.rawScore)) ? Number(dslCompletion.rawScore) : stableScore,
+      displayScore: clamp(Math.round(stableScore), 0, 100),
+      displayNote: dslCompletion.displayNote || "DSL score is calculating"
+    };
+  }
   const rawScore = Number.isFinite(Number(artifactRawScore))
     ? Number(artifactRawScore)
-    : Number(dslCompletion.rawScore ?? dslCompletion.value ?? 72);
+    : Number(dslCompletion.rawScore ?? dslCompletion.value ?? 0);
   const displayScore = Number.isFinite(Number(dslCompletion.displayScore))
     ? Number(dslCompletion.displayScore)
-    : clamp(Math.round(rawScore), 86, 94);
+    : clamp(Math.round(rawScore), 0, 100);
   return {
     rawScore,
     displayScore,
-    displayNote: dslCompletion.displayNote || "demo display score clamp: rawScore is preserved"
+    displayNote: dslCompletion.displayNote || "rawScore is preserved; displayScore may be monotonic in the UI"
   };
 }
 

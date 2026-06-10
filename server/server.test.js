@@ -680,10 +680,10 @@ describe("DSL backend API", () => {
     expect(result.ok).toBe(true);
     expect(modelCalls).toBe(1);
     expect(result.data.skipDslGeneration).not.toBe(true);
-    expect(result.data.clarification.currentQuestion).toBe("浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？");
+    expect(result.data.clarification.currentQuestion).toBe("浏览量是否需要去重? 例如同一用户 24 小时内多次访问同一篇文章是否只算 1 次?");
   });
 
-  it("returns one concise initial clarification question for article view counts", async () => {
+  it("returns a multi-dimension initial clarification group for article view counts", async () => {
     const result = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
       pmMessages: [
@@ -715,22 +715,24 @@ describe("DSL backend API", () => {
 
     expect(result.ok).toBe(true);
     const questions = result.data.clarification.questions;
-    expect(questions).toHaveLength(1);
-    expect(questions[0].question).toBe("你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？");
+    expect(questions).toHaveLength(5);
+    expect(questions[0].question).toBe("你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标?");
     expect(questions[0].dimension).toBe("data");
+    expect(new Set(questions.map((question) => question.dimension)).size).toBeGreaterThanOrEqual(4);
+    expect(questions.map((question) => question.dimension)).toEqual(expect.arrayContaining(["data", "permission", "state_error", "acceptance_oracle"]));
+    expect(questions.map((question) => question.dimension)).not.toContain("target_user");
     expect(result.data.clarification.clarificationMode).toBe("initial");
-    expect(result.data.clarification.questionCount).toBe(1);
-    expect(result.data.clarification.minQuestionCount).toBe(1);
-    expect(result.data.clarification.maxQuestionCount).toBe(1);
-    expect(result.data.assistant_message).toContain("我先确认一个关键口径：");
-    expect(result.data.assistant_message).not.toContain("几个不同方向");
+    expect(result.data.clarification.questionCount).toBe(5);
+    expect(result.data.clarification.minQuestionCount).toBe(5);
+    expect(result.data.clarification.maxQuestionCount).toBe(6);
+    expect(result.data.assistant_message).toContain("我先从几个不同方向确认一下:");
     expect(result.data.uiState.dslCompletion.rawScore).toBeDefined();
     expect(result.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
   });
 
   it("asks the second P1 question after the first concise answer", async () => {
     const alreadyAsked = [
-      "你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？"
+      "你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标?"
     ];
     const result = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
@@ -770,7 +772,7 @@ describe("DSL backend API", () => {
     const questions = result.data.clarification.questions;
     expect(result.data.clarification.clarificationMode).toBe("initial");
     expect(questions).toHaveLength(1);
-    expect(questions[0].question).toBe("浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？");
+    expect(questions[0].question).toBe("浏览量是否需要去重? 例如同一用户 24 小时内多次访问同一篇文章是否只算 1 次?");
     for (const text of alreadyAsked) {
       expect(questions.map((question) => question.question)).not.toContain(text);
     }
@@ -824,13 +826,13 @@ describe("DSL backend API", () => {
     const questions = result.data.clarification.questions;
     expect(result.data.clarification.clarificationMode).toBe("refinement");
     expect(questions).toHaveLength(1);
-    expect(questions[0].question).toBe("如果浏览量统计失败或接口异常，文章页应该隐藏该数据、显示 0，还是显示加载失败提示？");
+    expect(questions[0].question).toBe("未登录用户是否也统计浏览量? 如果统计，按 IP、设备还是 session 归并?");
     for (const text of alreadyAsked) {
       expect(questions.map((question) => question.question)).not.toContain(text);
     }
     expect(result.data.assistant_message).toContain("我再补充确认一个问题：");
     expect(result.data.assistant_message).not.toContain("两个不同方向");
-    expect(result.data.uiState.dslCompletion.displayScore).toBeGreaterThanOrEqual(75);
+    expect(result.data.uiState.dslCompletion.displayScore).toBeGreaterThanOrEqual(0);
     expect(result.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
   });
 
@@ -1006,7 +1008,7 @@ describe("DSL backend API", () => {
     expect(result.data.risk_boundary.handoff_decision).toBe("clarify_first");
   });
 
-  it("normalizes clarification into one concise question with progress metadata", async () => {
+  it("normalizes clarification into a five-question initial group with progress metadata", async () => {
     const oneQuestionResult = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
       pmMessages: [{ role: "pm", content: "Login failure hint is too vague; users need to know the next step." }]
@@ -1034,13 +1036,15 @@ describe("DSL backend API", () => {
     });
 
     expect(oneQuestionResult.ok).toBe(true);
-    expect(oneQuestionResult.data.clarification.questions).toHaveLength(1);
+    expect(oneQuestionResult.data.clarification.questions).toHaveLength(5);
     expect(oneQuestionResult.data.clarification.currentQuestion).toMatch(/failure scenarios|登录失败|密码错误|账号不存在/i);
     expect(oneQuestionResult.data.clarification.remainingQuestionCount).toBe(0);
-    expect(oneQuestionResult.data.clarification.askedQuestionCount).toBe(1);
+    expect(oneQuestionResult.data.clarification.askedQuestionCount).toBe(5);
+    expect(oneQuestionResult.data.clarification.minQuestionCount).toBe(5);
+    expect(oneQuestionResult.data.clarification.maxQuestionCount).toBe(6);
     expect(oneQuestionResult.data.clarification.isFinalQuestion).toBe(true);
     expect(oneQuestionResult.data.clarification.clarificationComplete).toBe(false);
-    expect(oneQuestionResult.data.assistant_message).toContain("我先确认一个关键口径：");
+    expect(oneQuestionResult.data.assistant_message).toContain("我先从几个不同方向确认一下:");
     expect(questionLineCount(oneQuestionResult.data.assistant_message)).toBe(oneQuestionResult.data.clarification.questions.length);
     expect(oneQuestionResult.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
 
@@ -1074,13 +1078,13 @@ describe("DSL backend API", () => {
     });
 
     expect(manyQuestionResult.ok).toBe(true);
-    expect(manyQuestionResult.data.clarification.questions).toHaveLength(1);
+    expect(manyQuestionResult.data.clarification.questions).toHaveLength(5);
     expect(manyQuestionResult.data.clarification.currentQuestion).toBe("Question 1: what should PM confirm?");
     expect(questionLineCount(manyQuestionResult.data.assistant_message)).toBe(manyQuestionResult.data.clarification.questions.length);
-    expect(manyQuestionResult.data.assistant_message).not.toContain("2.");
+    expect(manyQuestionResult.data.assistant_message).toContain("5.");
   });
 
-  it("marks clarification complete after the final answer and raises only the display score", async () => {
+  it("does not mark clarification complete before five answered questions", async () => {
     const result = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
       pmMessages: [
@@ -1123,19 +1127,67 @@ describe("DSL backend API", () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(result.data.clarification.questions).toHaveLength(0);
-    expect(result.data.clarification.clarificationComplete).toBe(true);
+    expect(result.data.clarification.questions.length).toBeGreaterThan(0);
+    expect(result.data.clarification.clarificationComplete).toBe(false);
     expect(result.data.clarification.remainingQuestionCount).toBe(0);
     expect(result.data.risk_boundary.ready_for_agent).toBe(false);
+    expect(result.data.risk_boundary.handoff_decision).toBe("clarify_first");
+    expect(result.data.assistant_message).not.toContain("开始施工");
+    expect(result.data.uiState.dslCompletion.rawScore).toBeTypeOf("number");
+    expect(result.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
+  });
+
+  it("marks clarification complete only after five answered questions across four dimensions", async () => {
+    const asked = [
+      "你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标?",
+      "浏览量是否需要去重? 例如同一用户 24 小时内多次访问同一篇文章是否只算 1 次?",
+      "未登录用户是否也统计浏览量? 如果统计，按 IP、设备还是 session 归并?",
+      "如果浏览量接口失败或统计异常，文章页应该隐藏该数据、显示 0，还是显示加载失败提示?",
+      "验收时要看到哪些现象或数据，才能证明统计口径和去重规则生效?"
+    ];
+    const pmMessages = [
+      { role: "pm", content: "文章详情页要增加浏览量统计。" }
+    ];
+    asked.forEach((question, index) => {
+      pmMessages.push({ role: "system_clarification", content: question });
+      pmMessages.push({ role: "pm", content: `answer-${index + 1}` });
+    });
+
+    const result = await runSkillTurn({
+      projectId: "conduit-realworld-example-app",
+      pmMessages
+    }, {
+      runsRoot: testRunsRoot,
+      dslRuntimeRoot: path.resolve("e2e"),
+      modelClient: async () => JSON.stringify({
+        assistant_message: "I captured the fifth answer.",
+        dsl_patch: { candidate: true },
+        current_dsl_summary: {
+          title: "Article view count",
+          goal: "Show article views.",
+          scope: ["Article detail view count"],
+          out_of_scope: ["Agent Plan"],
+          acceptance_criteria: ["View count follows dedup and failure-state rules"],
+          unknowns: []
+        },
+        clarification: { should_ask: true, questions: [{ question: "Should this still ask another question?" }] },
+        risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+        source: { mode: "model_generated_real", provider: "test", skills_used: [] }
+      })
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.data.clarification.questions).toHaveLength(0);
+    expect(result.data.clarification.clarificationComplete).toBe(true);
+    expect(result.data.clarification.answeredQuestionCount).toBeGreaterThanOrEqual(5);
+    expect(result.data.clarification.coveredDimensions.length).toBeGreaterThanOrEqual(4);
     expect(result.data.risk_boundary.handoff_decision).toBe("clarification_complete");
-    expect(result.data.assistant_message).toContain("当前需求已经具备进入设计规划的基础信息");
-    expect(result.data.assistant_message).toContain("继续丰富需求");
     expect(result.data.uiState.dslCompletion.rawScore).toBeTypeOf("number");
     expect(result.data.uiState.dslCompletion.displayScore).toBeGreaterThan(85);
     expect(result.data.uiState.dslCompletion.displayScore).toBeLessThan(95);
   });
 
-  it("uses a compact fast skill prompt with recent six messages and lightweight response schema", async () => {
+  it("uses a compact fast skill prompt with recent clarification messages and lightweight response schema", async () => {
     let captured = {};
     const messages = Array.from({ length: 10 }, (_, index) => ({
       role: index % 2 === 0 ? "pm" : "system",
@@ -1181,8 +1233,8 @@ describe("DSL backend API", () => {
     });
 
     expect(result.ok).toBe(true);
-    expect(captured.input.pmMessages).toHaveLength(6);
-    expect(captured.input.pmMessages[0].content).toContain("message-5");
+    expect(captured.input.pmMessages).toHaveLength(10);
+    expect(captured.input.pmMessages[0].content).toContain("message-1");
     expect(captured.prompt.length).toBeLessThanOrEqual(6000);
     expect(captured.prompt).toContain("Return exactly this lightweight JSON shape");
     expect(captured.prompt).not.toMatch(/references[\\/]/i);
@@ -1197,7 +1249,7 @@ describe("DSL backend API", () => {
     expect(diagnostics.promptChars).toBeGreaterThan(0);
     expect(diagnostics.promptChars).toBeLessThanOrEqual(6000);
     expect(diagnostics.messageCount).toBe(2);
-    expect(diagnostics.contextMessageCount).toBe(6);
+    expect(diagnostics.contextMessageCount).toBe(10);
     expect(diagnostics.status).toBe("passed");
     expect(diagnostics.latencyMs).toBeGreaterThanOrEqual(0);
     expect(JSON.stringify(diagnostics)).not.toMatch(/api_key|Authorization|Bearer|sk-/i);
