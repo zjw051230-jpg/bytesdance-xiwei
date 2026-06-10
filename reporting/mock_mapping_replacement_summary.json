@@ -1,0 +1,57 @@
+{
+  "task": "Codex-MockMap Workbench mock mapping replacement",
+  "status": "partial_pass",
+  "targetDirectory": "F:\\字节比赛\\最终程序",
+  "implemented": {
+    "reviewFallbackFilesRemoved": true,
+    "reviewUsesPersistenceOrAgentWorkflow": true,
+    "reviewEmptyStateWhenNoData": true,
+    "prFallbackDraftRemoved": true,
+    "prUsesPersistenceOrAgentWorkflow": true,
+    "prEmptyStateWhenNoData": true,
+    "removedSharedFallbackExports": true
+  },
+  "realDataMappings": {
+    "review": ["persistence.reviewItems", "agentWorkflow.review.changedFiles"],
+    "pr": ["persistence.prDraft", "agentWorkflow.prDraft"],
+    "preview": ["preview.status", "preview.start"],
+    "project": ["activeProject", "persistence.projects"]
+  },
+  "retained": {
+    "testFixtures": true,
+    "smokeMocks": true,
+    "agentExecutionFixtures": true,
+    "reason": "agent execution and agent2 adapter were outside this task's allowed low-conflict slice"
+  },
+  "conflictAvoidance": {
+    "touchedPerformanceFiles": false,
+    "touchedDslClarificationFlowFiles": false,
+    "touchedAgent2Files": false,
+    "touchedViteConfig": false,
+    "stoppedDueConflict": false
+  },
+  "tests": {
+    "frontendPersistence": "passed",
+    "targetedAppPreviewAssertion": "passed",
+    "npmTest": "failed: 129 passed, 9 failed; remaining failures in DSL input gate / clarification flow",
+    "serverTest": "failed: 81 passed, 1 failed; short PM answer clarification context gate",
+    "build": "passed",
+    "smoke": "skipped_forbidden",
+    "verify": "skipped_forbidden",
+    "dev": "skipped_forbidden"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false,
+    "realRepoWritePerformed": false
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "main"
+  }
+}

@@ -137,6 +137,53 @@ describe("frontend persistence wiring", () => {
     expect(screen.getByLabelText("人工审阅状态 src/LoginForm.jsx")).toHaveValue("approved");
   });
 
+  it("shows an empty review state instead of hardcoded audit files when no review data exists", async () => {
+    render(
+      <ReviewCheckWorkbench
+        activeProject={project}
+        activeRequirement={null}
+        agentWorkflow={{ runId: "", review: null }}
+        onOpenPr={() => {}}
+      />
+    );
+
+    expect(screen.queryByText("src/components/LoginForm.jsx")).not.toBeInTheDocument();
+    expect(screen.queryByText("src/components/ErrorMessage.jsx")).not.toBeInTheDocument();
+    expect(screen.getByText(/暂无 Agent dry-run 审计结果/)).toBeInTheDocument();
+    expect(screen.getByText("暂无变更文件")).toBeInTheDocument();
+  });
+
+  it("maps review changed files from agent dry-run data when persistence data is unavailable", async () => {
+    render(
+      <ReviewCheckWorkbench
+        activeProject={project}
+        activeRequirement={null}
+        agentWorkflow={{
+          runId: "",
+          review: {
+            status: "needs_review",
+            summary: "Agent review from dry-run output",
+            changedFiles: [
+              {
+                file: "src/features/LoginNotice.jsx",
+                changeSummary: "Render actionable failure guidance",
+                why: "Maps to DSL acceptance",
+                risk: "Copy must not leak account existence",
+                requirementPoint: "login failure guidance"
+              }
+            ],
+            tests: [{ command: "npm test", status: "passed" }],
+            manualConfirmations: ["Review copy with PM"]
+          }
+        }}
+        onOpenPr={() => {}}
+      />
+    );
+
+    expect(screen.getByText("src/features/LoginNotice.jsx")).toBeInTheDocument();
+    expect(screen.queryByText("src/components/LoginForm.jsx")).not.toBeInTheDocument();
+  });
+
   it("saves PR draft edits and checklist state", async () => {
     const fetchMock = vi.fn(async (url, options = {}) => {
       if (String(url).endsWith("/pr-draft") && !options?.method) {
@@ -173,6 +220,38 @@ describe("frontend persistence wiring", () => {
       String(url).endsWith("/requirements/req-1/pr-draft") && options?.method === "POST"
     )[1].body);
     expect(patchBody.checklistJson).toEqual([{ text: "Dry-run reviewed", checked: true }]);
+  });
+
+  it("shows an empty PR state instead of fallback PR draft when no draft exists", async () => {
+    render(<PRWorkbench activeRequirement={null} agentWorkflow={{ runId: "", prDraft: null }} />);
+
+    expect(screen.queryByText("Agent dry-run PR draft pending")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Dry-run artifacts reviewed")).not.toBeInTheDocument();
+    expect(screen.getAllByText("PR 草稿未生成").length).toBeGreaterThan(0);
+    expect(screen.getByText("暂无 checklist")).toBeInTheDocument();
+  });
+
+  it("maps PR draft from agent dry-run data when persistence data is unavailable", async () => {
+    render(
+      <PRWorkbench
+        activeRequirement={null}
+        agentWorkflow={{
+          runId: "RUN-DRY-1",
+          prDraft: {
+            title: "Improve login failure guidance",
+            summary: ["Clarifies next steps for failed login"],
+            body: "Dry-run PR body",
+            changedFiles: ["src/features/LoginNotice.jsx"],
+            checklist: ["PM reviewed failure copy"]
+          }
+        }}
+      />
+    );
+
+    expect(screen.getByDisplayValue("Improve login failure guidance")).toBeInTheDocument();
+    expect(screen.getByText("src/features/LoginNotice.jsx")).toBeInTheDocument();
+    expect(screen.getByLabelText("PM reviewed failure copy")).toBeInTheDocument();
+    expect(screen.queryByText("Agent dry-run PR draft pending")).not.toBeInTheDocument();
   });
 
   it("shows readable API errors and keeps the page shell scroll locked", async () => {

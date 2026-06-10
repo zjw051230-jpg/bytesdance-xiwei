@@ -1,10 +1,9 @@
 import { Copy, GitPullRequest, Save } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { getPrDraft, upsertPrDraft } from "../api/persistenceClient.js";
-import { fallbackPrDraft } from "../data/agentWorkflowData.js";
 
 export default function PRWorkbench({ activeRequirement, agentWorkflow = {}, onAgentWorkflowChange }) {
-  const [draft, setDraft] = useState(() => normalizePrDraft(agentWorkflow.prDraft || fallbackPrDraft, agentWorkflow.runId));
+  const [draft, setDraft] = useState(() => normalizePrDraft(agentWorkflow.prDraft || {}, agentWorkflow.runId));
   const [prError, setPrError] = useState("");
   const [saveState, setSaveState] = useState("");
   const titleInputRef = useRef(null);
@@ -16,7 +15,7 @@ export default function PRWorkbench({ activeRequirement, agentWorkflow = {}, onA
     let active = true;
     setPrError("");
     if (!activeRequirement?.id) {
-      setDraft(normalizePrDraft(agentWorkflow.prDraft || fallbackPrDraft, agentWorkflow.runId));
+      setDraft(normalizePrDraft(agentWorkflow.prDraft || {}, agentWorkflow.runId));
       return () => {
         active = false;
       };
@@ -32,7 +31,7 @@ export default function PRWorkbench({ activeRequirement, agentWorkflow = {}, onA
       .catch((error) => {
         if (!active) return;
         if (error.payload?.error?.code === "pr_draft_not_found") {
-          setDraft(normalizePrDraft(agentWorkflow.prDraft || fallbackPrDraft, agentWorkflow.runId));
+          setDraft(normalizePrDraft(agentWorkflow.prDraft || {}, agentWorkflow.runId));
         } else {
           setPrError(`PR 草稿加载失败：${error.message || "Persistence API request failed"}`);
         }
@@ -139,7 +138,7 @@ export default function PRWorkbench({ activeRequirement, agentWorkflow = {}, onA
         <section><h2>风险</h2><ul>{draft.risks.length ? draft.risks.map((item, index) => <li key={`${index}-${item}`}>{item}</li>) : <li>暂无风险记录</li>}</ul></section>
         <section>
           <h2>合并前 checklist</h2>
-          <ul>{draft.checklistJson.map((item, index) => (
+          <ul>{draft.checklistJson.length ? draft.checklistJson.map((item, index) => (
             <li key={`${index}-${item.text}`}>
               <label>
                 <input
@@ -154,7 +153,7 @@ export default function PRWorkbench({ activeRequirement, agentWorkflow = {}, onA
                 {item.text}
               </label>
             </li>
-          ))}</ul>
+          )) : <li>暂无 checklist</li>}</ul>
         </section>
         <button type="button" onClick={saveDraft}><Save size={15} />保存 PR 草稿</button>
         <button type="button" onClick={copyDescription}><Copy size={15} />复制 PR 描述</button>
@@ -175,13 +174,13 @@ function normalizePrDraft(input = {}, runId = "") {
     id: input.id || "",
     requirementId: input.requirementId || "",
     runId: input.runId || input.sourceRun || runId || "",
-    title: input.title || "Agent dry-run PR draft pending",
-    summaryLines: summaryLines.length ? summaryLines : ["暂无持久化 PR 摘要"],
+    title: input.title || "PR 草稿未生成",
+    summaryLines: summaryLines.length ? summaryLines : ["暂无 PR 草稿摘要"],
     body: input.body || "",
     changedFiles: input.changedFiles || [],
     tests: input.tests || [],
     risks: input.risks || [],
-    checklistJson: checklistJson.length ? checklistJson : [{ text: "Dry-run artifacts reviewed", checked: false }],
+    checklistJson,
     status: input.status || "draft"
   };
 }

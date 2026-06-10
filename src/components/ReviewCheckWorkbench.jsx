@@ -2,7 +2,6 @@ import { ArrowRight, CheckCircle2, ExternalLink, FileCheck2, Monitor, RefreshCw,
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getPreviewStatus, startProjectPreview } from "../api/previewClient.js";
 import { getPrDraft, listReviewItems, updateReviewItem } from "../api/persistenceClient.js";
-import { fallbackAgentReview } from "../data/agentWorkflowData.js";
 
 const DEFAULT_PREVIEW_TITLE = "Conduit login page";
 const initialPreviewState = {
@@ -33,29 +32,7 @@ const humanStatusLabels = {
   blocked: "阻塞"
 };
 
-const defaultAuditChangedFiles = [
-  {
-    file: "src/components/LoginForm.jsx",
-    changeSummary: "审计登录表单的用户可见输入、提交与失败引导状态。",
-    why: "登录失败引导需求的主要用户触点在登录表单。",
-    risk: "表单状态和后端错误码不一致时，用户仍可能无法理解下一步。",
-    requirementPoint: "Login failure guidance"
-  },
-  {
-    file: "src/components/ErrorMessage.jsx",
-    changeSummary: "审计错误提示文案是否清晰、可操作、不会泄露账号枚举信息。",
-    why: "失败提示是本次需求最关键的可见结果。",
-    risk: "文案过细可能泄露账号存在性，文案过粗会降低可操作性。",
-    requirementPoint: "Visible failure guidance"
-  },
-  {
-    file: "src/App.test.jsx",
-    changeSummary: "审计登录失败引导是否有自动化测试覆盖。",
-    why: "测试证据决定该变更是否能进入 PR。",
-    risk: "测试夹具缺少真实应用上下文时，审计结论只能保持 needs_review。",
-    requirementPoint: "Acceptance coverage"
-  }
-];
+const emptyReviewSummary = "暂无 Agent dry-run 审计结果。请先在设计规划页生成 dry-run。";
 
 export default function ReviewCheckWorkbench({
   activeProject,
@@ -71,7 +48,7 @@ export default function ReviewCheckWorkbench({
   const [previewState, setPreviewState] = useState(initialPreviewState);
   const [viewport, setViewport] = useState("desktop");
   const [previewKey, setPreviewKey] = useState(0);
-  const fallbackReview = agentWorkflow.review || fallbackAgentReview;
+  const workflowReview = agentWorkflow.review || null;
   const projectId = activeProject?.id || "active-project";
   const localPath = typeof activeProject?.localPath === "string" ? activeProject.localPath.trim() : "";
   const requestSequence = useRef(0);
@@ -138,21 +115,21 @@ export default function ReviewCheckWorkbench({
     }
   };
 
-  const normalizedFallbackItems = normalizeWorkflowReviewItems(fallbackReview.changedFiles || []);
-  const displayItems = reviewItems.length > 0 ? reviewItems : normalizedFallbackItems;
+  const normalizedWorkflowItems = normalizeWorkflowReviewItems(workflowReview?.changedFiles || []);
+  const displayItems = reviewItems.length > 0 ? reviewItems : normalizedWorkflowItems;
   const reviewForAudit = useMemo(() => ({
-    status: reviewItems.length > 0 ? summarizeHumanStatus(reviewItems) : fallbackReview.status,
+    status: reviewItems.length > 0 ? summarizeHumanStatus(reviewItems) : workflowReview?.status || "not_generated",
     summary: reviewItems.length > 0
       ? (agentWorkflow.review?.summary || `${reviewItems.length} 个 review item 来自持久化 API。`)
-      : normalizedFallbackItems.length > 0
-        ? fallbackReview.summary
+      : normalizedWorkflowItems.length > 0
+        ? workflowReview?.summary || `${normalizedWorkflowItems.length} 个 review item 来自 Agent dry-run。`
         : loadingReview
           ? "正在读取持久化 review items..."
-          : fallbackReview.summary,
-    changedFiles: displayItems.length ? displayItems.map(reviewItemToAuditFile) : defaultAuditChangedFiles,
-    tests: buildTests(displayItems, fallbackReview),
-    manualConfirmations: buildConfirmations(displayItems, fallbackReview)
-  }), [agentWorkflow.review?.summary, displayItems, fallbackReview, loadingReview, normalizedFallbackItems.length, reviewItems]);
+          : emptyReviewSummary,
+    changedFiles: displayItems.map(reviewItemToAuditFile),
+    tests: buildTests(displayItems, workflowReview),
+    manualConfirmations: buildConfirmations(displayItems, workflowReview)
+  }), [agentWorkflow.review?.summary, displayItems, workflowReview, loadingReview, normalizedWorkflowItems.length, reviewItems]);
 
   const auditModel = useMemo(() => buildAuditModel(reviewForAudit, previewState.previewUrl), [reviewForAudit, previewState.previewUrl]);
   const [selectedFile, setSelectedFile] = useState(auditModel.selectedFile);
@@ -290,7 +267,7 @@ export default function ReviewCheckWorkbench({
         <section className="audit-section audit-file-section">
           <h2><FileCheck2 size={16} />变更文件</h2>
           <div className="audit-file-list">
-            {auditModel.changedFiles.map((file) => (
+            {auditModel.changedFiles.length ? auditModel.changedFiles.map((file) => (
               <div className="audit-file-card-shell" key={file.file}>
                 <button
                   type="button"
@@ -315,7 +292,7 @@ export default function ReviewCheckWorkbench({
                   </label>
                 ) : null}
               </div>
-            ))}
+            )) : <p className="audit-empty-state">暂无变更文件</p>}
           </div>
         </section>
 
@@ -427,29 +404,26 @@ function summarizeHumanStatus(items) {
 }
 
 function buildTests(items, fallbackReview) {
-  if (items.length === 0) return fallbackReview.tests || [];
+  if (items.length === 0) return fallbackReview?.tests || [];
   return items.map((item, index) => ({ command: `review evidence ${index + 1}`, status: item.testStatus || "pending" }));
 }
 
 function buildConfirmations(items, fallbackReview) {
-  if (items.length === 0) return fallbackReview.manualConfirmations || [];
+  if (items.length === 0) return fallbackReview?.manualConfirmations || ["请先生成 Agent dry-run 审计结果。"];
   return items.map((item) => `${item.filePath || item.file}: ${humanStatusLabels[item.humanStatus || "pending"]}`);
 }
 
 function buildAuditModel(review, previewUrl) {
   const changedFiles = Array.isArray(review.changedFiles) && review.changedFiles.length
     ? review.changedFiles
-    : defaultAuditChangedFiles;
+    : [];
+  const hasChangedFiles = changedFiles.length > 0;
   return {
     changedFiles,
     previewUrl: previewUrl || "",
     previewTitle: DEFAULT_PREVIEW_TITLE,
-    selectedFile: changedFiles[0]?.file || "src/components/LoginForm.jsx",
-    visibleChanges: [
-      "登录页作为本次审计的主预览面，重点检查失败引导是否清晰。",
-      "表单提交、错误提示和测试补充被拆成独立证据项，方便逐项确认。",
-      "当前仍保持 dry-run 边界，不执行真实仓库写入。"
-    ],
+    selectedFile: changedFiles[0]?.file || "",
+    visibleChanges: hasChangedFiles ? changedFiles.map((file) => file.changeSummary || file.requirementPoint || file.file) : ["暂无用户可见变更，等待 Agent dry-run 输出。"],
     acceptanceMappings: changedFiles.map((file, index) => ({
       label: `验收点 ${index + 1}`,
       value: file.why || file.requirementPoint || "Mapped to RequirementDSL acceptance criteria."

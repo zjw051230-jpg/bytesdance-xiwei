@@ -304,8 +304,8 @@ describe("monitor console and workspace picker", () => {
       localPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app"
     });
     await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4555/#/login"));
-    fireEvent.click(screen.getByRole("button", { name: /src\/components\/LoginForm\.jsx/ }));
-    expect(screen.getByRole("button", { name: /src\/components\/LoginForm\.jsx/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: /src\/components\/LoginForm\.jsx/ })).not.toBeInTheDocument();
+    expect(screen.getByText("暂无变更文件")).toBeInTheDocument();
   });
 
   it("reloads preview status when the active project localPath changes", async () => {
