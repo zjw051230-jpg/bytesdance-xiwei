@@ -1,0 +1,90 @@
+{
+  "task_id": "runtime_append",
+  "user_input": "文章详情页新增字数统计",
+  "status": "SUCCESS",
+  "current_step": 4,
+  "max_steps": 5,
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "runtime_control",
+        "args": {
+          "type": "APPEND_INSTRUCTION",
+          "payload": {
+            "instruction": "不要使用英文展示，必须使用中文"
+          }
+        }
+      },
+      "observation": {
+        "ok": true,
+        "message": "Instruction appended"
+      }
+    },
+    {
+      "step": 0,
+      "action": {
+        "tool": "analyze_requirement",
+        "args": {
+          "input": "文章详情页新增字数统计"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "理解需求：文章详情页新增字数统计，需要做文章详情页的字数统计能力。"
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "select_skill",
+        "args": {
+          "input": "文章详情页新增字数统计"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "skill = article-word-stats"
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "make_plan",
+        "args": {
+          "input": "文章详情页新增字数统计",
+          "runtime_instructions": [
+            "不要使用英文展示，必须使用中文"
+          ]
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "定位文章详情页 -> 添加字数统计 -> 运行测试",
+        "runtime_instructions": [
+          "不要使用英文展示，必须使用中文"
+        ]
+      }
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "finish",
+        "args": {
+          "input": "文章详情页新增字数统计"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "任务已完成",
+        "summary": "已完成对 '文章详情页新增字数统计' 的最小 Agent 流程验证。"
+      }
+    }
+  ],
+  "instructions": [
+    "不要使用英文展示，必须使用中文"
+  ],
+  "artifacts": {
+    "last_runtime_instruction": "不要使用英文展示，必须使用中文"
+  }
+}

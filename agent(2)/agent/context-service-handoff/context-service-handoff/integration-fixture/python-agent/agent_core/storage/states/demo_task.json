@@ -1,0 +1,755 @@
+{
+  "task_id": "demo_task",
+  "user_input": "???????????",
+  "status": "SUCCESS",
+  "current_step": 9,
+  "max_steps": 10,
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "analyze_requirement",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 0\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  description: Create a simple execution plan\n  category: planning\n- name: ",
+          "requirement": "???????????"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "理解需求：???????????，需要做文章详情页的字数统计能力。"
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "select_skill",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 1\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  description: Create a simple execution plan\n  category: planning\n- name: ",
+          "requirement": "???????????",
+          "matched_skill": {
+            "matched": false,
+            "skill": null,
+            "score": 0
+          }
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "matched_skill": {
+            "matched": false,
+            "skill": null,
+            "score": 0
+          }
+        }
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "make_plan",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 2\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  description: Create a simple execution plan\n  category: planning\n- name: ",
+          "matched_skill": null,
+          "runtime_instructions": []
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "plan": {
+            "task_name": "Generate implementation plan",
+            "skill_name": null,
+            "scope": "unknown",
+            "steps": [
+              "Clarify requirement",
+              "Locate relevant modules",
+              "Propose implementation plan"
+            ],
+            "target_files_hint": [],
+            "acceptance_criteria": [
+              "Requirement needs clarification"
+            ],
+            "test_commands": [],
+            "runtime_instructions": []
+          }
+        }
+      }
+    },
+    {
+      "step": 3,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "locate_files",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 3\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count', 'plan']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  description: Create a simple execution plan\n  category: planning\n",
+          "plan": {
+            "task_name": "Generate implementation plan",
+            "skill_name": null,
+            "scope": "unknown",
+            "steps": [
+              "Clarify requirement",
+              "Locate relevant modules",
+              "Propose implementation plan"
+            ],
+            "target_files_hint": [],
+            "acceptance_criteria": [
+              "Requirement needs clarification"
+            ],
+            "test_commands": [],
+            "runtime_instructions": []
+          },
+          "matched_skill": null
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "located_files": {
+            "located": false,
+            "files": [],
+            "strategy": "fallback"
+          }
+        }
+      }
+    },
+    {
+      "step": 4,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "generate_patch",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 4\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count', 'plan', 'located_files']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  description: Create a simple execution plan\n  ca",
+          "plan": {
+            "task_name": "Generate implementation plan",
+            "skill_name": null,
+            "scope": "unknown",
+            "steps": [
+              "Clarify requirement",
+              "Locate relevant modules",
+              "Propose implementation plan"
+            ],
+            "target_files_hint": [],
+            "acceptance_criteria": [
+              "Requirement needs clarification"
+            ],
+            "test_commands": [],
+            "runtime_instructions": []
+          },
+          "located_files": {
+            "located": false,
+            "files": [],
+            "strategy": "fallback"
+          },
+          "matched_skill": null
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "patch_plan": {
+            "patches": [
+              {
+                "file": "frontend/src/pages/Article.jsx",
+                "reason": "Generic patch plan placeholder based on the current requirement",
+                "changes": [
+                  "Clarify implementation scope",
+                  "Locate relevant modules",
+                  "Prepare targeted changes"
+                ],
+                "risk_level": "low"
+              }
+            ],
+            "summary": "Prepare a generic patch plan for the current requirement."
+          }
+        }
+      }
+    },
+    {
+      "step": 5,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "review_patch",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 5\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count', 'plan', 'located_files', 'patch_plan']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  description: Create a simple execu",
+          "plan": {
+            "task_name": "Generate implementation plan",
+            "skill_name": null,
+            "scope": "unknown",
+            "steps": [
+              "Clarify requirement",
+              "Locate relevant modules",
+              "Propose implementation plan"
+            ],
+            "target_files_hint": [],
+            "acceptance_criteria": [
+              "Requirement needs clarification"
+            ],
+            "test_commands": [],
+            "runtime_instructions": []
+          },
+          "located_files": {
+            "located": false,
+            "files": [],
+            "strategy": "fallback"
+          },
+          "patch_plan": {
+            "patches": [
+              {
+                "file": "frontend/src/pages/Article.jsx",
+                "reason": "Generic patch plan placeholder based on the current requirement",
+                "changes": [
+                  "Clarify implementation scope",
+                  "Locate relevant modules",
+                  "Prepare targeted changes"
+                ],
+                "risk_level": "low"
+              }
+            ],
+            "summary": "Prepare a generic patch plan for the current requirement."
+          }
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "review": {
+            "approved": true,
+            "risk_level": "low",
+            "issues": [
+              "Patch plan may not fully cover acceptance criteria"
+            ],
+            "required_fixes": [],
+            "checks": {
+              "has_patch_plan": true,
+              "matches_acceptance_criteria": false,
+              "regression_risk_checked": true,
+              "dangerous_files_checked": true
+            },
+            "summary": "Patch plan has review issues that should be resolved before execution."
+          }
+        }
+      }
+    },
+    {
+      "step": 6,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "execute_patch",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 6\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count', 'plan', 'located_files', 'patch_plan', 'review']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  description: Create a si",
+          "patch_plan": {
+            "patches": [
+              {
+                "file": "frontend/src/pages/Article.jsx",
+                "reason": "Generic patch plan placeholder based on the current requirement",
+                "changes": [
+                  "Clarify implementation scope",
+                  "Locate relevant modules",
+                  "Prepare targeted changes"
+                ],
+                "risk_level": "low"
+              }
+            ],
+            "summary": "Prepare a generic patch plan for the current requirement."
+          },
+          "review": {
+            "approved": true,
+            "risk_level": "low",
+            "issues": [
+              "Patch plan may not fully cover acceptance criteria"
+            ],
+            "required_fixes": [],
+            "checks": {
+              "has_patch_plan": true,
+              "matches_acceptance_criteria": false,
+              "regression_risk_checked": true,
+              "dangerous_files_checked": true
+            },
+            "summary": "Patch plan has review issues that should be resolved before execution."
+          }
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "execution_result": {
+            "executed": true,
+            "mode": "mock_repo",
+            "files": [
+              {
+                "file": "frontend/src/pages/Article.jsx",
+                "status": "applied",
+                "changes_applied": [
+                  "Clarify implementation scope",
+                  "Locate relevant modules",
+                  "Prepare targeted changes"
+                ],
+                "applied": true,
+                "mode": "mock",
+                "adapter_result": {
+                  "ok": true,
+                  "file": "frontend/src/pages/Article.jsx",
+                  "applied": true,
+                  "mode": "mock"
+                }
+              }
+            ],
+            "summary": "Patch execution completed through mock repo adapter."
+          }
+        }
+      }
+    },
+    {
+      "step": 7,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "verify_result",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 7\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count', 'plan', 'located_files', 'patch_plan', 'review', 'execution_result']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n- name: make_plan\n  desc",
+          "plan": {
+            "task_name": "Generate implementation plan",
+            "skill_name": null,
+            "scope": "unknown",
+            "steps": [
+              "Clarify requirement",
+              "Locate relevant modules",
+              "Propose implementation plan"
+            ],
+            "target_files_hint": [],
+            "acceptance_criteria": [
+              "Requirement needs clarification"
+            ],
+            "test_commands": [],
+            "runtime_instructions": []
+          },
+          "execution_result": {
+            "executed": true,
+            "mode": "mock_repo",
+            "files": [
+              {
+                "file": "frontend/src/pages/Article.jsx",
+                "status": "applied",
+                "changes_applied": [
+                  "Clarify implementation scope",
+                  "Locate relevant modules",
+                  "Prepare targeted changes"
+                ],
+                "applied": true,
+                "mode": "mock",
+                "adapter_result": {
+                  "ok": true,
+                  "file": "frontend/src/pages/Article.jsx",
+                  "applied": true,
+                  "mode": "mock"
+                }
+              }
+            ],
+            "summary": "Patch execution completed through mock repo adapter."
+          }
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "verification_result": {
+            "verified": true,
+            "passed": true,
+            "mode": "mock_test",
+            "test_result": {
+              "ok": true,
+              "passed": true,
+              "commands": [
+                {
+                  "command": "npm run lint",
+                  "status": "passed",
+                  "exit_code": 0,
+                  "output": "Mock test passed"
+                }
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "step": 8,
+      "action": {
+        "thought": "Mock adapter selected the next action",
+        "tool": "finish",
+        "args": {
+          "selected_model": "doubao-seed-2.0-lite",
+          "thought": "Mock adapter selected the next action",
+          "prompt_preview": "你是一个工程化 Agent，需要根据当前状态选择下一步 action。\n\n当前任务:\n???????????\n\n当前状态:\n- status: RUNNING\n- current_step: 8\n- instructions: []\n- matched_skill: None\n- artifact_keys: ['task_level', 'risk_level', 'budget_mode', 'memory_hit_count', 'plan', 'located_files', 'patch_plan', 'review', 'execution_result', 'verification_result']\n\n可用 actions:\n- name: analyze_requirement\n  description: Analyze user requirement\n  category: analysis\n- name: select_skill\n  description: Select a skill for the task\n  category: analysis\n-",
+          "summary": "Agent task completed successfully"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "final_summary": {
+            "status": "SUCCESS",
+            "user_input": "???????????",
+            "skill": null,
+            "plan_summary": "Generate implementation plan",
+            "located_files_count": 0,
+            "patch_count": 1,
+            "review_approved": true,
+            "execution_executed": true,
+            "execution_mode": "mock_repo",
+            "verification_passed": true,
+            "model_calls": 9,
+            "total_steps": 9,
+            "message": "Agent task completed successfully"
+          }
+        }
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced",
+    "memory_hit_count": 0,
+    "plan": {
+      "task_name": "Generate implementation plan",
+      "skill_name": null,
+      "scope": "unknown",
+      "steps": [
+        "Clarify requirement",
+        "Locate relevant modules",
+        "Propose implementation plan"
+      ],
+      "target_files_hint": [],
+      "acceptance_criteria": [
+        "Requirement needs clarification"
+      ],
+      "test_commands": [],
+      "runtime_instructions": []
+    },
+    "located_files": {
+      "located": false,
+      "files": [],
+      "strategy": "fallback"
+    },
+    "patch_plan": {
+      "patches": [
+        {
+          "file": "frontend/src/pages/Article.jsx",
+          "reason": "Generic patch plan placeholder based on the current requirement",
+          "changes": [
+            "Clarify implementation scope",
+            "Locate relevant modules",
+            "Prepare targeted changes"
+          ],
+          "risk_level": "low"
+        }
+      ],
+      "summary": "Prepare a generic patch plan for the current requirement."
+    },
+    "review": {
+      "approved": true,
+      "risk_level": "low",
+      "issues": [
+        "Patch plan may not fully cover acceptance criteria"
+      ],
+      "required_fixes": [],
+      "checks": {
+        "has_patch_plan": true,
+        "matches_acceptance_criteria": false,
+        "regression_risk_checked": true,
+        "dangerous_files_checked": true
+      },
+      "summary": "Patch plan has review issues that should be resolved before execution."
+    },
+    "execution_result": {
+      "executed": true,
+      "mode": "mock_repo",
+      "files": [
+        {
+          "file": "frontend/src/pages/Article.jsx",
+          "status": "applied",
+          "changes_applied": [
+            "Clarify implementation scope",
+            "Locate relevant modules",
+            "Prepare targeted changes"
+          ],
+          "applied": true,
+          "mode": "mock",
+          "adapter_result": {
+            "ok": true,
+            "file": "frontend/src/pages/Article.jsx",
+            "applied": true,
+            "mode": "mock"
+          }
+        }
+      ],
+      "summary": "Patch execution completed through mock repo adapter."
+    },
+    "verification_result": {
+      "verified": true,
+      "passed": true,
+      "mode": "mock_test",
+      "test_result": {
+        "ok": true,
+        "passed": true,
+        "commands": [
+          {
+            "command": "npm run lint",
+            "status": "passed",
+            "exit_code": 0,
+            "output": "Mock test passed"
+          }
+        ]
+      }
+    },
+    "final_summary": {
+      "status": "SUCCESS",
+      "user_input": "???????????",
+      "skill": null,
+      "plan_summary": "Generate implementation plan",
+      "located_files_count": 0,
+      "patch_count": 1,
+      "review_approved": true,
+      "execution_executed": true,
+      "execution_mode": "mock_repo",
+      "verification_passed": true,
+      "model_calls": 9,
+      "total_steps": 9,
+      "message": "Agent task completed successfully"
+    }
+  },
+  "matched_skill": null,
+  "model_trace": [
+    {
+      "step": 0,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 1,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 2,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "L1 low-risk plan uses cheap model",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 3,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 4,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 5,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 6,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 7,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 8,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    }
+  ],
+  "available_actions_history": [
+    {
+      "step": 0,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 1,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 2,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 3,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 4,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 5,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 6,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 7,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 8,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    }
+  ],
+  "memory_hits": []
+}

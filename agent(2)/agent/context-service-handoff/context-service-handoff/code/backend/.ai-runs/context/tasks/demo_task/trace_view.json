@@ -1,0 +1,516 @@
+{
+  "task_id": "demo_task",
+  "projector_version": "trace-projector-v1",
+  "source_event_count": 20,
+  "source_last_seq": 20,
+  "events_hash": "acd132bd3eeae09b13c9d16e8fb102f37cb09be74c38b1cb2252f648b9e24fed",
+  "view_hash": "e1ce46610a5ec9d6edb09f3650cde7e1f1ebd87f268989f56ef5b02fe611eff7",
+  "generated_at": "2026-06-09T09:13:03.120Z",
+  "nodes": [
+    {
+      "id": "dsl_root",
+      "task_id": "demo_task",
+      "type": "final_dsl",
+      "summary": "Generate implementation plan",
+      "status": "verified",
+      "produced_by": "dslAgent",
+      "created_at": "2026-06-09T09:10:28.645Z",
+      "metadata": {
+        "source_event_type": "PLAN_CREATED",
+        "acceptance_criteria": [
+          "Requirement needs clarification"
+        ],
+        "target_files_hint": [],
+        "runtime_instructions": []
+      }
+    },
+    {
+      "status": "verified",
+      "created_at": "2026-06-09T09:10:28.888Z",
+      "id": "finish_8",
+      "type": "delivery_report",
+      "summary": "Agent task completed successfully",
+      "produced_by": "deliveryAgent",
+      "metadata": {
+        "source_event_type": "TASK_FINISHED",
+        "final_summary": {
+          "status": "SUCCESS",
+          "user_input": "?? note.txt ?????? 100",
+          "skill": null,
+          "plan_summary": "Generate implementation plan",
+          "located_files_count": 0,
+          "patch_count": 1,
+          "review_approved": true,
+          "execution_executed": true,
+          "execution_mode": "mock_repo",
+          "verification_passed": true,
+          "model_calls": 9,
+          "total_steps": 9,
+          "message": "Agent task completed successfully"
+        }
+      },
+      "task_id": "demo_task"
+    },
+    {
+      "id": "patch_4",
+      "task_id": "demo_task",
+      "type": "patch",
+      "summary": "Prepare a structured create_file patch operation.",
+      "status": "created",
+      "produced_by": "codegenAgent",
+      "created_at": "2026-06-09T09:10:28.718Z",
+      "metadata": {
+        "source_event_type": "PATCH_GENERATED",
+        "patch_plan": {
+          "patches": [
+            {
+              "operation": "create_file",
+              "path": "note.txt",
+              "content": "100",
+              "reason": "User requested creating a file with explicit content",
+              "risk_level": "low"
+            }
+          ],
+          "summary": "Prepare a structured create_file patch operation."
+        },
+        "changed_files": []
+      }
+    },
+    {
+      "id": "plan_2",
+      "task_id": "demo_task",
+      "type": "plan",
+      "summary": "Generate implementation plan",
+      "status": "created",
+      "produced_by": "planAgent",
+      "created_at": "2026-06-09T09:10:28.646Z",
+      "metadata": {
+        "source_event_type": "PLAN_CREATED",
+        "plan": {
+          "task_name": "Generate implementation plan",
+          "skill_name": null,
+          "scope": "unknown",
+          "steps": [
+            "Clarify requirement",
+            "Locate relevant modules",
+            "Propose implementation plan"
+          ],
+          "target_files_hint": [],
+          "acceptance_criteria": [
+            "Requirement needs clarification"
+          ],
+          "test_commands": [],
+          "runtime_instructions": []
+        }
+      }
+    },
+    {
+      "status": "verified",
+      "created_at": "2026-06-09T09:10:28.761Z",
+      "id": "review_5",
+      "type": "review",
+      "summary": "Patch plan has review issues that should be resolved before execution.",
+      "produced_by": "deliveryAgent",
+      "metadata": {
+        "source_event_type": "REVIEW_COMPLETED",
+        "review": {
+          "approved": true,
+          "risk_level": "low",
+          "issues": [
+            "Patch plan may not fully cover acceptance criteria"
+          ],
+          "required_fixes": [],
+          "checks": {
+            "has_patch_plan": true,
+            "matches_acceptance_criteria": false,
+            "regression_risk_checked": true,
+            "dangerous_files_checked": true
+          },
+          "summary": "Patch plan has review issues that should be resolved before execution."
+        }
+      },
+      "task_id": "demo_task"
+    },
+    {
+      "id": "sandbox_6",
+      "task_id": "demo_task",
+      "type": "sandbox_result",
+      "summary": "Patch execution completed through repo adapter.",
+      "status": "verified",
+      "produced_by": "repairAgent",
+      "created_at": "2026-06-09T09:10:28.794Z",
+      "metadata": {
+        "source_event_type": "EXECUTION_COMPLETED",
+        "execution_result": {
+          "executed": true,
+          "mode": "mock_repo",
+          "files": [
+            {
+              "file": "note.txt",
+              "operation": "create_file",
+              "status": "applied",
+              "changes_applied": [],
+              "applied": true,
+              "dry_run": false,
+              "preview": false,
+              "approval_required": false,
+              "real_write": false,
+              "would_write": null,
+              "content_preview": null,
+              "diff_preview": null,
+              "before_exists": null,
+              "after_exists": null,
+              "bytes_written": null,
+              "unsupported_for_real_write": false,
+              "mode": "mock_repo",
+              "adapter_result": {
+                "ok": true,
+                "file": "note.txt",
+                "applied": true,
+                "mode": "mock_repo"
+              }
+            }
+          ],
+          "preview_result": [],
+          "summary": "Patch execution completed through repo adapter."
+        },
+        "success": true
+      }
+    },
+    {
+      "status": "verified",
+      "created_at": "2026-06-09T09:10:28.845Z",
+      "id": "verify_7",
+      "type": "verification_result",
+      "summary": "Verification completed",
+      "produced_by": "deliveryAgent",
+      "metadata": {
+        "source_event_type": "VERIFICATION_COMPLETED",
+        "verification_result": {
+          "verified": true,
+          "passed": true,
+          "mode": "mock_test",
+          "verify_preview": null,
+          "verification_required": false,
+          "test_result": {
+            "ok": true,
+            "passed": true,
+            "commands": [
+              {
+                "command": "npm run lint",
+                "status": "passed",
+                "exit_code": 0,
+                "output": "Mock test passed"
+              }
+            ]
+          }
+        }
+      },
+      "task_id": "demo_task"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_11_depends_on_review_5",
+      "task_id": "demo_task",
+      "from_node_id": "sandbox_6",
+      "to_node_id": "review_5",
+      "relation": "depends_on",
+      "confidence": "deterministic",
+      "created_at": "2026-06-09T09:10:28.794Z"
+    },
+    {
+      "id": "edge_4_depends_on_dsl_root",
+      "task_id": "demo_task",
+      "from_node_id": "plan_2",
+      "to_node_id": "dsl_root",
+      "relation": "depends_on",
+      "confidence": "deterministic",
+      "created_at": "2026-06-09T09:10:28.646Z"
+    },
+    {
+      "id": "edge_6_depends_on_plan_2",
+      "task_id": "demo_task",
+      "from_node_id": "patch_4",
+      "to_node_id": "plan_2",
+      "relation": "depends_on",
+      "confidence": "deterministic",
+      "created_at": "2026-06-09T09:10:28.718Z"
+    },
+    {
+      "confidence": "deterministic",
+      "created_at": "2026-06-09T09:10:28.891Z",
+      "id": "edge_finish_8_depends_on_verify_7",
+      "from_node_id": "finish_8",
+      "to_node_id": "verify_7",
+      "relation": "depends_on",
+      "task_id": "demo_task"
+    },
+    {
+      "confidence": "deterministic",
+      "created_at": "2026-06-09T09:10:28.763Z",
+      "id": "edge_review_5_depends_on_patch_4",
+      "from_node_id": "review_5",
+      "to_node_id": "patch_4",
+      "relation": "depends_on",
+      "task_id": "demo_task"
+    },
+    {
+      "confidence": "deterministic",
+      "created_at": "2026-06-09T09:10:28.848Z",
+      "id": "edge_verify_7_depends_on_sandbox_6",
+      "from_node_id": "verify_7",
+      "to_node_id": "sandbox_6",
+      "relation": "depends_on",
+      "task_id": "demo_task"
+    }
+  ],
+  "metadata": {
+    "redaction_manifest_ids": [],
+    "redaction_hash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+    "agent_context_built": [
+      {
+        "context_id": "ctx_a712e2cf-e19d-4ec0-9808-57352b8d045c",
+        "agent_name": "planAgent",
+        "source_node_ids": [],
+        "source_event_ids": [],
+        "budget_report": {
+          "before_chars": 452,
+          "after_chars": 452,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_a712e2cf-e19d-4ec0-9808-57352b8d045c.json"
+      },
+      {
+        "context_id": "ctx_fd1e81d0-6407-41f1-b938-f52b8bd68d15",
+        "agent_name": "codegenAgent",
+        "current_node_id": "plan_2",
+        "source_node_ids": [
+          "plan_2",
+          "dsl_root"
+        ],
+        "source_event_ids": [],
+        "budget_report": {
+          "before_chars": 1038,
+          "after_chars": 1038,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_fd1e81d0-6407-41f1-b938-f52b8bd68d15.json"
+      },
+      {
+        "context_id": "ctx_44974324-6b03-4e46-b733-7c8de1243ef0",
+        "agent_name": "deliveryAgent",
+        "current_node_id": "patch_4",
+        "source_node_ids": [
+          "patch_4",
+          "plan_2",
+          "dsl_root"
+        ],
+        "source_event_ids": [],
+        "budget_report": {
+          "before_chars": 1681,
+          "after_chars": 1681,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_44974324-6b03-4e46-b733-7c8de1243ef0.json"
+      },
+      {
+        "context_id": "ctx_61cf2593-2525-4749-8cb1-a6987e1a7805",
+        "agent_name": "repairAgent",
+        "current_node_id": "review_5",
+        "source_node_ids": [
+          "review_5",
+          "patch_4",
+          "plan_2",
+          "dsl_root"
+        ],
+        "source_event_ids": [
+          "evt_acac3f5a-2af4-406c-a89f-e4dd95bb7cf4",
+          "evt_53985037-2a0b-4052-a92c-f3e891b75ca1"
+        ],
+        "budget_report": {
+          "before_chars": 1751,
+          "after_chars": 1751,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_61cf2593-2525-4749-8cb1-a6987e1a7805.json"
+      },
+      {
+        "context_id": "ctx_3db3c5a2-d98f-4851-bde4-2ac2bf3513b9",
+        "agent_name": "deliveryAgent",
+        "current_node_id": "sandbox_6",
+        "source_node_ids": [
+          "sandbox_6",
+          "review_5",
+          "patch_4",
+          "plan_2",
+          "dsl_root"
+        ],
+        "source_event_ids": [
+          "evt_acac3f5a-2af4-406c-a89f-e4dd95bb7cf4",
+          "evt_53985037-2a0b-4052-a92c-f3e891b75ca1"
+        ],
+        "budget_report": {
+          "before_chars": 2612,
+          "after_chars": 2612,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_3db3c5a2-d98f-4851-bde4-2ac2bf3513b9.json"
+      },
+      {
+        "context_id": "ctx_ba0d1e56-c825-437f-98b0-66baf26ef565",
+        "agent_name": "planAgent",
+        "source_node_ids": [
+          "dsl_root",
+          "finish_8",
+          "patch_4",
+          "plan_2",
+          "review_5",
+          "sandbox_6",
+          "verify_7"
+        ],
+        "source_event_ids": [
+          "evt_acac3f5a-2af4-406c-a89f-e4dd95bb7cf4",
+          "evt_53985037-2a0b-4052-a92c-f3e891b75ca1",
+          "evt_630420f1-b5f1-4aa1-932b-fe28f96ac9c2",
+          "evt_12ff12aa-3863-4742-97d2-2ae6c2f860b0",
+          "evt_a8e83152-9e56-49bf-a30c-52d123ff4fbc",
+          "evt_0428f827-acbe-4c64-8a30-24a259b2561b"
+        ],
+        "budget_report": {
+          "before_chars": 986,
+          "after_chars": 986,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_ba0d1e56-c825-437f-98b0-66baf26ef565.json"
+      },
+      {
+        "context_id": "ctx_2d72277a-adbc-4d86-ac9e-2ffb30d9d93a",
+        "agent_name": "codegenAgent",
+        "current_node_id": "plan_2",
+        "source_node_ids": [
+          "plan_2",
+          "dsl_root"
+        ],
+        "source_event_ids": [],
+        "budget_report": {
+          "before_chars": 1038,
+          "after_chars": 1038,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_2d72277a-adbc-4d86-ac9e-2ffb30d9d93a.json"
+      },
+      {
+        "context_id": "ctx_def7d79a-b9c4-40ab-ae52-0da28389cea3",
+        "agent_name": "deliveryAgent",
+        "current_node_id": "patch_4",
+        "source_node_ids": [
+          "patch_4",
+          "plan_2",
+          "dsl_root"
+        ],
+        "source_event_ids": [
+          "evt_53985037-2a0b-4052-a92c-f3e891b75ca1"
+        ],
+        "budget_report": {
+          "before_chars": 2737,
+          "after_chars": 2737,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_def7d79a-b9c4-40ab-ae52-0da28389cea3.json"
+      },
+      {
+        "context_id": "ctx_7810a95a-2448-482c-b8f1-06a0fcc033e3",
+        "agent_name": "repairAgent",
+        "current_node_id": "review_5",
+        "source_node_ids": [
+          "review_5",
+          "patch_4",
+          "plan_2",
+          "dsl_root"
+        ],
+        "source_event_ids": [
+          "evt_acac3f5a-2af4-406c-a89f-e4dd95bb7cf4",
+          "evt_53985037-2a0b-4052-a92c-f3e891b75ca1"
+        ],
+        "budget_report": {
+          "before_chars": 2542,
+          "after_chars": 2542,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_field_count": 0,
+          "redacted_paths": [],
+          "sensitive_patterns_found": []
+        },
+        "context_cache_ref": "tasks/demo_task/context_cache/ctx_7810a95a-2448-482c-b8f1-06a0fcc033e3.json"
+      }
+    ],
+    "task_created": true,
+    "task": {
+      "task_id": "demo_task",
+      "summary": "Generate implementation plan",
+      "requirement": "Generate implementation plan",
+      "created_at": "2026-06-09T09:10:28.644Z",
+      "producer": "planAgent"
+    }
+  }
+}

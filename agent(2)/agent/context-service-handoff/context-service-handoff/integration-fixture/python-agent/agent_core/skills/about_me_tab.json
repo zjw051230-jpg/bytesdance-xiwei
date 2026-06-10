@@ -1,0 +1,10 @@
+{
+  "name": "about-me-tab",
+  "description": "Add About Me tab on profile page",
+  "keywords": [
+    "about me",
+    "个人简介",
+    "profile tab"
+  ],
+  "category": "frontend"
+}

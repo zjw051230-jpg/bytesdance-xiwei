@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Agent Workbench</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="workspace">
+      <section class="panel agent-run-panel" aria-labelledby="agent-run-title">
+        <div class="panel-header">
+          <h1 id="agent-run-title">Agent Run</h1>
+          <span id="agent-run-status" class="status-pill idle">Idle</span>
+        </div>
+
+        <form id="agent-run-form" class="run-form">
+          <label class="field field-wide">
+            <span>Task</span>
+            <textarea id="agent-task" name="task" rows="5" placeholder="Describe the engineering task"></textarea>
+          </label>
+
+          <label class="field">
+            <span>Repo Path</span>
+            <input id="agent-repo-path" name="repoPath" type="text" placeholder="Optional local repository path" />
+          </label>
+
+          <label class="field">
+            <span>Skill</span>
+            <input id="agent-skill" name="skill" type="text" placeholder="Optional skill hint" />
+          </label>
+
+          <label class="field">
+            <span>Mode</span>
+            <select id="agent-mode" name="mode">
+              <option value="preview">preview</option>
+              <option value="dry_run">dry_run</option>
+            </select>
+          </label>
+
+          <div class="actions">
+            <button id="agent-run-button" type="submit">Run</button>
+          </div>
+        </form>
+
+        <section class="result-shell" aria-live="polite">
+          <div id="agent-empty-state" class="empty-state">Submit a task to inspect the structured agent result.</div>
+          <div id="agent-error" class="error-box" hidden></div>
+          <div id="agent-result" class="result-grid" hidden></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/agentRunPanel.js"></script>
+  </body>
+</html>

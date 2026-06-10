@@ -1,0 +1,95 @@
+{
+  "task_id": "replay_bad_stage_test",
+  "user_input": "Replay parent requirement",
+  "status": "PAUSED",
+  "current_step": 0,
+  "max_steps": 11,
+  "run_id": "run_replay_bad_stage_test",
+  "current_node_id": null,
+  "node_history": [],
+  "context_snapshots": [
+    {
+      "step": 0,
+      "agent_name": "replayAgent",
+      "context": {
+        "task_id": "replay_bad_stage_test",
+        "agent_name": "replayAgent",
+        "replay": {
+          "replay_id": null,
+          "replay_from_stage": "delete_everything",
+          "replay_overrides_keys": [],
+          "replay_parent_requirement_id": "REQ-REPLAY-BAD",
+          "status": "blocked",
+          "reason": "Illegal replay from_stage: delete_everything"
+        }
+      }
+    }
+  ],
+  "history": [],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced",
+    "replay": {
+      "replay_id": null,
+      "replay_from_stage": "delete_everything",
+      "replay_overrides_keys": [],
+      "replay_parent_requirement_id": "REQ-REPLAY-BAD",
+      "status": "blocked",
+      "reason": "Illegal replay from_stage: delete_everything"
+    },
+    "blocked_reason": "Illegal replay from_stage: delete_everything",
+    "last_error": "Illegal replay from_stage: delete_everything",
+    "last_replay_started_event": {
+      "type": "REPLAY_STARTED",
+      "category": "domain_event",
+      "producer": "replayAgent",
+      "trace_id": "replay_bad_stage_test",
+      "span_id": "replay_0_replay_started",
+      "parent_span_id": null,
+      "run_id": "run_replay_bad_stage_test",
+      "payload": {
+        "replay_id": null,
+        "replay_from_stage": "delete_everything",
+        "replay_overrides_keys": [],
+        "replay_parent_requirement_id": "REQ-REPLAY-BAD",
+        "status": "blocked",
+        "reason": "Illegal replay from_stage: delete_everything"
+      },
+      "idempotency_key": "REPLAY_STARTED:replay_bad_stage_test:None",
+      "event_id": "evt_1",
+      "task_id": "replay_bad_stage_test",
+      "seq": 1,
+      "schema_version": "1",
+      "created_at": "2026-06-10T11:32:32.344753Z"
+    },
+    "last_replay_completed_event": {
+      "type": "REPLAY_COMPLETED",
+      "category": "domain_event",
+      "producer": "replayAgent",
+      "trace_id": "replay_bad_stage_test",
+      "span_id": "replay_0_replay_completed",
+      "parent_span_id": null,
+      "run_id": "run_replay_bad_stage_test",
+      "payload": {
+        "replay_id": null,
+        "replay_from_stage": "delete_everything",
+        "replay_overrides_keys": [],
+        "replay_parent_requirement_id": "REQ-REPLAY-BAD",
+        "status": "blocked",
+        "reason": "Illegal replay from_stage: delete_everything"
+      },
+      "idempotency_key": "REPLAY_COMPLETED:replay_bad_stage_test:None",
+      "event_id": "evt_2",
+      "task_id": "replay_bad_stage_test",
+      "seq": 2,
+      "schema_version": "1",
+      "created_at": "2026-06-10T11:32:32.344753Z"
+    }
+  },
+  "matched_skill": null,
+  "model_trace": [],
+  "available_actions_history": [],
+  "memory_hits": []
+}

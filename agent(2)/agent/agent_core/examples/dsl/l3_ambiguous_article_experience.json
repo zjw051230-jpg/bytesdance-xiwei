@@ -1,0 +1,20 @@
+{
+  "requirement_id": "REQ-CONDUIT-L3-AMBIGUOUS-ARTICLE-EXPERIENCE",
+  "requirement_type": "conduit_l3_ambiguous",
+  "task_level": "L3",
+  "target_repo": "D:\\conduit-realworld-example-app",
+  "skill_hint": "clarify-first",
+  "user_input": "Make the article page feel more modern and improve the reading experience.",
+  "acceptance_criteria": [
+    "Agent should not directly modify code before clarifying the ambiguous requirement.",
+    "Agent should identify at least three possible interpretations, such as dark mode, reading progress, typography, article outline, or layout improvement.",
+    "Agent should ask clarification questions before generating patch plan.",
+    "Agent should produce a structured clarification result that can be resumed into a concrete DSL."
+  ],
+  "risks": [
+    "Requirement is ambiguous.",
+    "Implementation scope may vary from pure frontend styling to cross-module feature work."
+  ],
+  "task_name": "L3 Ambiguous Article Experience",
+  "user_story": "Make the article page feel more modern and improve the reading experience."
+}

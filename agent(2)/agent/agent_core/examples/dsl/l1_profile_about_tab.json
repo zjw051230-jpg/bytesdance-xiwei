@@ -1,0 +1,28 @@
+{
+  "requirement_id": "REQ-CONDUIT-L1-PROFILE-ABOUT",
+  "task_name": "Add About tab to user profile",
+  "user_story": "As a visitor, I can open an About tab on a Conduit user profile page to read a short bio section.",
+  "requirement_type": "conduit_frontend_l1",
+  "target_repo": "D:\\path\\to\\conduit-realworld",
+  "target_modules": [
+    "frontend/src/pages/Profile.jsx",
+    "frontend/src/components"
+  ],
+  "acceptance_criteria": [
+    "Profile page includes an About tab.",
+    "About tab content renders without breaking existing articles/favorites tabs.",
+    "The implementation does not require backend schema changes.",
+    "Empty or missing bio data is handled gracefully."
+  ],
+  "constraints": [
+    "Keep the change frontend-only.",
+    "Do not modify authentication behavior.",
+    "Do not modify .env files or lockfiles."
+  ],
+  "skill_hint": "about-me-tab",
+  "test_commands": [
+    "npm run lint",
+    "npm test"
+  ],
+  "risk_level": "low"
+}

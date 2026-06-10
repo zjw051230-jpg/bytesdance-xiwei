@@ -1,0 +1,26 @@
+{
+  "task_id": "stop_task",
+  "user_input": "停止测试",
+  "status": "FAILED",
+  "current_step": 0,
+  "max_steps": 5,
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "runtime_control",
+        "args": {
+          "type": "STOP"
+        }
+      },
+      "observation": {
+        "ok": false,
+        "message": "Stopped by runtime control"
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {
+    "last_error": "Stopped by runtime control"
+  }
+}

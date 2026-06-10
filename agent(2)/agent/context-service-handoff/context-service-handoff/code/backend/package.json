@@ -1,0 +1,15 @@
+{
+  "name": "context-service-handoff-backend",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/contextServiceServer.js",
+  "scripts": {
+    "start": "node src/contextServiceServer.js",
+    "dev": "node src/contextServiceServer.js",
+    "test": "node --test src/routes/agentRunRoutes.node.test.js public/agentRunPanel.node.test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.3"
+  }
+}

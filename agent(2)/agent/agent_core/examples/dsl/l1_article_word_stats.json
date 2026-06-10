@@ -1,0 +1,28 @@
+{
+  "requirement_id": "REQ-CONDUIT-L1-ARTICLE-STATS",
+  "task_name": "Add article word count and reading time",
+  "user_story": "As a reader, I can see word count and estimated reading time on the Conduit article detail page.",
+  "requirement_type": "conduit_frontend_l1",
+  "target_repo": "D:\\conduit-realworld-example-app",
+  "target_modules": [
+    "frontend/src/pages/Article.jsx",
+    "frontend/src/components"
+  ],
+  "acceptance_criteria": [
+    "Article detail page shows word count.",
+    "Article detail page shows estimated reading time.",
+    "Existing article body rendering is not broken.",
+    "No backend API contract change is required."
+  ],
+  "constraints": [
+    "Keep the change frontend-only.",
+    "Do not modify lockfiles or environment files.",
+    "Default execution must remain preview-safe."
+  ],
+  "skill_hint": "article-word-stats",
+  "test_commands": [
+    "npm run lint",
+    "npm test"
+  ],
+  "risk_level": "low"
+}

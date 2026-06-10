@@ -1,0 +1,131 @@
+{
+  "baseUrl": "http://127.0.0.1:4000",
+  "taskId": "task_001",
+  "requests": [
+    {
+      "method": "POST",
+      "path": "/events/append",
+      "body": {
+        "taskId": "task_001",
+        "event": {
+          "type": "PLAN_CREATED",
+          "category": "domain_event",
+          "producer": "planAgent",
+          "trace_id": "task_001",
+          "span_id": "plan_2",
+          "parent_span_id": null,
+          "run_id": "run_task_001",
+          "payload": {
+            "plan": {
+              "task_name": "Add article word stats",
+              "target_files_hint": ["frontend/src/pages/Article.jsx"]
+            }
+          },
+          "idempotency_key": "PLAN_CREATED:task_001:2"
+        },
+        "expectedSeq": 0
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/events/append",
+      "body": {
+        "taskId": "task_001",
+        "event": {
+          "type": "PATCH_GENERATED",
+          "category": "domain_event",
+          "producer": "codegenAgent",
+          "trace_id": "task_001",
+          "span_id": "patch_4",
+          "parent_span_id": "plan_2",
+          "run_id": "run_task_001",
+          "payload": {
+            "summary": "Generate patch for article word stats",
+            "patch_plan": {
+              "summary": "Patch article page",
+              "patches": [
+                {
+                  "file": "frontend/src/pages/Article.jsx",
+                  "changes": ["Render word stats"]
+                }
+              ]
+            }
+          },
+          "idempotency_key": "PATCH_GENERATED:task_001:4"
+        },
+        "expectedSeq": 3
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/events/append",
+      "body": {
+        "taskId": "task_001",
+        "event": {
+          "type": "REVIEW_COMPLETED",
+          "category": "domain_event",
+          "producer": "deliveryAgent",
+          "trace_id": "task_001",
+          "span_id": "review_5",
+          "parent_span_id": "patch_4",
+          "run_id": "run_task_001",
+          "payload": {
+            "review": {
+              "approved": true,
+              "summary": "Review passed"
+            }
+          },
+          "idempotency_key": "REVIEW_COMPLETED:task_001:5"
+        },
+        "expectedSeq": 5
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/events/append",
+      "body": {
+        "taskId": "task_001",
+        "event": {
+          "type": "EXECUTION_COMPLETED",
+          "category": "domain_event",
+          "producer": "repairAgent",
+          "trace_id": "task_001",
+          "span_id": "sandbox_6",
+          "parent_span_id": "review_5",
+          "run_id": "run_task_001",
+          "payload": {
+            "execution_result": {
+              "executed": false,
+              "summary": "ReferenceError: wordCount is not defined"
+            }
+          },
+          "idempotency_key": "EXECUTION_COMPLETED:task_001:6"
+        },
+        "expectedSeq": 7
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/trace/rebuild",
+      "body": {
+        "taskId": "task_001"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/context/build",
+      "body": {
+        "taskId": "task_001",
+        "agentName": "repairAgent",
+        "currentNodeId": "sandbox_6"
+      }
+    }
+  ],
+  "expectedSourceNodeIds": [
+    "sandbox_6",
+    "review_5",
+    "patch_4",
+    "plan_2",
+    "dsl_root"
+  ]
+}

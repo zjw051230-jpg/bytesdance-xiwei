@@ -1,0 +1,98 @@
+{
+  "id": "cover-image",
+  "name": "cover-image",
+  "description": "Add article cover image support",
+  "requirement_types": ["fullstack", "article", "media"],
+  "keywords": [
+    "灏侀潰",
+    "封面",
+    "cover image",
+    "article cover",
+    "image"
+  ],
+  "target_modules": [
+    "backend/src/models/Article.js",
+    "backend/models",
+    "backend/src/routes/articles.js",
+    "backend/routes",
+    "backend/controllers",
+    "frontend/src/pages/Editor.jsx",
+    "frontend/src/pages/Article.jsx",
+    "frontend/src/routes/ArticleEditor.jsx",
+    "frontend/src/components/ArticleEditorForm/ArticleEditorForm.jsx",
+    "frontend/src/routes/Article/Article.jsx",
+    "frontend/src/services/getArticle.js",
+    "frontend/src/services/setArticle.js"
+  ],
+  "target_file_patterns": [
+    "backend/src/models/Article.js",
+    "backend/models",
+    "backend/models/article",
+    "backend/src/routes/articles.js",
+    "backend/routes",
+    "backend/controllers",
+    "frontend/src/pages/Editor.jsx",
+    "frontend/src/pages/Article.jsx",
+    "frontend/src/routes/ArticleEditor.jsx",
+    "frontend/src/components/ArticleEditorForm/ArticleEditorForm.jsx",
+    "frontend/src/routes/Article/Article.jsx",
+    "frontend/src/services/getArticle.js",
+    "frontend/src/services/setArticle.js",
+    "Article.js",
+    "Editor.jsx"
+  ],
+  "context_rules": [
+    "Inspect article model and API schema",
+    "Inspect editor page and article page rendering"
+  ],
+  "patch_strategy": {
+    "summary": "Prepare a medium-risk fullstack patch for article cover image support.",
+    "patches": [
+      {
+        "file": "backend/src/models/Article.js",
+        "reason": "Article model should store cover image metadata",
+        "changes": ["Add cover image field"],
+        "risk_level": "medium"
+      },
+      {
+        "file": "frontend/src/pages/Editor.jsx",
+        "reason": "Article editor should accept cover image input",
+        "changes": ["Add cover image upload field"],
+        "risk_level": "medium"
+      }
+    ]
+  },
+  "acceptance_template": [
+    "Article can store a cover image",
+    "Article page displays cover image"
+  ],
+  "default_test_commands": ["npm run lint", "pytest -q"],
+  "conduit_frontend_patterns": [
+    "frontend/src/pages/Editor.jsx",
+    "frontend/src/pages/Article.jsx",
+    "frontend/src/routes/ArticleEditor.jsx",
+    "frontend/src/components/ArticleEditorForm/ArticleEditorForm.jsx",
+    "frontend/src/routes/Article/Article.jsx",
+    "frontend/src/services/getArticle.js",
+    "frontend/src/services/setArticle.js",
+    "frontend/src/api"
+  ],
+  "conduit_backend_patterns": [
+    "backend/src/models",
+    "backend/models",
+    "backend/src/routes",
+    "backend/routes",
+    "backend/src/controllers",
+    "backend/controllers"
+  ],
+  "conduit_test_commands": ["npm test", "npm run test", "npm run lint"],
+  "conduit_acceptance_checks": [
+    "Backend article model and routes accept cover image data",
+    "Frontend editor submits and article page displays cover image data"
+  ],
+  "risk_rules": {
+    "default": "medium",
+    "backend_prefix": "medium",
+    "dangerous_files": ["package-lock.json", "yarn.lock", ".env"]
+  }
+}

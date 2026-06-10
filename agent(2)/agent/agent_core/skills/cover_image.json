@@ -1,0 +1,9 @@
+{
+  "name": "cover-image",
+  "description": "Add article cover image support",
+  "keywords": [
+    "封面",
+    "cover image"
+  ],
+  "category": "fullstack"
+}

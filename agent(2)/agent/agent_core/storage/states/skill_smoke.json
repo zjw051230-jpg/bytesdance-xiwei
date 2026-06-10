@@ -1,0 +1,27 @@
+{
+  "task_id": "skill_smoke",
+  "user_input": "文章详情页新增字数统计",
+  "status": "RUNNING",
+  "current_step": 0,
+  "max_steps": 5,
+  "history": [],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced"
+  },
+  "matched_skill": {
+    "name": "article-word-stats",
+    "description": "Add word count and reading time to article detail page",
+    "keywords": [
+      "字数",
+      "阅读时间",
+      "word count",
+      "reading time"
+    ],
+    "category": "frontend"
+  },
+  "model_trace": [],
+  "available_actions_history": []
+}

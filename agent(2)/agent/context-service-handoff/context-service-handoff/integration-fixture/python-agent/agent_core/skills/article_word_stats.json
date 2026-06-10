@@ -1,0 +1,11 @@
+{
+  "name": "article-word-stats",
+  "description": "Add word count and reading time to article detail page",
+  "keywords": [
+    "字数",
+    "阅读时间",
+    "word count",
+    "reading time"
+  ],
+  "category": "frontend"
+}

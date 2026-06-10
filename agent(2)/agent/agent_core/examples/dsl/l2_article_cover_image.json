@@ -1,0 +1,36 @@
+﻿{
+  "requirement_id": "REQ-CONDUIT-L2-ARTICLE-COVER",
+  "task_name": "Add article cover image support",
+  "user_story": "As an author, I can add a cover image URL when editing an article, and readers can see the cover image on the article detail page.",
+  "requirement_type": "conduit_fullstack_l2",
+  "target_repo": "D:\\\\conduit-realworld-example-app",
+  "target_modules": [
+    "backend/src/models",
+    "backend/src/routes",
+    "backend/src/controllers",
+    "frontend/src/pages/Editor.jsx",
+    "frontend/src/pages/Article.jsx",
+    "frontend/src/api"
+  ],
+  "acceptance_criteria": [
+    "Article model or serializer can persist a cover image URL.",
+    "Article create/update API accepts cover image data.",
+    "Editor page exposes a cover image URL input.",
+    "Article detail page displays the cover image when present.",
+    "Existing article creation and rendering flows continue to work."
+  ],
+  "constraints": [
+    "Do not change authentication policy.",
+    "Do not modify secrets, .env files, or lockfiles.",
+    "Keep database/schema changes explicit in the patch plan.",
+    "Default execution must remain preview-safe."
+  ],
+  "skill_hint": "cover-image",
+  "test_commands": [
+    "npm run lint",
+    "npm test",
+    "npm run test"
+  ],
+  "risk_level": "medium"
+}
+

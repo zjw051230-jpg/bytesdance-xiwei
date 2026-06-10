@@ -1,0 +1,20 @@
+{
+  "requirement_id": "REQ-CONDUIT-L3-CONFLICTING-COVER-IMAGE",
+  "requirement_type": "conduit_l3_conflict",
+  "task_level": "L3",
+  "target_repo": "D:\\conduit-realworld-example-app",
+  "skill_hint": "conflict-detection",
+  "user_input": "Add a cover image to articles, but do not modify the database, backend API, or frontend form.",
+  "acceptance_criteria": [
+    "Agent should detect that persistent cover image conflicts with the stated constraints.",
+    "Agent should not generate a cross-stack patch that violates the constraints.",
+    "Agent should explain feasible alternatives, such as frontend-only mock display or requiring permission to modify backend/model/form.",
+    "Agent should mark the task as blocked or clarification_required."
+  ],
+  "risks": [
+    "User asks for persistent feature but forbids required modules.",
+    "Direct implementation would violate constraints."
+  ],
+  "task_name": "L3 Conflicting Cover Image",
+  "user_story": "Add a cover image to articles, but do not modify the database, backend API, or frontend form."
+}

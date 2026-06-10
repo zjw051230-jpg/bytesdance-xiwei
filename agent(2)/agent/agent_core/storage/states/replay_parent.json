@@ -1,0 +1,91 @@
+{
+  "task_id": "replay_parent",
+  "user_input": "Replay parent requirement",
+  "status": "RUNNING",
+  "current_step": 9,
+  "max_steps": 11,
+  "run_id": "run_replay_parent",
+  "current_node_id": null,
+  "node_history": [],
+  "context_snapshots": [],
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "select_skill"
+      },
+      "observation": {
+        "ok": true
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "make_plan"
+      },
+      "observation": {
+        "ok": true
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "locate_files"
+      },
+      "observation": {
+        "ok": true
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced",
+    "requirement_dsl": {
+      "requirement_id": "REQ-REPLAY-EVENT",
+      "task_name": "Replay parent requirement",
+      "user_story": "Replay parent requirement",
+      "requirement_type": "frontend",
+      "acceptance_criteria": [
+        "Requirement intent is satisfied"
+      ]
+    },
+    "requirement_id": "REQ-REPLAY-EVENT",
+    "skill_match": {
+      "matched_skill_id": "generic",
+      "matched_skill_name": "generic"
+    },
+    "plan": {
+      "task_name": "Original plan",
+      "target_modules": [
+        "frontend/src/pages/Article.jsx"
+      ],
+      "target_files_hint": [
+        "frontend/src/pages/Article.jsx"
+      ],
+      "acceptance_criteria": [
+        "Requirement intent is satisfied"
+      ],
+      "test_commands": [
+        "npm run lint"
+      ]
+    },
+    "located_files": {
+      "located": true,
+      "files": [
+        {
+          "path": "frontend/src/pages/Article.jsx",
+          "relative_path": "frontend/src/pages/Article.jsx"
+        }
+      ]
+    }
+  },
+  "matched_skill": {
+    "id": "generic",
+    "name": "generic"
+  },
+  "model_trace": [],
+  "available_actions_history": [],
+  "memory_hits": []
+}

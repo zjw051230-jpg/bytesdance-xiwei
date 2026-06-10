@@ -1,0 +1,690 @@
+{
+  "task_id": "memory_integration_test",
+  "user_input": "文章详情页字数统计",
+  "status": "SUCCESS",
+  "current_step": 1,
+  "max_steps": 11,
+  "run_id": "run_memory_integration_test",
+  "current_node_id": "finish_0",
+  "node_history": [
+    {
+      "node_id": "summary_0",
+      "node_type": "summary",
+      "step": 0,
+      "depends_on": []
+    },
+    {
+      "node_id": "finish_0",
+      "node_type": "finish",
+      "step": 0,
+      "depends_on": [
+        "summary_0"
+      ]
+    }
+  ],
+  "context_snapshots": [
+    {
+      "step": 0,
+      "agent_name": "actionSelector",
+      "context": {
+        "task_id": "memory_integration_test",
+        "agent_name": "actionSelector",
+        "current_node_id": null,
+        "decision": {
+          "step": 0,
+          "decision_source": "mock",
+          "selected_action": "finish",
+          "selected_tool": "finish",
+          "rejected_action": null,
+          "reason": "Action decision metadata was not provided",
+          "confidence": 1.0,
+          "provider": null,
+          "model": null
+        }
+      }
+    },
+    {
+      "step": 0,
+      "agent_name": "summaryAgent",
+      "context": {
+        "task_id": "memory_integration_test",
+        "agent_name": "summaryAgent",
+        "current_node_id": null,
+        "context": {
+          "final_dsl_core": {
+            "value": [],
+            "source_node_ids": []
+          },
+          "dependency_summary": {
+            "value": {
+              "source_node_ids": []
+            },
+            "source_node_ids": []
+          },
+          "failed_patch_summary": {
+            "value": [],
+            "source_node_ids": []
+          },
+          "sandbox_error_summary": {
+            "value": [],
+            "source_node_ids": []
+          },
+          "verified_plan_summary": {
+            "value": [],
+            "source_node_ids": []
+          },
+          "active_interrupts": {
+            "value": [],
+            "source_node_ids": []
+          }
+        },
+        "source_node_ids": [],
+        "source_event_ids": [],
+        "budget_report": {
+          "before_chars": 0,
+          "after_chars": 0,
+          "truncated_fields": [],
+          "removed_fields": []
+        },
+        "privacy_report": {
+          "redacted": false,
+          "redacted_paths": []
+        },
+        "created_at": "2026-06-10T11:32:32.076983Z"
+      }
+    },
+    {
+      "step": 0,
+      "agent_name": "summaryAgent",
+      "context": {
+        "task_id": "memory_integration_test",
+        "agent_name": "summaryAgent",
+        "current_node_id": null,
+        "pr_draft": {
+          "status": "preview",
+          "title": "文章详情页字数统计",
+          "summary": "Agent generated PR draft.",
+          "requirement_id": null,
+          "requirement_type": null,
+          "matched_skill_id": null,
+          "changed_files": [],
+          "change_plan": [],
+          "acceptance_criteria_coverage": {
+            "requirement_id": null,
+            "criteria": [],
+            "covered_count": 0,
+            "total_count": 0,
+            "review_matches_acceptance_criteria": false,
+            "verification_passed": null
+          },
+          "test_commands": [],
+          "test_result": null,
+          "risk_summary": {
+            "task_level": "L1",
+            "risk_level": "low",
+            "review_risk_level": null,
+            "review_approved": null,
+            "review_issues": [],
+            "execution_mode": null,
+            "verification_passed": null,
+            "verification_mode": null,
+            "blocked_reason": null
+          },
+          "manual_checklist": [
+            "Review generated patch preview before any real write.",
+            "Confirm acceptance criteria coverage with a human reviewer.",
+            "Run the listed verification commands in the target repo before merging."
+          ],
+          "rollback_plan": [
+            "Revert the files listed in changed_files.",
+            "Re-run the listed verification commands after rollback."
+          ]
+        }
+      }
+    }
+  ],
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "finish",
+        "args": {}
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "final_summary": {
+            "status": "SUCCESS",
+            "requirement_id": null,
+            "requirement_type": null,
+            "user_input": "文章详情页字数统计",
+            "skill": null,
+            "skill_match": null,
+            "repo_profile": {
+              "repo_type": "generic",
+              "repo_path": "",
+              "exists": false,
+              "frontend_root": null,
+              "backend_root": null,
+              "package_managers": [],
+              "available_scripts": {},
+              "detected_frameworks": [],
+              "key_files": [],
+              "conduit_checks": {
+                "has_frontend_package_json": false,
+                "has_backend_package_json": false,
+                "has_react_or_vite": false,
+                "has_express_or_sequelize": false,
+                "has_conduit_structure": false
+              }
+            },
+            "repo_type": "generic",
+            "conduit_checks": {
+              "has_frontend_package_json": false,
+              "has_backend_package_json": false,
+              "has_react_or_vite": false,
+              "has_express_or_sequelize": false,
+              "has_conduit_structure": false
+            },
+            "plan_summary": null,
+            "located_files_count": 0,
+            "patch_count": 0,
+            "validation_approved": false,
+            "review_approved": false,
+            "execution_executed": false,
+            "execution_mode": null,
+            "verification_passed": null,
+            "pr_draft": {
+              "status": "preview",
+              "title": "文章详情页字数统计",
+              "summary": "Agent generated PR draft.",
+              "requirement_id": null,
+              "requirement_type": null,
+              "matched_skill_id": null,
+              "changed_files": [],
+              "change_plan": [],
+              "acceptance_criteria_coverage": {
+                "requirement_id": null,
+                "criteria": [],
+                "covered_count": 0,
+                "total_count": 0,
+                "review_matches_acceptance_criteria": false,
+                "verification_passed": null
+              },
+              "test_commands": [],
+              "test_result": null,
+              "risk_summary": {
+                "task_level": "L1",
+                "risk_level": "low",
+                "review_risk_level": null,
+                "review_approved": null,
+                "review_issues": [],
+                "execution_mode": null,
+                "verification_passed": null,
+                "verification_mode": null,
+                "blocked_reason": null
+              },
+              "manual_checklist": [
+                "Review generated patch preview before any real write.",
+                "Confirm acceptance criteria coverage with a human reviewer.",
+                "Run the listed verification commands in the target repo before merging."
+              ],
+              "rollback_plan": [
+                "Revert the files listed in changed_files.",
+                "Re-run the listed verification commands after rollback."
+              ]
+            },
+            "model_calls": 1,
+            "total_steps": 1,
+            "message": "Agent task completed successfully"
+          }
+        }
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced",
+    "repo_profile": {
+      "repo_type": "generic",
+      "repo_path": "",
+      "exists": false,
+      "frontend_root": null,
+      "backend_root": null,
+      "package_managers": [],
+      "available_scripts": {},
+      "detected_frameworks": [],
+      "key_files": [],
+      "conduit_checks": {
+        "has_frontend_package_json": false,
+        "has_backend_package_json": false,
+        "has_react_or_vite": false,
+        "has_express_or_sequelize": false,
+        "has_conduit_structure": false
+      }
+    },
+    "repo_type": "generic",
+    "conduit_checks": {
+      "has_frontend_package_json": false,
+      "has_backend_package_json": false,
+      "has_react_or_vite": false,
+      "has_express_or_sequelize": false,
+      "has_conduit_structure": false
+    },
+    "memory_hit_count": 1,
+    "action_decisions": [
+      {
+        "step": 0,
+        "decision_source": "mock",
+        "selected_action": "finish",
+        "selected_tool": "finish",
+        "rejected_action": null,
+        "reason": "Action decision metadata was not provided",
+        "confidence": 1.0,
+        "provider": null,
+        "model": null
+      }
+    ],
+    "last_action_decision": {
+      "step": 0,
+      "decision_source": "mock",
+      "selected_action": "finish",
+      "selected_tool": "finish",
+      "rejected_action": null,
+      "reason": "Action decision metadata was not provided",
+      "confidence": 1.0,
+      "provider": null,
+      "model": null
+    },
+    "last_action_decision_event": {
+      "type": "ACTION_DECIDED",
+      "category": "runtime_event",
+      "producer": "actionSelector",
+      "trace_id": "memory_integration_test",
+      "span_id": "decision_0",
+      "parent_span_id": null,
+      "run_id": "run_memory_integration_test",
+      "payload": {
+        "step": 0,
+        "decision_source": "mock",
+        "selected_action": "finish",
+        "selected_tool": "finish",
+        "rejected_action": null,
+        "reason": "Action decision metadata was not provided",
+        "confidence": 1.0,
+        "provider": null,
+        "model": null
+      },
+      "idempotency_key": "ACTION_DECIDED:memory_integration_test:0",
+      "event_id": "evt_1",
+      "task_id": "memory_integration_test",
+      "seq": 1,
+      "schema_version": "1",
+      "created_at": "2026-06-10T11:32:32.076983Z"
+    },
+    "latest_agent_context": {
+      "task_id": "memory_integration_test",
+      "agent_name": "summaryAgent",
+      "current_node_id": null,
+      "context": {
+        "final_dsl_core": {
+          "value": [],
+          "source_node_ids": []
+        },
+        "dependency_summary": {
+          "value": {
+            "source_node_ids": []
+          },
+          "source_node_ids": []
+        },
+        "failed_patch_summary": {
+          "value": [],
+          "source_node_ids": []
+        },
+        "sandbox_error_summary": {
+          "value": [],
+          "source_node_ids": []
+        },
+        "verified_plan_summary": {
+          "value": [],
+          "source_node_ids": []
+        },
+        "active_interrupts": {
+          "value": [],
+          "source_node_ids": []
+        }
+      },
+      "source_node_ids": [],
+      "source_event_ids": [],
+      "budget_report": {
+        "before_chars": 0,
+        "after_chars": 0,
+        "truncated_fields": [],
+        "removed_fields": []
+      },
+      "privacy_report": {
+        "redacted": false,
+        "redacted_paths": []
+      },
+      "created_at": "2026-06-10T11:32:32.076983Z"
+    },
+    "pr_draft": {
+      "status": "preview",
+      "title": "文章详情页字数统计",
+      "summary": "Agent generated PR draft.",
+      "requirement_id": null,
+      "requirement_type": null,
+      "matched_skill_id": null,
+      "changed_files": [],
+      "change_plan": [],
+      "acceptance_criteria_coverage": {
+        "requirement_id": null,
+        "criteria": [],
+        "covered_count": 0,
+        "total_count": 0,
+        "review_matches_acceptance_criteria": false,
+        "verification_passed": null
+      },
+      "test_commands": [],
+      "test_result": null,
+      "risk_summary": {
+        "task_level": "L1",
+        "risk_level": "low",
+        "review_risk_level": null,
+        "review_approved": null,
+        "review_issues": [],
+        "execution_mode": null,
+        "verification_passed": null,
+        "verification_mode": null,
+        "blocked_reason": null
+      },
+      "manual_checklist": [
+        "Review generated patch preview before any real write.",
+        "Confirm acceptance criteria coverage with a human reviewer.",
+        "Run the listed verification commands in the target repo before merging."
+      ],
+      "rollback_plan": [
+        "Revert the files listed in changed_files.",
+        "Re-run the listed verification commands after rollback."
+      ]
+    },
+    "last_event": {
+      "type": "TASK_FINISHED",
+      "category": "domain_event",
+      "producer": "deliveryAgent",
+      "trace_id": "memory_integration_test",
+      "span_id": "finish_0",
+      "parent_span_id": "summary_0",
+      "run_id": "run_memory_integration_test",
+      "payload": {
+        "final_summary": {
+          "status": "SUCCESS",
+          "requirement_id": null,
+          "requirement_type": null,
+          "user_input": "文章详情页字数统计",
+          "skill": null,
+          "skill_match": null,
+          "repo_profile": {
+            "repo_type": "generic",
+            "repo_path": "",
+            "exists": false,
+            "frontend_root": null,
+            "backend_root": null,
+            "package_managers": [],
+            "available_scripts": {},
+            "detected_frameworks": [],
+            "key_files": [],
+            "conduit_checks": {
+              "has_frontend_package_json": false,
+              "has_backend_package_json": false,
+              "has_react_or_vite": false,
+              "has_express_or_sequelize": false,
+              "has_conduit_structure": false
+            }
+          },
+          "repo_type": "generic",
+          "conduit_checks": {
+            "has_frontend_package_json": false,
+            "has_backend_package_json": false,
+            "has_react_or_vite": false,
+            "has_express_or_sequelize": false,
+            "has_conduit_structure": false
+          },
+          "plan_summary": null,
+          "located_files_count": 0,
+          "patch_count": 0,
+          "validation_approved": false,
+          "review_approved": false,
+          "execution_executed": false,
+          "execution_mode": null,
+          "verification_passed": null,
+          "pr_draft": {
+            "status": "preview",
+            "title": "文章详情页字数统计",
+            "summary": "Agent generated PR draft.",
+            "requirement_id": null,
+            "requirement_type": null,
+            "matched_skill_id": null,
+            "changed_files": [],
+            "change_plan": [],
+            "acceptance_criteria_coverage": {
+              "requirement_id": null,
+              "criteria": [],
+              "covered_count": 0,
+              "total_count": 0,
+              "review_matches_acceptance_criteria": false,
+              "verification_passed": null
+            },
+            "test_commands": [],
+            "test_result": null,
+            "risk_summary": {
+              "task_level": "L1",
+              "risk_level": "low",
+              "review_risk_level": null,
+              "review_approved": null,
+              "review_issues": [],
+              "execution_mode": null,
+              "verification_passed": null,
+              "verification_mode": null,
+              "blocked_reason": null
+            },
+            "manual_checklist": [
+              "Review generated patch preview before any real write.",
+              "Confirm acceptance criteria coverage with a human reviewer.",
+              "Run the listed verification commands in the target repo before merging."
+            ],
+            "rollback_plan": [
+              "Revert the files listed in changed_files.",
+              "Re-run the listed verification commands after rollback."
+            ]
+          },
+          "model_calls": 1,
+          "total_steps": 1,
+          "message": "Agent task completed successfully"
+        }
+      },
+      "idempotency_key": "TASK_FINISHED:memory_integration_test:0",
+      "event_id": "evt_3",
+      "task_id": "memory_integration_test",
+      "seq": 3,
+      "schema_version": "1",
+      "created_at": "2026-06-10T11:32:32.076983Z"
+    },
+    "last_pr_draft_event": {
+      "type": "PR_DRAFT_CREATED",
+      "category": "domain_event",
+      "producer": "summaryAgent",
+      "trace_id": "memory_integration_test",
+      "span_id": "summary_0",
+      "parent_span_id": null,
+      "run_id": "run_memory_integration_test",
+      "payload": {
+        "pr_draft": {
+          "status": "preview",
+          "title": "文章详情页字数统计",
+          "summary": "Agent generated PR draft.",
+          "requirement_id": null,
+          "requirement_type": null,
+          "matched_skill_id": null,
+          "changed_files": [],
+          "change_plan": [],
+          "acceptance_criteria_coverage": {
+            "requirement_id": null,
+            "criteria": [],
+            "covered_count": 0,
+            "total_count": 0,
+            "review_matches_acceptance_criteria": false,
+            "verification_passed": null
+          },
+          "test_commands": [],
+          "test_result": null,
+          "risk_summary": {
+            "task_level": "L1",
+            "risk_level": "low",
+            "review_risk_level": null,
+            "review_approved": null,
+            "review_issues": [],
+            "execution_mode": null,
+            "verification_passed": null,
+            "verification_mode": null,
+            "blocked_reason": null
+          },
+          "manual_checklist": [
+            "Review generated patch preview before any real write.",
+            "Confirm acceptance criteria coverage with a human reviewer.",
+            "Run the listed verification commands in the target repo before merging."
+          ],
+          "rollback_plan": [
+            "Revert the files listed in changed_files.",
+            "Re-run the listed verification commands after rollback."
+          ]
+        }
+      },
+      "idempotency_key": "PR_DRAFT_CREATED:memory_integration_test:0",
+      "event_id": "evt_2",
+      "task_id": "memory_integration_test",
+      "seq": 2,
+      "schema_version": "1",
+      "created_at": "2026-06-10T11:32:32.076983Z"
+    },
+    "final_summary": {
+      "status": "SUCCESS",
+      "requirement_id": null,
+      "requirement_type": null,
+      "user_input": "文章详情页字数统计",
+      "skill": null,
+      "skill_match": null,
+      "repo_profile": {
+        "repo_type": "generic",
+        "repo_path": "",
+        "exists": false,
+        "frontend_root": null,
+        "backend_root": null,
+        "package_managers": [],
+        "available_scripts": {},
+        "detected_frameworks": [],
+        "key_files": [],
+        "conduit_checks": {
+          "has_frontend_package_json": false,
+          "has_backend_package_json": false,
+          "has_react_or_vite": false,
+          "has_express_or_sequelize": false,
+          "has_conduit_structure": false
+        }
+      },
+      "repo_type": "generic",
+      "conduit_checks": {
+        "has_frontend_package_json": false,
+        "has_backend_package_json": false,
+        "has_react_or_vite": false,
+        "has_express_or_sequelize": false,
+        "has_conduit_structure": false
+      },
+      "plan_summary": null,
+      "located_files_count": 0,
+      "patch_count": 0,
+      "validation_approved": false,
+      "review_approved": false,
+      "execution_executed": false,
+      "execution_mode": null,
+      "verification_passed": null,
+      "pr_draft": {
+        "status": "preview",
+        "title": "文章详情页字数统计",
+        "summary": "Agent generated PR draft.",
+        "requirement_id": null,
+        "requirement_type": null,
+        "matched_skill_id": null,
+        "changed_files": [],
+        "change_plan": [],
+        "acceptance_criteria_coverage": {
+          "requirement_id": null,
+          "criteria": [],
+          "covered_count": 0,
+          "total_count": 0,
+          "review_matches_acceptance_criteria": false,
+          "verification_passed": null
+        },
+        "test_commands": [],
+        "test_result": null,
+        "risk_summary": {
+          "task_level": "L1",
+          "risk_level": "low",
+          "review_risk_level": null,
+          "review_approved": null,
+          "review_issues": [],
+          "execution_mode": null,
+          "verification_passed": null,
+          "verification_mode": null,
+          "blocked_reason": null
+        },
+        "manual_checklist": [
+          "Review generated patch preview before any real write.",
+          "Confirm acceptance criteria coverage with a human reviewer.",
+          "Run the listed verification commands in the target repo before merging."
+        ],
+        "rollback_plan": [
+          "Revert the files listed in changed_files.",
+          "Re-run the listed verification commands after rollback."
+        ]
+      },
+      "model_calls": 1,
+      "total_steps": 1,
+      "message": "Agent task completed successfully"
+    }
+  },
+  "matched_skill": null,
+  "model_trace": [
+    {
+      "step": 0,
+      "model": "mock-model"
+    }
+  ],
+  "available_actions_history": [
+    {
+      "step": 0,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "validate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    }
+  ],
+  "memory_hits": [
+    {
+      "requirement": "文章详情页字数统计",
+      "skill": "article_word_stats",
+      "summary": "已有案例"
+    }
+  ]
+}

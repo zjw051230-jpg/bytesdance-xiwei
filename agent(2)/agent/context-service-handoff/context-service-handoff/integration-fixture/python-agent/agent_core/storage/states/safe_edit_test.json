@@ -1,0 +1,111 @@
+{
+  "task_id": "safe_edit_test",
+  "user_input": "安全编辑测试",
+  "status": "SUCCESS",
+  "current_step": 4,
+  "max_steps": 5,
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "analyze_requirement",
+        "args": {
+          "input": "安全编辑测试",
+          "selected_model": "doubao-seed-2.0-lite"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "理解需求：安全编辑测试，需要做文章详情页的字数统计能力。"
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "apply_patch",
+        "args": {
+          "path": "frontend/src/pages/Article.jsx",
+          "patch": "mock patch",
+          "selected_model": "doubao-seed-2.0-lite"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "patched": true,
+          "file": "frontend/src/pages/Article.jsx"
+        }
+      }
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool": "make_plan",
+        "args": {
+          "input": "安全编辑测试",
+          "selected_model": "doubao-seed-2.0-lite"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "定位文章详情页 -> 添加字数统计 -> 运行测试",
+        "runtime_instructions": []
+      }
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool": "finish",
+        "args": {
+          "input": "安全编辑测试",
+          "selected_model": "doubao-seed-2.0-lite"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "任务已完成",
+        "summary": "已完成对 '安全编辑测试' 的最小 Agent 流程验证。"
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced"
+  },
+  "model_trace": [
+    {
+      "step": 0,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 1,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 2,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "L1 low-risk plan uses cheap model",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 3,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    }
+  ]
+}

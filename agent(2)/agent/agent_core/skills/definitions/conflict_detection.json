@@ -1,0 +1,23 @@
+{
+  "id": "conflict-detection",
+  "name": "conflict-detection",
+  "description": "Detect L3 requirement conflicts and block unsafe patch generation",
+  "requirement_types": ["conduit_l3_conflict", "conflict", "blocked"],
+  "keywords": ["conflict", "cannot modify", "do not modify", "不能修改", "冲突", "封面图"],
+  "target_modules": [],
+  "target_file_patterns": [],
+  "context_rules": [
+    "Identify constraints that make the requested persistent feature impossible.",
+    "Offer feasible alternatives without violating user constraints."
+  ],
+  "patch_strategy": {
+    "summary": "Block patch generation when requirement constraints conflict with implementation needs.",
+    "patches": []
+  },
+  "acceptance_template": [
+    "Conflict reason is explicit.",
+    "No code patch is generated while constraints conflict."
+  ],
+  "default_test_commands": [],
+  "risk_rules": {"default": "high"}
+}

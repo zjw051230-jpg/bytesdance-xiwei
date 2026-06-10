@@ -1,0 +1,68 @@
+{
+  "id": "article-word-stats",
+  "name": "article-word-stats",
+  "description": "Add word count and reading time to article detail page",
+  "requirement_types": ["frontend", "article", "content"],
+  "keywords": [
+    "瀛楁暟",
+    "闃呰鏃堕棿",
+    "字数",
+    "阅读时间",
+    "文章详情",
+    "word count",
+    "reading time",
+    "article stats"
+  ],
+  "target_modules": [
+    "frontend/src/pages/Article.jsx",
+    "Article.jsx",
+    "frontend/src/components"
+  ],
+  "target_file_patterns": [
+    "frontend/src/pages/Article.jsx",
+    "Article.jsx",
+    "article",
+    "frontend/src/components"
+  ],
+  "context_rules": [
+    "Prefer article detail page files",
+    "Search article body rendering and content display code"
+  ],
+  "patch_strategy": {
+    "summary": "Prepare a low-risk frontend patch for article stats display.",
+    "patches": [
+      {
+        "reason": "Article detail page needs word count and reading time display",
+        "changes": [
+          "Add word count calculation",
+          "Add reading time calculation",
+          "Render stats below article content"
+        ],
+        "risk_level": "low"
+      }
+    ]
+  },
+  "acceptance_template": [
+    "Article detail page shows word count",
+    "Article detail page shows estimated reading time",
+    "Existing article rendering is not broken",
+    "不破坏原文章渲染",
+    "涓嶇牬鍧忓師鏂囩珷娓叉煋"
+  ],
+  "default_test_commands": ["npm run lint"],
+  "conduit_frontend_patterns": [
+    "frontend/src/pages/Article.jsx",
+    "frontend/src/components",
+    "frontend/src/api"
+  ],
+  "conduit_backend_patterns": [],
+  "conduit_test_commands": ["npm test", "npm run test", "npm run lint"],
+  "conduit_acceptance_checks": [
+    "Article page renders stats without changing API schema",
+    "Frontend lint or test script is available for preview"
+  ],
+  "risk_rules": {
+    "default": "low",
+    "dangerous_files": ["package-lock.json", "yarn.lock", ".env"]
+  }
+}

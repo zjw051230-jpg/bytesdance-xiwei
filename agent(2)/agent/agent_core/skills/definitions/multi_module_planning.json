@@ -1,0 +1,36 @@
+{
+  "id": "multi-module-planning",
+  "name": "multi-module-planning",
+  "description": "Decompose L3 multi-module requirements into staged backend, frontend, test, and risk plans",
+  "requirement_types": ["conduit_l3_multimodule", "multimodule", "multi-module"],
+  "keywords": ["rating", "stars", "multi-module", "评分", "星"],
+  "target_modules": [
+    "backend/models",
+    "backend/routes",
+    "frontend/src/routes",
+    "frontend/src/components",
+    "frontend/src/services"
+  ],
+  "target_file_patterns": [
+    "backend/models",
+    "backend/routes",
+    "backend/controllers",
+    "frontend/src/routes",
+    "frontend/src/components",
+    "frontend/src/services"
+  ],
+  "context_rules": [
+    "Produce a staged plan before broad cross-stack changes.",
+    "Ask policy questions for underspecified rating semantics."
+  ],
+  "patch_strategy": {
+    "summary": "Produce multi-module staged plan only until rating policy is clarified.",
+    "patches": []
+  },
+  "acceptance_template": [
+    "Backend, frontend, test, and risk workstreams are identified.",
+    "Ambiguous voting policy is clarified before code is applied."
+  ],
+  "default_test_commands": ["npm test"],
+  "risk_rules": {"default": "high"}
+}

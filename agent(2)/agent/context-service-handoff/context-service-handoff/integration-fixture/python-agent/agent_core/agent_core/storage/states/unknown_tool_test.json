@@ -1,0 +1,84 @@
+{
+  "task_id": "unknown_tool_test",
+  "user_input": "unknown tool test",
+  "status": "FAILED",
+  "current_step": 2,
+  "max_steps": 5,
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "analyze_requirement",
+        "args": {
+          "input": "unknown tool test",
+          "selected_model": "doubao-seed-2.0-lite"
+        }
+      },
+      "observation": {
+        "ok": true,
+        "result": "理解需求：unknown tool test，需要做文章详情页的字数统计能力。"
+      }
+    },
+    {
+      "step": 1,
+      "action": {
+        "tool": "bad_tool",
+        "args": {
+          "input": "unknown tool test",
+          "selected_model": "doubao-seed-2.0-lite"
+        }
+      },
+      "observation": {
+        "ok": false,
+        "error": "Unknown tool: bad_tool",
+        "source": "hook"
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced"
+  },
+  "model_trace": [
+    {
+      "step": 0,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    },
+    {
+      "step": 1,
+      "provider": "volcengine",
+      "model": "doubao-seed-2.0-lite",
+      "reason": "cheap default for clarify/skill_route/finish",
+      "budget_mode": "balanced",
+      "estimated_cost_level": "low"
+    }
+  ],
+  "available_actions_history": [
+    {
+      "step": 0,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "apply_patch",
+        "finish"
+      ]
+    },
+    {
+      "step": 1,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "apply_patch",
+        "finish"
+      ]
+    }
+  ]
+}

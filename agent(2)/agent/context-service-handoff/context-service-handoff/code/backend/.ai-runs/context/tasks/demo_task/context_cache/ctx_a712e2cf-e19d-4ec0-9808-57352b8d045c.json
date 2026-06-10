@@ -1,0 +1,36 @@
+{
+  "final_dsl": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "requirement_summary": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "context_package_summary": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "active_constraints": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "active_interrupts": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "relevant_experiences": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "trace_summary": {
+    "value": {
+      "node_count": 0,
+      "edge_count": 0,
+      "dependency_summary": {
+        "source_node_ids": []
+      }
+    },
+    "source_node_ids": []
+  }
+}

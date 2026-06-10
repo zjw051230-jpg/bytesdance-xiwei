@@ -1,0 +1,70 @@
+{
+  "final_dsl": {
+    "value": [
+      {
+        "node_id": "dsl_root",
+        "type": "final_dsl",
+        "summary": "Generate implementation plan",
+        "status": "verified",
+        "metadata": {
+          "source_event_type": "PLAN_CREATED",
+          "acceptance_criteria": [
+            "Requirement needs clarification"
+          ],
+          "target_files_hint": [],
+          "runtime_instructions": []
+        }
+      }
+    ],
+    "source_node_ids": [
+      "dsl_root"
+    ]
+  },
+  "requirement_summary": {
+    "value": [
+      {
+        "node_id": "dsl_root",
+        "type": "final_dsl",
+        "summary": "Generate implementation plan",
+        "status": "verified",
+        "metadata": {
+          "source_event_type": "PLAN_CREATED",
+          "acceptance_criteria": [
+            "Requirement needs clarification"
+          ],
+          "target_files_hint": [],
+          "runtime_instructions": []
+        }
+      }
+    ],
+    "source_node_ids": [
+      "dsl_root"
+    ]
+  },
+  "context_package_summary": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "active_constraints": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "active_interrupts": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "relevant_experiences": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "trace_summary": {
+    "value": {
+      "node_count": 7,
+      "edge_count": 6,
+      "dependency_summary": {
+        "source_node_ids": []
+      }
+    },
+    "source_node_ids": []
+  }
+}

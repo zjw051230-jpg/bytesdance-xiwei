@@ -1,0 +1,16 @@
+{
+  "task_id": "cwd_test",
+  "user_input": "demo",
+  "status": "RUNNING",
+  "current_step": 0,
+  "max_steps": 5,
+  "history": [],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced"
+  },
+  "model_trace": [],
+  "available_actions_history": []
+}

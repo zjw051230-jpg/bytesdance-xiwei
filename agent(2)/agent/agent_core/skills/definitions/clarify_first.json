@@ -1,0 +1,23 @@
+{
+  "id": "clarify-first",
+  "name": "clarify-first",
+  "description": "Pause ambiguous L3 requirements and produce structured clarification before code generation",
+  "requirement_types": ["conduit_l3_ambiguous", "ambiguous", "clarification"],
+  "keywords": ["ambiguous", "clarify", "modern", "reading experience", "澄清", "现代", "阅读体验"],
+  "target_modules": [],
+  "target_file_patterns": [],
+  "context_rules": [
+    "Do not generate code patches until the ambiguous scope is narrowed.",
+    "List plausible interpretations and ask concrete clarification questions."
+  ],
+  "patch_strategy": {
+    "summary": "Clarify ambiguous requirement before implementation.",
+    "patches": []
+  },
+  "acceptance_template": [
+    "Clarification questions are produced.",
+    "No code patch is generated before the user chooses a concrete direction."
+  ],
+  "default_test_commands": [],
+  "risk_rules": {"default": "medium"}
+}

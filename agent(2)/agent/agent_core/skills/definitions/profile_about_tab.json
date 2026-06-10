@@ -1,0 +1,51 @@
+{
+  "id": "about-me-tab",
+  "name": "about-me-tab",
+  "description": "Add About Me tab on profile page",
+  "requirement_types": ["frontend", "profile"],
+  "keywords": [
+    "about me",
+    "个人简介",
+    "个人主页",
+    "profile about",
+    "profile tab",
+    "bio"
+  ],
+  "target_modules": [
+    "frontend/src/pages/Profile.jsx",
+    "frontend/src/components/Tabs.jsx"
+  ],
+  "target_file_patterns": [
+    "frontend/src/pages/Profile.jsx",
+    "Profile.jsx",
+    "Tabs.jsx",
+    "profile"
+  ],
+  "context_rules": [
+    "Prefer profile page files",
+    "Search tab navigation components"
+  ],
+  "patch_strategy": {
+    "summary": "Prepare a low-risk frontend patch for the profile tab experience.",
+    "patches": [
+      {
+        "reason": "Profile page needs a dedicated About Me tab and bio section",
+        "changes": [
+          "Add About Me tab",
+          "Add tab navigation entry",
+          "Render user bio section"
+        ],
+        "risk_level": "low"
+      }
+    ]
+  },
+  "acceptance_template": [
+    "Profile page shows About Me tab",
+    "Tab content renders correctly"
+  ],
+  "default_test_commands": ["npm run lint"],
+  "risk_rules": {
+    "default": "low",
+    "dangerous_files": ["package-lock.json", "yarn.lock", ".env"]
+  }
+}

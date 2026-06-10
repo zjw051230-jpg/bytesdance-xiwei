@@ -1,0 +1,281 @@
+{
+  "task_id": "conduit_invalid_repo_test",
+  "user_input": "Update Conduit article page",
+  "status": "PAUSED",
+  "current_step": 0,
+  "max_steps": 11,
+  "run_id": "run_conduit_invalid_repo_test",
+  "current_node_id": null,
+  "node_history": [],
+  "context_snapshots": [
+    {
+      "step": 0,
+      "agent_name": "summaryAgent",
+      "context": {
+        "task_id": "conduit_invalid_repo_test",
+        "agent_name": "summaryAgent",
+        "current_node_id": null,
+        "pr_draft": {
+          "status": "blocked",
+          "title": "Conduit article change",
+          "summary": "Agent generated PR draft.",
+          "requirement_id": "REQ-CONDUIT-BLOCK",
+          "requirement_type": "conduit_frontend",
+          "matched_skill_id": null,
+          "changed_files": [],
+          "change_plan": [],
+          "acceptance_criteria_coverage": {
+            "requirement_id": "REQ-CONDUIT-BLOCK",
+            "criteria": [],
+            "covered_count": 0,
+            "total_count": 0,
+            "review_matches_acceptance_criteria": false,
+            "verification_passed": null
+          },
+          "test_commands": [],
+          "test_result": null,
+          "risk_summary": {
+            "task_level": "L1",
+            "risk_level": "low",
+            "review_risk_level": null,
+            "review_approved": null,
+            "review_issues": [],
+            "execution_mode": null,
+            "verification_passed": null,
+            "verification_mode": null,
+            "blocked_reason": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime"
+          },
+          "manual_checklist": [
+            "Review generated patch preview before any real write.",
+            "Confirm acceptance criteria coverage with a human reviewer.",
+            "Run the listed verification commands in the target repo before merging."
+          ],
+          "rollback_plan": [
+            "Revert the files listed in changed_files.",
+            "Re-run the listed verification commands after rollback."
+          ]
+        }
+      }
+    }
+  ],
+  "history": [],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced",
+    "requirement_dsl": {
+      "requirement_id": "REQ-CONDUIT-BLOCK",
+      "task_name": "Conduit article change",
+      "user_story": "Update Conduit article page",
+      "requirement_type": "conduit_frontend",
+      "target_repo": "C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime",
+      "skill_hint": "conduit-article"
+    },
+    "requirement_id": "REQ-CONDUIT-BLOCK",
+    "requirement_type": "conduit_frontend",
+    "repo_profile": {
+      "repo_type": "invalid",
+      "repo_path": "C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime",
+      "exists": false,
+      "frontend_root": null,
+      "backend_root": null,
+      "package_managers": [],
+      "available_scripts": {},
+      "detected_frameworks": [],
+      "key_files": [],
+      "conduit_checks": {
+        "has_frontend_package_json": false,
+        "has_backend_package_json": false,
+        "has_react_or_vite": false,
+        "has_express_or_sequelize": false,
+        "has_conduit_structure": false
+      },
+      "error": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime"
+    },
+    "repo_type": "invalid",
+    "conduit_checks": {
+      "has_frontend_package_json": false,
+      "has_backend_package_json": false,
+      "has_react_or_vite": false,
+      "has_express_or_sequelize": false,
+      "has_conduit_structure": false
+    },
+    "last_error": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime",
+    "blocked_reason": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime",
+    "pr_draft": {
+      "status": "blocked",
+      "title": "Conduit article change",
+      "summary": "Agent generated PR draft.",
+      "requirement_id": "REQ-CONDUIT-BLOCK",
+      "requirement_type": "conduit_frontend",
+      "matched_skill_id": null,
+      "changed_files": [],
+      "change_plan": [],
+      "acceptance_criteria_coverage": {
+        "requirement_id": "REQ-CONDUIT-BLOCK",
+        "criteria": [],
+        "covered_count": 0,
+        "total_count": 0,
+        "review_matches_acceptance_criteria": false,
+        "verification_passed": null
+      },
+      "test_commands": [],
+      "test_result": null,
+      "risk_summary": {
+        "task_level": "L1",
+        "risk_level": "low",
+        "review_risk_level": null,
+        "review_approved": null,
+        "review_issues": [],
+        "execution_mode": null,
+        "verification_passed": null,
+        "verification_mode": null,
+        "blocked_reason": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime"
+      },
+      "manual_checklist": [
+        "Review generated patch preview before any real write.",
+        "Confirm acceptance criteria coverage with a human reviewer.",
+        "Run the listed verification commands in the target repo before merging."
+      ],
+      "rollback_plan": [
+        "Revert the files listed in changed_files.",
+        "Re-run the listed verification commands after rollback."
+      ]
+    },
+    "last_pr_draft_event": {
+      "type": "PR_DRAFT_CREATED",
+      "category": "domain_event",
+      "producer": "summaryAgent",
+      "trace_id": "conduit_invalid_repo_test",
+      "span_id": "summary_blocked",
+      "parent_span_id": null,
+      "run_id": "run_conduit_invalid_repo_test",
+      "payload": {
+        "pr_draft": {
+          "status": "blocked",
+          "title": "Conduit article change",
+          "summary": "Agent generated PR draft.",
+          "requirement_id": "REQ-CONDUIT-BLOCK",
+          "requirement_type": "conduit_frontend",
+          "matched_skill_id": null,
+          "changed_files": [],
+          "change_plan": [],
+          "acceptance_criteria_coverage": {
+            "requirement_id": "REQ-CONDUIT-BLOCK",
+            "criteria": [],
+            "covered_count": 0,
+            "total_count": 0,
+            "review_matches_acceptance_criteria": false,
+            "verification_passed": null
+          },
+          "test_commands": [],
+          "test_result": null,
+          "risk_summary": {
+            "task_level": "L1",
+            "risk_level": "low",
+            "review_risk_level": null,
+            "review_approved": null,
+            "review_issues": [],
+            "execution_mode": null,
+            "verification_passed": null,
+            "verification_mode": null,
+            "blocked_reason": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime"
+          },
+          "manual_checklist": [
+            "Review generated patch preview before any real write.",
+            "Confirm acceptance criteria coverage with a human reviewer.",
+            "Run the listed verification commands in the target repo before merging."
+          ],
+          "rollback_plan": [
+            "Revert the files listed in changed_files.",
+            "Re-run the listed verification commands after rollback."
+          ]
+        }
+      },
+      "idempotency_key": "PR_DRAFT_CREATED:conduit_invalid_repo_test:blocked",
+      "event_id": "evt_1",
+      "task_id": "conduit_invalid_repo_test",
+      "seq": 1,
+      "schema_version": "1",
+      "created_at": "2026-06-10T11:32:30.028754Z"
+    },
+    "final_summary": {
+      "status": "BLOCKED",
+      "user_input": "Update Conduit article page",
+      "message": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime",
+      "pr_draft": {
+        "status": "blocked",
+        "title": "Conduit article change",
+        "summary": "Agent generated PR draft.",
+        "requirement_id": "REQ-CONDUIT-BLOCK",
+        "requirement_type": "conduit_frontend",
+        "matched_skill_id": null,
+        "changed_files": [],
+        "change_plan": [],
+        "acceptance_criteria_coverage": {
+          "requirement_id": "REQ-CONDUIT-BLOCK",
+          "criteria": [],
+          "covered_count": 0,
+          "total_count": 0,
+          "review_matches_acceptance_criteria": false,
+          "verification_passed": null
+        },
+        "test_commands": [],
+        "test_result": null,
+        "risk_summary": {
+          "task_level": "L1",
+          "risk_level": "low",
+          "review_risk_level": null,
+          "review_approved": null,
+          "review_issues": [],
+          "execution_mode": null,
+          "verification_passed": null,
+          "verification_mode": null,
+          "blocked_reason": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime"
+        },
+        "manual_checklist": [
+          "Review generated patch preview before any real write.",
+          "Confirm acceptance criteria coverage with a human reviewer.",
+          "Run the listed verification commands in the target repo before merging."
+        ],
+        "rollback_plan": [
+          "Revert the files listed in changed_files.",
+          "Re-run the listed verification commands after rollback."
+        ]
+      },
+      "repo_profile": {
+        "repo_type": "invalid",
+        "repo_path": "C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime",
+        "exists": false,
+        "frontend_root": null,
+        "backend_root": null,
+        "package_managers": [],
+        "available_scripts": {},
+        "detected_frameworks": [],
+        "key_files": [],
+        "conduit_checks": {
+          "has_frontend_package_json": false,
+          "has_backend_package_json": false,
+          "has_react_or_vite": false,
+          "has_express_or_sequelize": false,
+          "has_conduit_structure": false
+        },
+        "error": "repo path does not exist: C:\\Users\\Xyp\\AppData\\Local\\Temp\\missing-conduit-repo-for-agent-runtime"
+      },
+      "repo_type": "invalid",
+      "conduit_checks": {
+        "has_frontend_package_json": false,
+        "has_backend_package_json": false,
+        "has_react_or_vite": false,
+        "has_express_or_sequelize": false,
+        "has_conduit_structure": false
+      }
+    },
+    "memory_hit_count": 0
+  },
+  "matched_skill": null,
+  "model_trace": [],
+  "available_actions_history": [],
+  "memory_hits": []
+}

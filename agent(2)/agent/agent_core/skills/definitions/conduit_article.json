@@ -1,0 +1,49 @@
+{
+  "id": "conduit-article",
+  "name": "conduit-article",
+  "description": "Conduit realworld article feature changes",
+  "requirement_types": ["conduit", "conduit_frontend", "conduit_fullstack", "frontend", "fullstack"],
+  "keywords": ["conduit", "realworld", "article", "editor", "feed"],
+  "target_modules": ["frontend/src/pages/Article.jsx", "frontend/src/pages/Editor.jsx"],
+  "target_file_patterns": ["Article.jsx", "Editor.jsx", "article"],
+  "context_rules": [
+    "Use Conduit frontend and backend structure when a repo profile is available",
+    "Prefer concrete page, API, model, route, and controller files over generic placeholders"
+  ],
+  "patch_strategy": {
+    "summary": "Prepare a Conduit article patch plan.",
+    "patches": [
+      {
+        "reason": "Conduit article feature should be implemented in the located article module",
+        "changes": ["Update article feature behavior in the located Conduit module"],
+        "risk_level": "low"
+      }
+    ]
+  },
+  "acceptance_template": ["Conduit article behavior satisfies the requirement"],
+  "default_test_commands": ["npm run lint"],
+  "conduit_frontend_patterns": [
+    "frontend/src/pages/Article.jsx",
+    "frontend/src/pages/Editor.jsx",
+    "frontend/src/api",
+    "frontend/src/components"
+  ],
+  "conduit_backend_patterns": [
+    "backend/src/models",
+    "backend/models",
+    "backend/src/routes",
+    "backend/routes",
+    "backend/src/controllers",
+    "backend/controllers"
+  ],
+  "conduit_test_commands": ["npm test", "npm run test", "npm run lint"],
+  "conduit_acceptance_checks": [
+    "Relevant Conduit frontend page or API call point is located",
+    "Relevant Conduit backend model, route, or controller is located for fullstack requirements"
+  ],
+  "risk_rules": {
+    "default": "low",
+    "backend": "medium",
+    "dangerous_files": ["package-lock.json", "yarn.lock", ".env"]
+  }
+}

@@ -1,0 +1,132 @@
+{
+  "task_id": "memory_integration_test",
+  "user_input": "文章详情页字数统计",
+  "status": "SUCCESS",
+  "current_step": 1,
+  "max_steps": 10,
+  "run_id": "run_memory_integration_test",
+  "current_node_id": "finish_0",
+  "node_history": [
+    {
+      "node_id": "finish_0",
+      "node_type": "finish",
+      "step": 0,
+      "depends_on": []
+    }
+  ],
+  "context_snapshots": [],
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "finish",
+        "args": {}
+      },
+      "observation": {
+        "ok": true,
+        "result": {
+          "final_summary": {
+            "status": "SUCCESS",
+            "user_input": "文章详情页字数统计",
+            "skill": null,
+            "plan_summary": null,
+            "located_files_count": 0,
+            "patch_count": 0,
+            "review_approved": false,
+            "execution_executed": false,
+            "execution_mode": null,
+            "verification_passed": false,
+            "model_calls": 1,
+            "total_steps": 1,
+            "message": "Agent task completed successfully"
+          }
+        }
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {
+    "task_level": "L1",
+    "risk_level": "low",
+    "budget_mode": "balanced",
+    "memory_hit_count": 1,
+    "final_summary": {
+      "status": "SUCCESS",
+      "user_input": "文章详情页字数统计",
+      "skill": null,
+      "plan_summary": null,
+      "located_files_count": 0,
+      "patch_count": 0,
+      "review_approved": false,
+      "execution_executed": false,
+      "execution_mode": null,
+      "verification_passed": false,
+      "model_calls": 1,
+      "total_steps": 1,
+      "message": "Agent task completed successfully"
+    },
+    "last_event": {
+      "type": "TASK_FINISHED",
+      "category": "domain_event",
+      "producer": "deliveryAgent",
+      "trace_id": "memory_integration_test",
+      "span_id": "finish_0",
+      "parent_span_id": null,
+      "run_id": "run_memory_integration_test",
+      "payload": {
+        "final_summary": {
+          "status": "SUCCESS",
+          "user_input": "文章详情页字数统计",
+          "skill": null,
+          "plan_summary": null,
+          "located_files_count": 0,
+          "patch_count": 0,
+          "review_approved": false,
+          "execution_executed": false,
+          "execution_mode": null,
+          "verification_passed": false,
+          "model_calls": 1,
+          "total_steps": 1,
+          "message": "Agent task completed successfully"
+        }
+      },
+      "idempotency_key": "TASK_FINISHED:memory_integration_test:0",
+      "event_id": "evt_1",
+      "task_id": "memory_integration_test",
+      "seq": 1,
+      "schema_version": "1",
+      "created_at": "2026-06-08T12:44:17.400111Z"
+    }
+  },
+  "matched_skill": null,
+  "model_trace": [
+    {
+      "step": 0,
+      "model": "mock-model"
+    }
+  ],
+  "available_actions_history": [
+    {
+      "step": 0,
+      "available_actions": [
+        "analyze_requirement",
+        "select_skill",
+        "make_plan",
+        "locate_files",
+        "generate_patch",
+        "review_patch",
+        "execute_patch",
+        "verify_result",
+        "apply_patch",
+        "finish"
+      ]
+    }
+  ],
+  "memory_hits": [
+    {
+      "requirement": "文章详情页字数统计",
+      "skill": "article_word_stats",
+      "summary": "已有案例"
+    }
+  ]
+}

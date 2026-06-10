@@ -1,0 +1,21 @@
+{
+  "requirement_id": "REQ-CONDUIT-L3-MULTIMODULE-RATING",
+  "requirement_type": "conduit_l3_multimodule",
+  "task_level": "L3",
+  "target_repo": "D:\\conduit-realworld-example-app",
+  "skill_hint": "multi-module-planning",
+  "user_input": "Add a rating system so users can rate articles from 1 to 5 stars.",
+  "acceptance_criteria": [
+    "Agent should decompose the requirement into backend model/API, frontend display/input, and verification plan.",
+    "Agent should identify ambiguity around one-user-one-vote, anonymous users, average rating, and rating updates.",
+    "Agent should ask clarification questions before applying code if policy is unclear.",
+    "Agent should produce a safe staged plan instead of immediately applying broad changes."
+  ],
+  "risks": [
+    "Requires database/model/API/frontend coordination.",
+    "Rating policy is underspecified.",
+    "May require authentication and idempotency design."
+  ],
+  "task_name": "L3 Multimodule Rating",
+  "user_story": "Add a rating system so users can rate articles from 1 to 5 stars."
+}

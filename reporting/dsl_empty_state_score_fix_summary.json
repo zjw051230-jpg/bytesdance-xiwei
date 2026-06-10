@@ -1,0 +1,68 @@
+{
+  "task": "DSL Empty State Score Fix",
+  "status": "blocked_by_existing_server_test_failures",
+  "branch": "main",
+  "modifiedFiles": [
+    "src/adapters/dslArtifactAdapter.js",
+    "src/components/DSLWorkbench.jsx",
+    "src/components/DSLStatusConsole.jsx",
+    "src/adapters/dslArtifactAdapter.test.js",
+    "src/App.test.jsx",
+    "reporting/dsl_empty_state_score_fix_report.md",
+    "reporting/dsl_empty_state_score_fix_summary.json"
+  ],
+  "rootCause": {
+    "score58": "Initial UI and empty artifact mapping used fallbackUiState/fallback completion.",
+    "fallbackSafeDefault": "Readiness and risks defaulted to fallback_safe_default even before any real run or PM input."
+  },
+  "emptyStateRules": {
+    "noRun": "Show not_started with 0 percent and no readiness details.",
+    "noInput": "Empty requirement with no raw PM input or DSL JSON maps to emptyUiState.",
+    "noArtifact": "artifactsToUiState({}) returns emptyUiState.",
+    "reportCta": "Disabled and marked ungenerated."
+  },
+  "scoreRules": {
+    "empty": 0,
+    "initialRequirement": 45,
+    "intermediate": "preserve existing artifact and skill scores",
+    "final": "86-94"
+  },
+  "fallbackBoundary": {
+    "allowed": "real artifact/generation context with incomplete fields",
+    "blocked": "initial empty page, no run, no PM input, no artifacts"
+  },
+  "tests": {
+    "targeted": {
+      "command": "npm test -- src/adapters/dslArtifactAdapter.test.js src/App.test.jsx -t \"true empty|no DSL artifacts|fallback suggestion|completion score|Enter|single|完成态|sends PM answers|cleans up\"",
+      "status": "passed"
+    },
+    "npmTest": {
+      "command": "npm test",
+      "status": "failed",
+      "reason": "Existing dirty server/services/skillOrchestrator.js references CLARIFICATION_TOTAL_QUESTIONS after the constant was removed."
+    },
+    "testServer": {
+      "command": "npm run test:server",
+      "status": "failed",
+      "reason": "Same CLARIFICATION_TOTAL_QUESTIONS ReferenceError in server tests."
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "passed"
+    }
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false
+  },
+  "git": {
+    "commit": null,
+    "pushed": false,
+    "reason": "Required tests did not pass."
+  },
+  "reworkRecommendation": "Frontend empty-state fix does not need rework; resolve the existing server clarification-flow dirty changes before commit/push."
+}

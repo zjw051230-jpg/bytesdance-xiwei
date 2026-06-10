@@ -1,0 +1,165 @@
+{
+  "final_dsl_summary": {
+    "value": [
+      {
+        "node_id": "dsl_root",
+        "type": "final_dsl",
+        "summary": "Generate implementation plan",
+        "status": "verified",
+        "metadata": {
+          "source_event_type": "PLAN_CREATED",
+          "acceptance_criteria": [
+            "Requirement needs clarification"
+          ],
+          "target_files_hint": [],
+          "runtime_instructions": []
+        }
+      }
+    ],
+    "source_node_ids": [
+      "dsl_root"
+    ]
+  },
+  "plan_summary": {
+    "value": [
+      {
+        "node_id": "plan_2",
+        "type": "plan",
+        "summary": "Generate implementation plan",
+        "status": "created",
+        "metadata": {
+          "source_event_type": "PLAN_CREATED",
+          "plan": {
+            "task_name": "Generate implementation plan",
+            "skill_name": null,
+            "scope": "unknown",
+            "steps": [
+              "Clarify requirement",
+              "Locate relevant modules",
+              "Propose implementation plan"
+            ],
+            "target_files_hint": [],
+            "acceptance_criteria": [
+              "Requirement needs clarification"
+            ],
+            "test_commands": [],
+            "runtime_instructions": []
+          }
+        }
+      }
+    ],
+    "source_node_ids": [
+      "plan_2"
+    ]
+  },
+  "patch_summary": {
+    "value": [
+      {
+        "node_id": "patch_4",
+        "type": "patch",
+        "summary": "Prepare a structured create_file patch operation.",
+        "status": "created",
+        "metadata": {
+          "source_event_type": "PATCH_GENERATED",
+          "patch_plan": {
+            "patches": [
+              {
+                "operation": "create_file",
+                "path": "note.txt",
+                "content": "100",
+                "reason": "User requested creating a file with explicit content",
+                "risk_level": "low"
+              }
+            ],
+            "summary": "Prepare a structured create_file patch operation."
+          },
+          "changed_files": []
+        }
+      }
+    ],
+    "source_node_ids": [
+      "patch_4"
+    ]
+  },
+  "test_summary": {
+    "value": [
+      {
+        "node_id": "sandbox_6",
+        "type": "sandbox_result",
+        "summary": "Patch execution completed through repo adapter.",
+        "status": "verified",
+        "metadata": {
+          "source_event_type": "EXECUTION_COMPLETED",
+          "execution_result": {
+            "executed": true,
+            "mode": "mock_repo",
+            "files": [
+              {
+                "file": "note.txt",
+                "operation": "create_file",
+                "status": "applied",
+                "changes_applied": [],
+                "applied": true,
+                "dry_run": false,
+                "preview": false,
+                "approval_required": false,
+                "real_write": false,
+                "would_write": null,
+                "content_preview": null,
+                "diff_preview": null,
+                "before_exists": null,
+                "after_exists": null,
+                "bytes_written": null,
+                "unsupported_for_real_write": false,
+                "mode": "mock_repo",
+                "adapter_result": {
+                  "ok": true,
+                  "file": "note.txt",
+                  "applied": true,
+                  "mode": "mock_repo"
+                }
+              }
+            ],
+            "preview_result": [],
+            "summary": "Patch execution completed through repo adapter."
+          },
+          "success": true
+        }
+      }
+    ],
+    "source_node_ids": [
+      "sandbox_6"
+    ]
+  },
+  "risk_summary": {
+    "value": [],
+    "source_node_ids": []
+  },
+  "evidence_list": {
+    "value": [
+      {
+        "node_id": "patch_4",
+        "type": "patch",
+        "summary": "Prepare a structured create_file patch operation.",
+        "status": "created"
+      },
+      {
+        "node_id": "plan_2",
+        "type": "plan",
+        "summary": "Generate implementation plan",
+        "status": "created"
+      },
+      {
+        "node_id": "sandbox_6",
+        "type": "sandbox_result",
+        "summary": "Patch execution completed through repo adapter.",
+        "status": "verified"
+      }
+    ],
+    "source_node_ids": [
+      "patch_4",
+      "plan_2",
+      "sandbox_6"
+    ]
+  }
+}

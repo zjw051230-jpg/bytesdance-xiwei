@@ -1,0 +1,24 @@
+{
+  "task_id": "pause_task",
+  "user_input": "暂停测试",
+  "status": "PAUSED",
+  "current_step": 0,
+  "max_steps": 5,
+  "history": [
+    {
+      "step": 0,
+      "action": {
+        "tool": "runtime_control",
+        "args": {
+          "type": "PAUSE"
+        }
+      },
+      "observation": {
+        "ok": false,
+        "message": "Paused by runtime control"
+      }
+    }
+  ],
+  "instructions": [],
+  "artifacts": {}
+}
