@@ -27,6 +27,7 @@ export default function TaskInspector({ monitor }) {
   const hasReport = Boolean(selectedTask.report);
   const artifacts = selectedTask.artifacts || [];
   const risks = selectedTask.risks || [];
+  const stageEvents = Array.isArray(selectedTask.stageEvents) ? selectedTask.stageEvents : [];
 
   return (
     <aside className="inspector">
@@ -53,6 +54,16 @@ export default function TaskInspector({ monitor }) {
           <span><small>状态</small><strong><StatusBadge status={selectedTask.status}>{selectedTask.status}</StatusBadge></strong></span>
           <span><small>耗时</small><strong>{selectedTask.duration}</strong></span>
         </div>
+        {stageEvents.length ? (
+          <div className="task-stage-detail-list">
+            {stageEvents.map((stage, index) => (
+              <span className={`task-stage-detail ${stage.status}`} key={stage.id || `${stage.agent}-${index}`}>
+                <strong>{stage.agent}</strong>
+                <small>{stage.status}</small>
+              </span>
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <section className="inspector-section">

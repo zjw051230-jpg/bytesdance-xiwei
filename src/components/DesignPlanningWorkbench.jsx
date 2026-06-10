@@ -1,7 +1,10 @@
 import { AlertTriangle, Check, CheckCircle2, Circle, ClipboardList, Eye, FileText, Play, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { checkAgentReadiness, getAgentArtifacts, getAgentRun, startAgentRun } from "../api/agentClient.js";
+import { normalizeAgentWorkflow } from "../adapters/agentWorkflowAdapter.js";
 import { getDesignPlan, listPlanningTasks, updatePlanningTask } from "../api/persistenceClient.js";
+import AgentActivityTimeline from "./AgentActivityTimeline.jsx";
+import AgentRunStatusPanel from "./AgentRunStatusPanel.jsx";
 
 const planningStatusLabels = {
   todo: "未开始",
@@ -101,7 +104,7 @@ export default function DesignPlanningWorkbench({
       onToast?.("Agent context preview ready");
     } catch (error) {
       const message = error.message || "Agent API request failed";
-      setPlanError(`Real Agent execution failed: ${message}`);
+      setPlanError(`Agent dry-run readiness failed: ${message}`);
       onAgentWorkflowChange?.((current) => ({ ...current, status: "blocked", error: message }));
     }
   };
@@ -109,22 +112,15 @@ export default function DesignPlanningWorkbench({
   const handlePlanPreview = async () => {
     setPlanError("");
     const targetRepoPath = resolveProjectLocalPath(activeProject);
-    if (!targetRepoPath) {
-      const message = "Real execution requires the selected project to have localPath/targetRepoPath.";
-      setPlanError(message);
-      onAgentWorkflowChange?.((current) => ({
-        ...current,
-        status: "blocked",
-        latestReturn: message,
-        error: message
-      }));
-      return;
-    }
     setIsAgentRunStarting(true);
     onAgentWorkflowChange?.((current) => ({
       ...current,
       status: "running",
-      latestReturn: "Real Agent(2) execution is running against the target repository.",
+      latestReturn: "Agent dry-run is generating an execution plan and review artifacts.",
+      dryRun: true,
+      realWritePerformed: false,
+      stageEvents: buildPendingStageEvents(activeRequirement, targetRepoPath),
+      activityTimeline: buildPendingStageEvents(activeRequirement, targetRepoPath),
       error: null
     }));
     try {
@@ -133,7 +129,7 @@ export default function DesignPlanningWorkbench({
         requirementId: activeRequirement?.id,
         requirementDsl: buildAgentRequirementDsl(activeRequirement, designPlan, planningTasks),
         taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
-        dryRun: false,
+        dryRun: true,
         agentProvider: "agent2",
         targetRepoPath
       });
@@ -141,7 +137,7 @@ export default function DesignPlanningWorkbench({
       const artifactsFromApi = await getAgentArtifacts(run.runId).catch(() => ({ artifacts: run.artifacts || {} }));
       const artifacts = artifactsFromApi.artifacts || runFromApi.artifacts || run.artifacts || {};
       onAgentWorkflowChange?.((current) => ({
-        ...current,
+        ...normalizeAgentWorkflow(runFromApi, current),
         status: runFromApi.status || "completed",
         runId: runFromApi.runId || run.runId,
         latestReturn: runFromApi.latestReturn || runFromApi.resultSummary || run.latestReturn,
@@ -152,22 +148,28 @@ export default function DesignPlanningWorkbench({
         artifacts,
         outputDir: runFromApi.outputDir || run.outputDir,
         relativeOutputDir: runFromApi.relativeOutputDir || run.relativeOutputDir,
-        dryRun: runFromApi.dryRun ?? run.dryRun ?? false,
+        dryRun: runFromApi.dryRun ?? run.dryRun ?? true,
         realWritePerformed: runFromApi.realWritePerformed ?? run.realWritePerformed ?? false,
+        stageEvents: runFromApi.stageEvents || run.stageEvents || artifactsFromApi.stageEvents || runFromApi.activityTimeline || run.activityTimeline || current.stageEvents || [],
+        activityTimeline: runFromApi.activityTimeline || run.activityTimeline || artifactsFromApi.activityTimeline || runFromApi.stageEvents || run.stageEvents || current.activityTimeline || [],
         executionResult: runFromApi.executionResult || run.executionResult || extractExecutionResultFromArtifacts(artifacts),
         reviewResult: runFromApi.reviewResult || run.reviewResult || null,
         agentProcess: runFromApi.agentProcess || run.agentProcess || null,
         artifactError: artifactsFromApi.error || null,
         error: null
       }));
-      onToast?.(`Real Agent execution completed: ${runFromApi.runId || run.runId}`);
+      onToast?.(`Agent dry-run completed: ${runFromApi.runId || run.runId}`);
     } catch (error) {
       const message = error.message || "Agent API request failed";
-      setPlanError(`真实 Agent 执行失败: ${message}`);
+      setPlanError(`Agent dry-run failed: ${message}`);
       onAgentWorkflowChange?.((current) => ({
         ...current,
-        status: "blocked",
-        latestReturn: "Real Agent execution failed.",
+        status: "failed",
+        latestReturn: "Agent dry-run failed.",
+        dryRun: true,
+        realWritePerformed: false,
+        stageEvents: buildFailedStageEvents(current.stageEvents, message),
+        activityTimeline: buildFailedStageEvents(current.activityTimeline || current.stageEvents, message),
         error: message
       }));
     } finally {
@@ -200,7 +202,7 @@ export default function DesignPlanningWorkbench({
             isAgentRunStarting={isAgentRunStarting}
             hasTargetRepoPath={hasTargetRepoPath}
           />
-          <TaskBreakdownPanel tasks={planningTasks} onStatusChange={handleTaskStatusChange} />
+          <TaskBreakdownPanel tasks={planningTasks} onStatusChange={handleTaskStatusChange} agentWorkflow={agentWorkflow} />
         </section>
 
         <ExecutionFeedbackPanel tasks={planningTasks} />
@@ -356,7 +358,7 @@ function MilestonePanel({ plan, tasks, agentWorkflow = {}, isAgentRunStarting = 
   );
 }
 
-function TaskBreakdownPanel({ tasks, onStatusChange }) {
+function TaskBreakdownPanel({ tasks, onStatusChange, agentWorkflow = {} }) {
   return (
     <section className="planning-card task-breakdown-panel" aria-label="任务拆解清单">
       <div className="planning-card-header">
@@ -381,6 +383,7 @@ function TaskBreakdownPanel({ tasks, onStatusChange }) {
           </div>
         ))}
       </div>
+      <AgentActivityTimeline stageEvents={agentWorkflow.stageEvents || agentWorkflow.activityTimeline || []} />
     </section>
   );
 }
@@ -421,8 +424,8 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
   const writeState = agentWorkflow.realWritePerformed
     ? "Real write performed on target repository"
     : agentWorkflow.runId
-      ? "Agent ran for real; its review/validation may have blocked file writes"
-      : "Real execution has not started";
+      ? "Dry-run completed; no business repository writes were performed"
+      : "Dry-run has not started";
   return (
     <section className="planning-card agent-execution-panel" aria-label="Agent execution entry">
       <div className="planning-card-header">
@@ -430,15 +433,16 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
         <span className={`agent-status ${agentWorkflow.status}`}>{agentWorkflow.status || "idle"}</span>
       </div>
       <div className="agent-entry-grid">
-        <article><strong>当前任务可执行性</strong><p>{hasTargetRepoPath ? "Ready for real Agent(2) execution" : "Bind project localPath first"}</p></article>
-        <article><strong>Execution boundary</strong><p>Real execution starts Agent(2) with the selected project localPath as the target repository.</p></article>
-        <article><strong>最新 Agent 回返</strong><p>{agentWorkflow.latestReturn || "No real agent run has been started."}</p></article>
+        <article><strong>当前任务可执行性</strong><p>{hasTargetRepoPath ? "Ready for Agent dry-run with project context" : "Ready for Agent dry-run without localPath"}</p></article>
+        <article><strong>Execution boundary</strong><p>Dry-run only: generate plan, review items, artifacts, and PR draft without writing the business repo.</p></article>
+        <article><strong>最新 Agent 回返</strong><p>{agentWorkflow.latestReturn || "No Agent dry-run has been started."}</p></article>
       </div>
+      <AgentRunStatusPanel agentWorkflow={agentWorkflow} isStarting={isStarting} />
       <div className="agent-action-row">
         <button type="button" onClick={onContextPreview}><Eye size={15} />查看 Agent 输入 Context</button>
-        <button type="button" onClick={onPlanPreview} disabled={isStarting || !hasTargetRepoPath}>
+        <button type="button" onClick={onPlanPreview} disabled={isStarting}>
           {isStarting ? <ClipboardList size={15} /> : <Play size={15} />}
-          {isStarting ? "Real Agent running" : hasTargetRepoPath ? "Start real Agent write" : "Bind project localPath first"}
+          {isStarting ? "Agent dry-run running" : "生成执行计划"}
         </button>
         <button type="button" onClick={onOpenReview}>打开审计页面</button>
         <button type="button" onClick={onOpenPr}>打开 PR 页面</button>
@@ -446,7 +450,7 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
       <div className="agent-entry-grid">
         <article><strong>Run 状态</strong><p>{agentWorkflow.runId || "尚未生成 run"}</p></article>
         <article><strong>Artifacts</strong><p>{artifactCount ? `${artifactCount} 个 API artifact` : "暂无 API artifacts"}</p></article>
-        <article><strong>真实写文件</strong><p>{writeState}</p></article>
+        <article><strong>Repo write</strong><p>{writeState}</p></article>
       </div>
       {agentWorkflow.context ? (
         <pre className="agent-context-preview" data-testid="agent-context-preview">{JSON.stringify(agentWorkflow.context, null, 2)}</pre>
@@ -539,6 +543,46 @@ function StatusSelect({ task, onStatusChange }) {
   );
 }
 
+function buildPendingStageEvents(requirement, targetRepoPath) {
+  const now = new Date().toISOString();
+  return [
+    {
+      key: "requirement",
+      agent: "RequirementAgent",
+      title: "读取 RequirementDSL / 设计输入",
+      summary: requirement?.title || requirement?.rawPmInput || "Requirement input received.",
+      status: requirement ? "completed" : "skipped",
+      startedAt: now,
+      finishedAt: requirement ? now : ""
+    },
+    {
+      key: "readiness",
+      agent: "ReadinessAgent",
+      title: "检查 dry-run 执行条件",
+      summary: targetRepoPath ? "Project localPath is available for context." : "No localPath; dry-run continues without repo writes.",
+      status: "running",
+      startedAt: now,
+      finishedAt: ""
+    }
+  ];
+}
+
+function buildFailedStageEvents(stageEvents = [], message = "") {
+  const events = Array.isArray(stageEvents) ? stageEvents : [];
+  const now = new Date().toISOString();
+  const failedEvent = {
+    key: "summary",
+    agent: "SummaryAgent",
+    title: "汇总结果",
+    summary: "Agent dry-run failed.",
+    status: "failed",
+    errorSummary: message,
+    startedAt: now,
+    finishedAt: now
+  };
+  return events.length ? [...events.filter((event) => event.status !== "running"), failedEvent] : [failedEvent];
+}
+
 function buildMilestones(plan, tasks) {
   const hasPlan = Boolean(plan);
   const hasRunning = tasks.some((task) => task.status === "running");
@@ -590,33 +634,33 @@ function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = fals
       key: "target",
       index: 1,
       title: "Repository target",
-      detail: hasTargetRepoPath ? "Project localPath is bound and ready." : "Bind project localPath before running Agent.",
-      status: hasTargetRepoPath ? "completed" : "blocked"
+      detail: hasTargetRepoPath ? "Project localPath is available as dry-run context." : "No localPath; dry-run continues without repo writes.",
+      status: "completed"
     },
     {
       key: "context",
       index: 2,
       title: "Context package",
-      detail: agentWorkflow.context ? "Requirement and target repo context prepared." : "Waiting for context preview or run start.",
-      status: agentWorkflow.context ? "completed" : hasTargetRepoPath ? "pending" : "blocked"
+      detail: agentWorkflow.context ? "Requirement and optional repo context prepared." : "Waiting for context preview or run start.",
+      status: agentWorkflow.context ? "completed" : "pending"
     },
     {
       key: "runtime",
       index: 3,
       title: "Agent runtime",
-      detail: isRunning ? "Agent(2) process is running." : hasRun ? `Run recorded: ${agentWorkflow.runId}` : "Not started.",
+      detail: isRunning ? "Agent dry-run is running." : hasRun ? `Run recorded: ${agentWorkflow.runId}` : "Not started.",
       status: isRunning ? "active" : hasRun ? "completed" : hasError ? "blocked" : "pending"
     },
     {
       key: "write",
       index: 4,
-      title: "Real write",
+      title: "Repo write",
       detail: agentWorkflow.realWritePerformed
         ? "Target repository was modified."
         : hasRun
-          ? executionSummary || "Run finished; Agent did not report file writes."
-          : "Waiting for real execution.",
-      status: agentWorkflow.realWritePerformed ? "completed" : hasRun || executionBlocked ? "blocked" : "pending"
+          ? executionSummary || "Dry-run finished; no repo writes performed."
+          : "Waiting for dry-run.",
+      status: agentWorkflow.realWritePerformed ? "failed" : hasRun || executionBlocked ? "completed" : "pending"
     },
     {
       key: "review",
@@ -630,7 +674,7 @@ function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = fals
       index: 6,
       title: "Artifacts",
       detail: artifacts.length ? `${artifacts.length} artifact(s) captured for traceability.` : "No artifacts captured yet.",
-      status: artifacts.length ? "completed" : hasRun ? "blocked" : "pending"
+      status: artifacts.length ? "completed" : "pending"
     }
   ];
 }

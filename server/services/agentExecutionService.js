@@ -3,7 +3,7 @@ import path from "node:path";
 import { spawn } from "node:child_process";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { persistAgentDryRun, withPersistence } from "./persistence/workbenchPersistenceAdapter.js";
-import { createAgent2DryRun, mapAgent2ResultToWorkbench } from "./agent2Adapter.js";
+import { buildAgentStageEvents, createAgent2DryRun, mapAgent2ResultToWorkbench } from "./agent2Adapter.js";
 import { readDoubaoArkConfig } from "./doubaoArkClient.js";
 
 const agentRoot = path.resolve("agent(1)", "agent");
@@ -97,7 +97,7 @@ export async function getAgentReadiness(request = {}) {
   const inventory = await inspectAgent1();
   return {
     status: "ready",
-    canRunDryRun: false,
+    canRunDryRun: true,
     canRealWrite: Boolean(request.targetRepoPath || process.env.TARGET_REPO_PATH),
     requiresHumanConfirmationForRealWrite: true,
     agentType: inventory.type,
@@ -107,7 +107,7 @@ export async function getAgentReadiness(request = {}) {
       "default workbench action starts real Agent(2) only when targetRepoPath is provided",
       "real execution sets AGENT_REPO_MODE=real, AGENT_REPO_APPLY=1, AGENT_REPO_CONFIRM=YES",
       "agent review/validation may still block writes",
-      "dry-run agent execution is disabled for the Workbench start action",
+      "dry-run agent execution is enabled for planning timeline previews",
       "target repo path is provided by the selected project localPath"
     ]
   };
@@ -145,10 +145,6 @@ export async function startAgentRun(request = {}, config = {}) {
     return result;
   }
 
-  if (config.allowDryRun !== true) {
-    return errorResult("agent_dry_run_disabled", "Dry-run agent execution is disabled. Select a project with localPath and start a real Agent(2) run.");
-  }
-
   if (selectedAgentProvider(request, config) === "agent2") {
     const run = createAgent2DryRun(request, {
       runId,
@@ -172,6 +168,26 @@ export async function startAgentRun(request = {}, config = {}) {
     "agent_review_check.json": review,
     "agent_pr_draft.json": prDraft
   };
+  const stageEvents = buildAgentStageEvents({
+    runId,
+    status: "completed",
+    startedAt: now,
+    finishedAt: now,
+    dryRun: true,
+    realWritePerformed: false,
+    context,
+    plan: { ...plan, stageEvents, activityTimeline: stageEvents },
+    review,
+    prDraft,
+    artifacts,
+    latestReturn: "Dry-run plan generated from agent(1) contract; no target repo writes performed."
+  });
+  artifacts["agent_activity_timeline.json"] = {
+    runId,
+    stageEvents,
+    dryRun: true,
+    realWritePerformed: false
+  };
 
   await fs.mkdir(outputDir, { recursive: true });
   await Promise.all(
@@ -190,6 +206,8 @@ export async function startAgentRun(request = {}, config = {}) {
     outputDir,
     relativeOutputDir: relativeOutputDir(outputDir),
     latestReturn: "Dry-run plan generated from agent(1) contract; no target repo writes performed.",
+    stageEvents,
+    activityTimeline: stageEvents,
     progress: [
       { step: "readiness", status: "completed" },
       { step: "context_preview", status: "completed" },
@@ -466,6 +484,8 @@ export function getAgentArtifacts(runId, config = {}) {
       outputDir: run.outputDir,
       relativeOutputDir: run.relativeOutputDir,
       artifacts: run.artifacts,
+      stageEvents: run.stageEvents || run.activityTimeline || [],
+      activityTimeline: run.activityTimeline || run.stageEvents || [],
       review: run.review,
       prDraft: run.prDraft
     },
@@ -504,6 +524,8 @@ function readPersistedAgentArtifacts(runId, config = {}) {
         }])),
         review: reviewFromItems(reviewItems, run),
         prDraft: prDraft ? prDraftForWorkbench(prDraft) : null,
+        stageEvents: run.planJson?.stageEvents || run.planJson?.activityTimeline || [],
+        activityTimeline: run.planJson?.activityTimeline || run.planJson?.stageEvents || [],
         activity
       };
     });
@@ -513,6 +535,8 @@ function readPersistedAgentArtifacts(runId, config = {}) {
 }
 
 function mergeAgentRun(memoryRun, persistedRun) {
+  const plan = memoryRun?.plan || persistedRun.planJson || {};
+  const stageEvents = memoryRun?.stageEvents || memoryRun?.activityTimeline || plan.stageEvents || plan.activityTimeline || [];
   return {
     ...(memoryRun || {}),
     ...persistedRun,
@@ -520,8 +544,27 @@ function mergeAgentRun(memoryRun, persistedRun) {
     runId: persistedRun.runId || persistedRun.id,
     latestReturn: persistedRun.resultSummary || memoryRun?.latestReturn || "",
     context: memoryRun?.context || persistedRun.contextSnapshot || {},
-    plan: memoryRun?.plan || persistedRun.planJson || {},
+    plan,
+    stageEvents,
+    activityTimeline: memoryRun?.activityTimeline || stageEvents,
     progress: memoryRun?.progress || []
+  };
+}
+
+export function getAgentRunEvents(runId, config = {}) {
+  const result = getAgentRun(runId, config);
+  if (!result.ok) return result;
+  const stageEvents = result.data.stageEvents || result.data.activityTimeline || [];
+  return {
+    ok: true,
+    data: {
+      runId,
+      stageEvents,
+      activityTimeline: result.data.activityTimeline || stageEvents,
+      dryRun: result.data.dryRun ?? true,
+      realWritePerformed: result.data.realWritePerformed ?? false
+    },
+    error: null
   };
 }
 
