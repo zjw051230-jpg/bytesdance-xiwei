@@ -3,10 +3,11 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 const css = fs.readFileSync(path.resolve("src/styles.css"), "utf8");
+const normalizedCss = css.replace(/\r\n/g, "\n");
 
 describe("single-screen layout css", () => {
   it("prevents page-level vertical scrolling", () => {
-    expect(css).toContain("html,\nbody,\n#root");
+    expect(normalizedCss).toContain("html,\nbody,\n#root");
     expect(css).toContain("overflow: hidden");
     expect(css).toContain(".app-shell");
     expect(css).toContain("height: 100vh");

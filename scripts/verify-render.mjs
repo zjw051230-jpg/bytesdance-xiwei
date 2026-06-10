@@ -107,7 +107,7 @@ async function waitForStableEntry(page) {
       document.querySelector('[data-testid="workspace-project-picker"]') ||
       document.querySelector('[data-testid="dsl-workbench"]') ||
       document.querySelector('[data-testid="design-planning-workbench"]') ||
-      [...document.querySelectorAll("button")].some((button) => ["工作台", "DSL 澄清台", "设计规划", "审阅检查", "PR 页面"].includes(button.textContent?.trim()))
+      [...document.querySelectorAll("button")].some((button) => ["工作台", "DSL 澄清台", "设计规划", "审计页面", "PR 页面"].includes(button.textContent?.trim()))
     );
   }, null, { timeout: appReadyTimeoutMs });
 }
@@ -144,7 +144,7 @@ async function assertWorkspaceChrome(page) {
     topTabs: await page.locator(".workspace-top-tabs").count(),
     dslTab: await page.getByRole("button", { name: "DSL 澄清台", exact: true }).isVisible(),
     designTab: await page.getByRole("button", { name: "设计规划", exact: true }).isVisible(),
-    reviewTab: await page.getByRole("button", { name: "审阅检查", exact: true }).isVisible(),
+    reviewTab: await page.getByRole("button", { name: "审计页面", exact: true }).isVisible(),
     prTab: await page.getByRole("button", { name: "PR 页面", exact: true }).isVisible(),
     leftRail: await page.locator('[data-testid="project-rail"]').count(),
     shell: await page.locator('[data-testid="workspace-shell"]').count(),
@@ -338,7 +338,7 @@ async function verifyDesignPlanningViewport(width, height) {
     hasTopTabs: await page.locator(".workspace-top-tabs").count(),
     hasDslTab: await page.getByRole("button", { name: "DSL 澄清台", exact: true }).isVisible(),
     hasDesignTab: await page.getByRole("button", { name: "设计规划", exact: true }).isVisible(),
-    hasReviewTab: await page.getByRole("button", { name: "审阅检查", exact: true }).isVisible(),
+    hasReviewTab: await page.getByRole("button", { name: "审计页面", exact: true }).isVisible(),
     hasPrTab: await page.getByRole("button", { name: "PR 页面", exact: true }).isVisible(),
     hasLeftRail: await page.locator('[data-testid="project-rail"]').count(),
     hasMainContent: await page.locator(".workspace-content").count(),

@@ -32,7 +32,7 @@ export default function WorkspaceShell({
     if (!activeProject?.id) return () => {
       active = false;
     };
-    if (String(activeProject.id).startsWith("pending-")) return () => {
+    if (/^(pending|mock)-/.test(String(activeProject.id))) return () => {
       active = false;
     };
 
@@ -116,6 +116,7 @@ export default function WorkspaceShell({
         ) : null}
         {workspacePage === "review" ? (
           <ReviewCheckWorkbench
+            activeProject={activeProject}
             activeRequirement={activeRequirement}
             agentWorkflow={agentWorkflow}
             onAgentWorkflowChange={setAgentWorkflow}

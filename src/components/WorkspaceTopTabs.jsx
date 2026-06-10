@@ -1,7 +1,7 @@
 const tabs = [
   { id: "dsl", label: "DSL 澄清台" },
   { id: "design", label: "设计规划" },
-  { id: "review", label: "审阅检查" },
+  { id: "review", label: "审计页面" },
   { id: "pr", label: "PR 页面" }
 ];
 

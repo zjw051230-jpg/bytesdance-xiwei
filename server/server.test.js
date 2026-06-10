@@ -1083,6 +1083,25 @@ describe("DSL backend API", () => {
     expect(text).not.toMatch(/api_key|authorization|Bearer|sk-/i);
   });
 
+  it("routes preview status requests through the backend JSON envelope", async () => {
+    const baseUrl = await startTestServer({ runnerMode: "mock" });
+
+    const response = await fetch(`${baseUrl}/api/preview/status`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "preview-route-test",
+        localPath: path.join(testRunsRoot, "missing-preview-project")
+      })
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
+    expect(payload.data.status).toBe("project_path_missing");
+    expect(payload.data.available).toBe(false);
+  });
+
   it("creates a successful DSL run with the mock runner", async () => {
     const baseUrl = await startTestServer({ runnerMode: "mock" });
 

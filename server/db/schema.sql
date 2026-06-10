@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS projects (
   status TEXT NOT NULL DEFAULT 'current',
   icon TEXT NOT NULL DEFAULT 'folder',
   rail_subtitle TEXT NOT NULL DEFAULT '',
+  local_path TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL,
   last_opened_at TEXT
