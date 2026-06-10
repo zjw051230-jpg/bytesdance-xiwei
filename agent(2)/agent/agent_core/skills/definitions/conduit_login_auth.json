@@ -1,0 +1,64 @@
+{
+  "id": "conduit-login-auth",
+  "name": "conduit-login-auth",
+  "description": "Conduit login, authentication form, and credential preference changes",
+  "requirement_types": ["conduit_l1_frontend", "conduit_frontend", "frontend", "login", "auth"],
+  "keywords": ["login", "auth", "account", "password", "remember", "credential", "登录", "账号", "账户", "密码", "记住", "勾选"],
+  "target_modules": [
+    "frontend/src/components/LoginForm/LoginForm.jsx",
+    "frontend/src/components/LoginForm/index.js",
+    "frontend/src/components/AuthPageContainer",
+    "frontend/src/services/userLogin.js"
+  ],
+  "target_file_patterns": [
+    "frontend/src/components/LoginForm/LoginForm.jsx",
+    "frontend/src/components/LoginForm/index.js",
+    "LoginForm.jsx",
+    "userLogin.js",
+    "AuthPageContainer"
+  ],
+  "context_rules": [
+    "For login form changes, prefer frontend/src/components/LoginForm/LoginForm.jsx.",
+    "Credential persistence must be opt-in and default off.",
+    "Do not store credentials unless the user explicitly checks the remember option."
+  ],
+  "patch_strategy": {
+    "summary": "Prepare a Conduit login form patch for opt-in remembered credentials.",
+    "patches": [
+      {
+        "file": "frontend/src/components/LoginForm/LoginForm.jsx",
+        "operation": "replace",
+        "reason": "Remember account/password behavior belongs in the login form state and successful login flow",
+        "changes": [
+          "Add a default-off remember credentials checkbox",
+          "Pre-fill email and password from localStorage only when previously opted in",
+          "Persist or clear remembered credentials after successful login"
+        ],
+        "risk_level": "low"
+      }
+    ]
+  },
+  "acceptance_template": [
+    "Remember credentials checkbox is unchecked by default",
+    "Credentials are stored only after the user opts in",
+    "Credentials are cleared when the user logs in without opting in"
+  ],
+  "default_test_commands": ["npm run build -w frontend"],
+  "conduit_frontend_patterns": [
+    "frontend/src/components/LoginForm/LoginForm.jsx",
+    "frontend/src/components/LoginForm/index.js",
+    "frontend/src/components/AuthPageContainer",
+    "frontend/src/services/userLogin.js"
+  ],
+  "conduit_backend_patterns": [],
+  "conduit_test_commands": ["npm run build -w frontend"],
+  "conduit_acceptance_checks": [
+    "Login form contains an opt-in remember credentials control",
+    "localStorage writes happen only after successful login"
+  ],
+  "risk_rules": {
+    "default": "low",
+    "backend": "medium",
+    "dangerous_files": ["package-lock.json", "yarn.lock", ".env"]
+  }
+}

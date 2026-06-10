@@ -72,6 +72,29 @@ class SkillRegistryTest(unittest.TestCase):
         self.assertEqual(result["skill"]["id"], "generic")
         self.assertEqual(result["match_reason"], "generic_fallback")
 
+    def test_conduit_theme_requires_theme_signal(self):
+        result = match_skill(
+            "add remember account and password checkbox to the login page",
+            requirement_dsl={
+                "requirement_type": "conduit_l1_frontend",
+                "task_name": "记住账号密码",
+                "user_story": "用户手动勾选后才保存账号密码，默认关闭",
+                "target_modules": ["frontend/src"],
+                "acceptance_criteria": ["After user turns on dark mode, all pages display black background."],
+            },
+        )
+
+        self.assertEqual(result["skill"]["id"], "conduit-login-auth")
+
+    def test_conduit_theme_matches_direct_theme_request(self):
+        result = match_skill(
+            "change the Conduit home page to a black red theme",
+            requirement_dsl={"requirement_type": "conduit_l1_frontend", "target_modules": ["frontend/src"]},
+        )
+
+        self.assertTrue(result["matched"])
+        self.assertEqual(result["skill"]["id"], "conduit-theme")
+
     def test_execute_select_skill_records_state_event_memory_and_context(self):
         memory = InMemoryMemoryAdapter()
         events = MockEventAdapter()

@@ -395,6 +395,69 @@ class CoderAgentTest(unittest.TestCase):
         self.assertEqual(patch_item["content"], "100")
         self.assertEqual(patch_plan["metadata"]["coder"], "llm")
 
+    def test_generate_patch_plan_rejects_llm_path_outside_located_files(self):
+        llm = FakeLLMAdapter('{"patches":[{"operation":"create_file","path":"note.txt","content":"100"}]}')
+        located_files = {
+            "located": True,
+            "files": [{"relative_path": "frontend/src/components/LoginForm/index.js"}],
+        }
+
+        with patch.dict("os.environ", {"AGENT_USE_LLM_CODER": "1"}, clear=True):
+            patch_plan = generate_patch_plan("add remember password checkbox", None, None, located_files, llm_adapter=llm)
+
+        self.assertEqual(patch_plan["metadata"]["llm_coder_fallback_reason"], "path_not_in_located_files")
+        self.assertEqual(patch_plan["patches"][0]["file"], "frontend/src/components/LoginForm/index.js")
+
+    def test_login_auth_skill_generates_remember_credentials_code_patch(self):
+        skill = match_skill(
+            "add remember account and password checkbox to login page",
+            requirement_dsl={"requirement_type": "conduit_l1_frontend", "target_modules": ["frontend/src"]},
+        )["skill"]
+        repo = FakeRepoAdapter(
+            {
+                "frontend/src/components/LoginForm/LoginForm.jsx": (
+                    "import { useState } from \"react\";\n"
+                    "import { useNavigate } from \"react-router-dom\";\n"
+                    "import { useAuth } from \"../../context/AuthContext\";\n"
+                    "import userLogin from \"../../services/userLogin\";\n"
+                    "import FormFieldset from \"../FormFieldset\";\n\n"
+                    "function LoginForm({ onError }) {\n"
+                    "  const [{ email, password }, setForm] = useState({ email: \"\", password: \"\" });\n"
+                    "  const { setAuthState } = useAuth();\n"
+                    "  const navigate = useNavigate();\n\n"
+                    "  const handleSubmit = (e) => {\n"
+                    "    e.preventDefault();\n\n"
+                    "    userLogin({ email, password })\n"
+                    "      .then(setAuthState)\n"
+                    "      .then(() => navigate(\"/\"))\n"
+                    "      .catch(onError);\n"
+                    "  };\n\n"
+                    "  return (\n"
+                    "    <form onSubmit={handleSubmit}>\n"
+                    "      <button className=\"btn btn-lg btn-primary pull-xs-right\">Login</button>\n"
+                    "    </form>\n"
+                    "  );\n"
+                    "}\n\n"
+                    "export default LoginForm;\n"
+                )
+            }
+        )
+
+        patch_plan = generate_patch_plan(
+            "add remember account and password checkbox to login page",
+            skill,
+            None,
+            {"located": True, "files": [{"relative_path": "frontend/src/components/LoginForm/LoginForm.jsx"}]},
+            repo_adapter=repo,
+        )
+
+        patch = patch_plan["patches"][0]
+        self.assertEqual(skill["id"], "conduit-login-auth")
+        self.assertEqual(patch["file"], "frontend/src/components/LoginForm/LoginForm.jsx")
+        self.assertIn("REMEMBER_LOGIN_KEY", patch["after_snippet"])
+        self.assertIn("remember-login-checkbox", patch["after_snippet"])
+        self.assertIn("window.localStorage.setItem", patch["after_snippet"])
+
     def test_generate_patch_plan_falls_back_when_llm_json_invalid(self):
         llm = FakeLLMAdapter("not json")
 

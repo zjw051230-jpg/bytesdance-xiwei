@@ -143,6 +143,18 @@ def _score_skill(skill: Dict[str, Any], requirement: str, requirement_dsl: Optio
     score = 0
     reasons: List[str] = []
     dsl = requirement_dsl if isinstance(requirement_dsl, dict) else {}
+    direct_texts = _requirement_candidates(requirement)
+    direct_text_parts = [
+        dsl.get("task_name"),
+        dsl.get("user_story"),
+        dsl.get("skill_hint"),
+        dsl.get("requirement_type"),
+        dsl.get("description"),
+        dsl.get("rawPmInput"),
+    ]
+    for part in direct_text_parts:
+        if part:
+            direct_texts.extend(_requirement_candidates(str(part)))
 
     if dsl.get("skill_hint") and _matches_hint(skill, dsl.get("skill_hint")):
         score += 100
@@ -161,7 +173,7 @@ def _score_skill(skill: Dict[str, Any], requirement: str, requirement_dsl: Optio
             reasons.append("target_modules")
             break
 
-    texts = _requirement_candidates(requirement)
+    texts = list(direct_texts)
     dsl_combined = _dsl_text(dsl)
     if dsl_combined:
         texts.extend(_requirement_candidates(dsl_combined))
@@ -174,7 +186,36 @@ def _score_skill(skill: Dict[str, Any], requirement: str, requirement_dsl: Optio
                 if "keywords" not in reasons:
                     reasons.append("keywords")
 
+    # conduit-theme is intentionally narrow. Generic Conduit/frontend DSL types
+    # should not route unrelated login/auth features into the theme skill.
+    if str(skill.get("id") or "").lower() == "conduit-theme" and not (
+        "skill_hint" in reasons or _has_theme_signal(direct_texts)
+    ):
+        return {"score": 0, "reasons": []}
+
     return {"score": score, "reasons": reasons}
+
+
+def _has_theme_signal(texts: List[str]) -> bool:
+    combined = " ".join(str(text or "").lower() for text in texts)
+    theme_terms = (
+        "theme",
+        "style",
+        "css",
+        "color",
+        "palette",
+        "dark",
+        "red",
+        "black",
+        "配色",
+        "主题",
+        "样式",
+        "黑红",
+        "暗色",
+        "深色",
+        "颜色",
+    )
+    return any(term in combined for term in theme_terms)
 
 
 def match_skill(requirement: str, requirement_dsl: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:

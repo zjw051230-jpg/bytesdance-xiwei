@@ -663,6 +663,9 @@ def _code_patch_for_item(user_input: str, matched_skill: Optional[Dict[str, Any]
     if "word count" in text or "reading time" in text or skill_id == "article-word-stats":
         after = _article_stats_after(before)
         confidence = 0.78 if before else 0.62
+    elif skill_id == "conduit-login-auth":
+        after = _login_remember_credentials_after(before)
+        confidence = 0.8 if before and after != before else 0.42
     elif skill_id == "cover-image":
         after = _cover_image_after(file_path, before)
         confidence = 0.74 if before and after != before else 0.42
@@ -683,6 +686,80 @@ def _code_patch_for_item(user_input: str, matched_skill: Optional[Dict[str, Any]
         },
     )
     return result
+
+
+def _login_remember_credentials_after(before: str) -> str:
+    if not before or "function LoginForm" not in before:
+        return before
+
+    after = before
+    if "REMEMBER_LOGIN_KEY" not in after:
+        after = after.replace(
+            'import FormFieldset from "../FormFieldset";\n',
+            (
+                'import FormFieldset from "../FormFieldset";\n\n'
+                'const REMEMBER_LOGIN_KEY = "conduit.rememberLogin";\n\n'
+                "function getRememberedLogin() {\n"
+                "  if (typeof window === \"undefined\") return {};\n"
+                "  try {\n"
+                "    return JSON.parse(window.localStorage.getItem(REMEMBER_LOGIN_KEY) || \"{}\");\n"
+                "  } catch {\n"
+                "    return {};\n"
+                "  }\n"
+                "}\n"
+            ),
+        )
+
+    state_snippet = '  const [{ email, password }, setForm] = useState({ email: "", password: "" });'
+    if state_snippet in after and "rememberCredentials" not in after:
+        after = after.replace(
+            state_snippet,
+            (
+                "  const rememberedLogin = getRememberedLogin();\n"
+                "  const [{ email, password }, setForm] = useState({\n"
+                "    email: rememberedLogin.email || \"\",\n"
+                "    password: rememberedLogin.password || \"\"\n"
+                "  });\n"
+                "  const [rememberCredentials, setRememberCredentials] = useState(Boolean(rememberedLogin.email || rememberedLogin.password));"
+            ),
+        )
+
+    login_snippet = "    userLogin({ email, password })\n      .then(setAuthState)"
+    if login_snippet in after and "window.localStorage.setItem(REMEMBER_LOGIN_KEY" not in after:
+        after = after.replace(
+            login_snippet,
+            (
+                "    userLogin({ email, password })\n"
+                "      .then((authState) => {\n"
+                "        if (rememberCredentials) {\n"
+                "          window.localStorage.setItem(REMEMBER_LOGIN_KEY, JSON.stringify({ email, password }));\n"
+                "        } else {\n"
+                "          window.localStorage.removeItem(REMEMBER_LOGIN_KEY);\n"
+                "        }\n"
+                "        return authState;\n"
+                "      })\n"
+                "      .then(setAuthState)"
+            ),
+        )
+
+    button_snippet = '      <button className="btn btn-lg btn-primary pull-xs-right">Login</button>'
+    if button_snippet in after and "rememberCredentials" in after and "remember-login-checkbox" not in after:
+        after = after.replace(
+            button_snippet,
+            (
+                "      <label className=\"checkbox remember-login-checkbox\">\n"
+                "        <input\n"
+                "          type=\"checkbox\"\n"
+                "          checked={rememberCredentials}\n"
+                "          onChange={(event) => setRememberCredentials(event.target.checked)}\n"
+                "        />\n"
+                "        Remember account and password\n"
+                "      </label>\n"
+                "      <button className=\"btn btn-lg btn-primary pull-xs-right\">Login</button>"
+            ),
+        )
+
+    return after
 
 
 def _upgrade_to_code_patches(
@@ -939,17 +1016,21 @@ def _fallback_patch_plan(user_input, matched_skill, plan, located_files, reason:
 
 def _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm_adapter=None) -> Dict[str, Any]:
     adapter = llm_adapter or get_default_llm_adapter()
+    located_targets = _located_files_for_patch(located_files)
     system_prompt = (
         "You are a code patch generator. Return JSON only. "
         "Only output structured patch operations: create_file, replace_file, append_text. "
-        "Never output natural-language changes."
+        "Never output natural-language changes. "
+        "When located files are provided, every patch path must be one of those located files."
     )
+    located_hint = "\n".join(f"- {item}" for item in located_targets) or "- no located files"
     prompt = (
         f"Requirement:\n{user_input}\n\n"
         f"Matched skill:\n{matched_skill}\n\n"
         f"Plan:\n{plan}\n\n"
         f"Located files:\n{located_files}\n\n"
-        'Return JSON: {"patches":[{"operation":"create_file","path":"note.txt","content":"100"}]}'
+        f"Allowed patch paths:\n{located_hint}\n\n"
+        'Return JSON: {"patches":[{"operation":"replace_file","path":"<one allowed patch path>","content":"<complete file content>"}]}'
     )
     started_ms = now_ms()
     result = adapter.generate(prompt=prompt, system_prompt=system_prompt, temperature=0.2)
@@ -976,6 +1057,8 @@ def _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm
             return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "unsupported_operation", metric=metric)
         if not _is_safe_patch_path(path):
             return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "unsafe_path", metric=metric)
+        if located_targets and not _path_matches_any(path, located_targets):
+            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "path_not_in_located_files", metric=metric)
         if not isinstance(content, str) or content == "":
             return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "empty_content", metric=metric)
         patches.append(
@@ -998,6 +1081,20 @@ def _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm
         },
         "llm_metrics": [metric],
     }
+
+
+def _path_matches_any(path: Any, candidates: list) -> bool:
+    normalized = _normalize_patch_path(path)
+    return bool(normalized) and any(
+        normalized == _normalize_patch_path(candidate)
+        or normalized.endswith(_normalize_patch_path(candidate))
+        or _normalize_patch_path(candidate).endswith(normalized)
+        for candidate in candidates
+    )
+
+
+def _normalize_patch_path(path: Any) -> str:
+    return str(path or "").replace("\\", "/").lower().strip("/")
 
 
 def generate_patch_plan(
