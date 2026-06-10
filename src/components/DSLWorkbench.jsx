@@ -34,6 +34,21 @@ import {
 
 const CLARIFICATION_COMPLETE_MESSAGE = "当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。";
 
+const createInitialRunState = () => ({
+  runId: "",
+  status: "idle",
+  skillStatus: "idle",
+  skillSourceMode: "",
+  skillModel: "",
+  skillClient: "",
+  skillProvider: "",
+  outputDir: "",
+  relativeOutputDir: "",
+  realDslEnabled: true,
+  artifacts: {},
+  error: null
+});
+
 export default function DSLWorkbench({
   activeProject,
   activeRequirement,
@@ -53,30 +68,24 @@ export default function DSLWorkbench({
   const [partialArtifacts, setPartialArtifacts] = useState(null);
   const pollRef = useRef("");
   const longStageRef = useRef("");
-  const [runState, setRunState] = useState({
-    runId: "",
-    status: "idle",
-    skillStatus: "idle",
-    skillSourceMode: "",
-    skillModel: "",
-    skillClient: "",
-    skillProvider: "",
-    outputDir: "",
-    relativeOutputDir: "",
-    realDslEnabled: true,
-    artifacts: {},
-    error: null
-  });
+  const [runState, setRunState] = useState(() => createInitialRunState());
 
   useEffect(() => () => stopPolling(), []);
 
   useEffect(() => {
     let active = true;
     const projectId = activeProject?.id;
+    stopPolling();
+    setLoadedRequirement(null);
+    setMessages([]);
+    setInputGateActive(false);
+    setUiState(emptyUiState());
+    setRunState(createInitialRunState());
     if (!projectId) return () => {
       active = false;
     };
-    const requirementPromise = activeRequirement?.id
+    const sameProjectRequirement = activeRequirement?.id && String(activeRequirement.projectId || "") === String(projectId);
+    const requirementPromise = sameProjectRequirement
       ? getRequirement(activeRequirement.id)
       : listRequirements(projectId).then((requirements) => Array.isArray(requirements) && requirements[0]?.id
         ? getRequirement(requirements[0].id)
@@ -87,10 +96,13 @@ export default function DSLWorkbench({
       .then(async (requirements) => {
         if (!active) return;
         const latest = requirements;
+        if (latest?.id && String(latest.projectId || "") !== String(projectId)) return;
         setLoadedRequirement(latest);
         onRequirementChange?.(latest);
         if (!latest?.id) {
           setMessages([]);
+          setUiState(emptyUiState());
+          setRunState(createInitialRunState());
           return;
         }
         const turns = await listClarifications(latest.id).catch((error) => {
@@ -120,7 +132,7 @@ export default function DSLWorkbench({
     return () => {
       active = false;
     };
-  }, [activeProject?.id, activeRequirement?.id]);
+  }, [activeProject?.id]);
 
   const stopPolling = () => {
     pollRef.current = "";
@@ -746,10 +758,10 @@ function isClarificationCompleteTurn(skillTurn = {}) {
     skillTurn.uiState?.readiness?.handoff_decision ||
     ""
   );
-  if (!hasStartConstructionGate(clarification, skillTurn.uiState)) return false;
   if (clarification.clarificationComplete || decision === "clarification_complete" || decision === "ready_for_design") {
     return true;
   }
+  if (!hasStartConstructionGate(clarification, skillTurn.uiState)) return false;
   if (Array.isArray(clarification.questions) && clarification.questions.length === 0 && !clarification.currentQuestion) {
     return true;
   }

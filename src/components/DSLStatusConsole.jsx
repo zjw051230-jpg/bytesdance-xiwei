@@ -99,11 +99,11 @@ export default function DSLStatusConsole({
           <div className="coverage-columns">
             <div>
               <strong className="coverage-good">已覆盖内容</strong>
-              <ul>{coverageItems.covered.length ? coverageItems.covered.map((item) => <li key={item}>{item}</li>) : <li>空态</li>}</ul>
+              <ul>{renderCoverageItems(coverageItems.covered, emptyState)}</ul>
             </div>
             <div>
               <strong className="coverage-warn">待补内容</strong>
-              <ul>{coverageItems.pending.length ? coverageItems.pending.map((item) => <li key={item}>{item}</li>) : <li>空态</li>}</ul>
+              <ul>{renderCoverageItems(coverageItems.pending, emptyState)}</ul>
             </div>
           </div>
         </div>
@@ -185,6 +185,11 @@ function sourceTone(sourceMode) {
   if (sourceMode === "mock") return "mock";
   if (sourceMode === "external_blocked") return "blocked";
   return "fallback";
+}
+
+function renderCoverageItems(items = [], emptyState = false) {
+  if (items.length) return items.map((item) => <li key={item}>{item}</li>);
+  return <li>{emptyState ? "尚未开始" : "暂无"}</li>;
 }
 
 function formatArtifactStatus(runStatus) {
