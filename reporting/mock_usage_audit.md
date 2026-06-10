@@ -2,12 +2,12 @@
 
 ## Summary
 
-- total matches: 4219
-- production_mock: 0
-- test_fixture: 819
-- safe_fallback: 181
-- docs_only: 668
-- unknown: 2551
+- total matches: 4483
+- production_mock: 14
+- test_fixture: 846
+- safe_fallback: 229
+- docs_only: 732
+- unknown: 2662
 
 ## Records
 
@@ -664,6 +664,12 @@
 | agent(2)/agent/agent_core/examples/README.md | 53 | demo | docs_only | ignore_docs | The default action sequence is deterministic. To demo LLM action selection: |
 | agent(2)/agent/agent_core/examples/README.md | 78 | Demo | docs_only | ignore_docs | ## Suggested Demo Order |
 | agent(2)/agent/agent_core/skills/definitions/conduit_article.json | 11 | placeholder | unknown | needs_review | "Prefer concrete page, API, model, route, and controller files over generic placeholders" |
+| agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json | 8 | LoginForm.jsx | unknown | needs_review | "frontend/src/components/LoginForm/LoginForm.jsx", |
+| agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json | 14 | LoginForm.jsx | unknown | needs_review | "frontend/src/components/LoginForm/LoginForm.jsx", |
+| agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json | 16 | LoginForm.jsx | unknown | needs_review | "LoginForm.jsx", |
+| agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json | 21 | LoginForm.jsx | unknown | needs_review | "For login form changes, prefer frontend/src/components/LoginForm/LoginForm.jsx.", |
+| agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json | 29 | LoginForm.jsx | unknown | needs_review | "file": "frontend/src/components/LoginForm/LoginForm.jsx", |
+| agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json | 48 | LoginForm.jsx | unknown | needs_review | "frontend/src/components/LoginForm/LoginForm.jsx", |
 | agent(2)/agent/agent_core/skills/definitions/conduit_theme.json | 11 | placeholder | unknown | needs_review | "Use concrete CSS or component style updates; do not add placeholder comments." |
 | agent(2)/agent/agent_core/skills/definitions/conduit_theme.json | 25 | placeholder | unknown | needs_review | "acceptance_template": ["Conduit frontend pages reflect the requested theme without placeholder code."], |
 | agent(2)/agent/agent_core/storage/states/conduit_target_repo_flow_test.json | 107 | mock | unknown | needs_review | "decision_source": "mock", |
@@ -1004,11 +1010,93 @@
 | agent(2)/agent/agent_core/storage/states/decision_hook_test.json | 670 | mock | unknown | needs_review | "model": "mock-model" |
 | agent(2)/agent/agent_core/storage/states/demo_task.json | 2 | demo | unknown | needs_review | "task_id": "demo_task", |
 | agent(2)/agent/agent_core/storage/states/demo_task.json | 7 | demo | unknown | needs_review | "run_id": "run_demo_task", |
-| agent(2)/agent/agent_core/storage/states/demo_task.json | 15 | demo | unknown | needs_review | "task_id": "demo_task", |
-| agent(2)/agent/agent_core/storage/states/demo_task.json | 218 | demo | unknown | needs_review | "trace_id": "demo_task", |
-| agent(2)/agent/agent_core/storage/states/demo_task.json | 221 | demo | unknown | needs_review | "run_id": "run_demo_task", |
-| agent(2)/agent/agent_core/storage/states/demo_task.json | 268 | demo | unknown | needs_review | "idempotency_key": "PR_DRAFT_CREATED:demo_task:blocked", |
-| agent(2)/agent/agent_core/storage/states/demo_task.json | 270 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 70 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 87 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 107 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 157 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 177 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 227 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 247 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 297 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 317 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 367 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 387 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 437 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 457 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 507 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 533 | mock | unknown | needs_review | "mode": "mock_repo" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 540 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 570 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 580 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 582 | mock | unknown | needs_review | "verification_mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 652 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 679 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 710 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 737 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 846 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 872 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 882 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 909 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 935 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 945 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 972 | mock | unknown | needs_review | "mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 983 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1034 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1059 | mock | unknown | needs_review | "mode": "mock_repo" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1066 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1096 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1106 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1108 | mock | unknown | needs_review | "verification_mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1174 | demo | unknown | needs_review | "trace_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1177 | demo | unknown | needs_review | "run_id": "run_demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1187 | demo | unknown | needs_review | "idempotency_key": "REPLAY_STARTED:demo_task:replay_REQ-REPLAY-JSON_generate_patch", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1189 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1277 | demo | unknown | needs_review | "trace_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1280 | demo | unknown | needs_review | "run_id": "run_demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1292 | demo | unknown | needs_review | "idempotency_key": "ACTION_DECIDED:demo_task:5", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1294 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1300 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1360 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1387 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1397 | demo | unknown | needs_review | "trace_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1400 | demo | unknown | needs_review | "run_id": "run_demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1424 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1449 | mock | unknown | needs_review | "mode": "mock_repo" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1456 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1486 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1496 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1498 | mock | unknown | needs_review | "verification_mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1516 | demo | unknown | needs_review | "idempotency_key": "TASK_FINISHED:demo_task:5", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1518 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1566 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1592 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1602 | mock | unknown | needs_review | "mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1616 | mock | unknown | needs_review | "mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1627 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1656 | mock | unknown | needs_review | "mode": "mock_repo" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1663 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1693 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1703 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1705 | mock | unknown | needs_review | "verification_mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1722 | demo | unknown | needs_review | "trace_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1725 | demo | unknown | needs_review | "run_id": "run_demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1750 | mock | unknown | needs_review | "mode": "mock_repo" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1757 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1787 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1797 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1799 | mock | unknown | needs_review | "verification_mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1813 | demo | unknown | needs_review | "idempotency_key": "PR_DRAFT_CREATED:demo_task:5", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1815 | demo | unknown | needs_review | "task_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1842 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1867 | mock | unknown | needs_review | "mode": "mock_repo" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1874 | placeholder | unknown | needs_review | "reason": "Generic patch plan placeholder based on the current requirement", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1904 | Mock | unknown | needs_review | "output": "Mock test passed" |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1914 | mock | unknown | needs_review | "execution_mode": "mock_repo", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1916 | mock | unknown | needs_review | "verification_mode": "mock_test", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1937 | demo | unknown | needs_review | "trace_id": "demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1940 | demo | unknown | needs_review | "run_id": "run_demo_task", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1950 | demo | unknown | needs_review | "idempotency_key": "REPLAY_COMPLETED:demo_task:replay_REQ-REPLAY-JSON_generate_patch", |
+| agent(2)/agent/agent_core/storage/states/demo_task.json | 1952 | demo | unknown | needs_review | "task_id": "demo_task", |
 | agent(2)/agent/agent_core/storage/states/historical_event_new.json | 107 | mock | unknown | needs_review | "decision_source": "mock", |
 | agent(2)/agent/agent_core/storage/states/historical_event_new.json | 111 | Mock | unknown | needs_review | "reason": "Mock adapter selected the next action", |
 | agent(2)/agent/agent_core/storage/states/historical_event_new.json | 127 | mock | unknown | needs_review | "decision_source": "mock", |
@@ -3119,6 +3207,21 @@
 | agent(2)/agent/result_utf8.json | 1 | conduit-realworld-example-app | unknown | needs_review | {"acceptance_criteria_coverage": {"covered_count": 4, "criteria": ["Article detail page shows word count.", "Article detail page shows estimated reading time.", "Existing article body rendering is not broken.", "No backend API contract chan |
 | agent(2)/agent/result_utf8.json | 1 | demo | unknown | needs_review | {"acceptance_criteria_coverage": {"covered_count": 4, "criteria": ["Article detail page shows word count.", "Article detail page shows estimated reading time.", "Existing article body rendering is not broken.", "No backend API contract chan |
 | agent(2)/agent/result_utf8.json | 1 | demo | unknown | needs_review | {"acceptance_criteria_coverage": {"covered_count": 4, "criteria": ["Article detail page shows word count.", "Article detail page shows estimated reading time.", "Existing article body rendering is not broken.", "No backend API contract chan |
+| docs/PR_DRAFT_CENTER_DESIGN.md | 87 | Mock | docs_only | ignore_docs | ## Mock fallback |
+| docs/PR_DRAFT_CENTER_DESIGN.md | 87 | fallback | docs_only | ignore_docs | ## Mock fallback |
+| docs/PR_DRAFT_CENTER_DESIGN.md | 89 | Mock | docs_only | ignore_docs | Mock data lives in `src/mocks/prDraftMock.js`. |
+| docs/PR_DRAFT_CENTER_DESIGN.md | 89 | mock | docs_only | ignore_docs | Mock data lives in `src/mocks/prDraftMock.js`. |
+| docs/PR_DRAFT_CENTER_DESIGN.md | 89 | Mock | docs_only | ignore_docs | Mock data lives in `src/mocks/prDraftMock.js`. |
+| docs/PR_DRAFT_CENTER_DESIGN.md | 99 | fallback | docs_only | ignore_docs | The API client uses fallback for unavailable backend, `not_found`, `pr_draft_not_found`, and missing artifact style failures. Validation errors are surfaced in the page error state. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 5 | mock | docs_only | ignore_docs | This report covers the implemented PR Draft Center page, API client, mock fallback, readiness gates, copy markdown behavior, and redaction-safe artifact rendering. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 5 | fallback | docs_only | ignore_docs | This report covers the implemented PR Draft Center page, API client, mock fallback, readiness gates, copy markdown behavior, and redaction-safe artifact rendering. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 25 | Mock | docs_only | ignore_docs | - Mock fallback is usable. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 25 | fallback | docs_only | ignore_docs | - Mock fallback is usable. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 49 | Mock | docs_only | ignore_docs | - Mock fallback cases. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 49 | fallback | docs_only | ignore_docs | - Mock fallback cases. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 52 | fallback | docs_only | ignore_docs | - Copy with clipboard fallback. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 53 | mock | docs_only | ignore_docs | - Save and regenerate actions with mock fallback. |
+| docs/PR_DRAFT_CENTER_TEST_REPORT.md | 53 | fallback | docs_only | ignore_docs | - Save and regenerate actions with mock fallback. |
 | e2e/agent/agent-runner.mjs | 6 | conduit-realworld-example-app | unknown | needs_review | return process.env.TARGET_REPO_PATH \|\| "F:\\dsl\\conduit-realworld-example-app"; |
 | e2e/context/context-adapter.mjs | 10 | fallback | safe_fallback | keep_as_safe_fallback | scope: "fallback_context", |
 | e2e/context/default_code_context_packet.json | 2 | conduit-realworld-example-app | unknown | needs_review | "repo": "conduit-realworld-example-app", |
@@ -3147,6 +3250,16 @@
 | package-lock.json | 1515 | mock | unknown | needs_review | "resolved": "https://registry.npmjs.org/@vitest/mocker/-/mocker-4.1.8.tgz", |
 | package-lock.json | 1515 | mock | unknown | needs_review | "resolved": "https://registry.npmjs.org/@vitest/mocker/-/mocker-4.1.8.tgz", |
 | package-lock.json | 2789 | mock | unknown | needs_review | "@vitest/mocker": "4.1.8", |
+| reporting/agent_orchestrator_humanized_panel_report.md | 12 | mock | docs_only | ignore_docs | - mock text: 面板里的 “Ready for real Agent(2) execution” / “No real agent run has been started.” 等英文占位文案会让用户误以为真实 Agent 写入已经是主入口。 |
+| reporting/agent_orchestrator_humanized_panel_summary.json | 5 | mock | docs_only | ignore_docs | "mockTextRemoved": true, |
+| reporting/agent_orchestrator_humanized_panel_summary.json | 15 | fake | docs_only | ignore_docs | "fakeLatestResponseBlocked": true, |
+| reporting/agent_orchestrator_humanized_panel_summary.json | 16 | fake | docs_only | ignore_docs | "fakeArtifactsBlocked": true |
+| reporting/agent_orchestrator_humanized_panel_summary.json | 43 | deMo | docs_only | ignore_docs | "nodeModulesCommitted": false, |
+| reporting/agent_stage_events_initialization_fix_report.md | 12 | fallback | docs_only | ignore_docs | * frontend fallback: 设计规划页读取 run/artifacts/workflow 时统一通过数组兜底，非数组或缺失值会转为空数组。 |
+| reporting/agent_stage_events_initialization_fix_summary.json | 6 | Fallback | docs_only | ignore_docs | "frontendFallbackArray": true, |
+| reporting/agent_work_matrix_report.md | 31 | fake | docs_only | ignore_docs | - no fake completed: 未收到真实 completed 事件时不会伪造成 completed。 |
+| reporting/agent_work_matrix_summary.json | 13 | Fallback | docs_only | ignore_docs | "missingStageEventsFallbackIdle": true, |
+| reporting/agent_work_matrix_summary.json | 14 | fake | docs_only | ignore_docs | "fakeCompletedBlocked": true |
 | reporting/agent1_integration_summary.json | 14 | mock | docs_only | ignore_docs | "mockOnly": false, |
 | reporting/agent1_inventory.json | 84 | demo | docs_only | ignore_docs | "file": "agent/agent_core/agent_core/storage/states/demo_task.json" |
 | reporting/agent1_inventory.json | 96 | fake | docs_only | ignore_docs | "file": "agent/agent_core/agents/fake_agent.py" |
@@ -3372,6 +3485,12 @@
 | reporting/dsl_report_cta_mapping_fix_report.md | 5 | conduit-realworld-example-app | docs_only | ignore_docs | - 项目选择 toast 会在工作台底部区域显示 `已选择 conduit-realworld-example-app`，视觉上容易被误认为报告 CTA 的 badge。 |
 | reporting/dsl_report_cta_mapping_fix_report.md | 42 | conduit-realworld-example-app | docs_only | ignore_docs | - 选中 `conduit-realworld-example-app` 时，`.report-cta` 不显示项目名。 |
 | reporting/dsl_report_cta_mapping_fix_summary.json | 35 | deMo | docs_only | ignore_docs | "nodeModulesCommitted": false, |
+| reporting/dsl_score_monotonic_question_gate_report.md | 5 | fallback | docs_only | ignore_docs | * why score jumped to 45: 前端初始需求、持久化 fallback、artifact adapter 都存在阶段分兜底或低分上抬逻辑；右侧状态控制台 running 时还会用默认 72 再夹到高分段。 |
+| reporting/dsl_score_monotonic_question_gate_report.md | 31 | fallback | docs_only | ignore_docs | * blocked generic questions: 通用 fallback 不再默认询问目标用户，除非需求文本显式涉及用户群体、角色或受众。 |
+| reporting/dsl_score_monotonic_question_gate_report.md | 45 | mock | docs_only | ignore_docs | * mock mapping: 未修改、未 stage 现有无关 mock 改动。 |
+| reporting/dsl_score_monotonic_question_gate_report.md | 45 | mock | docs_only | ignore_docs | * mock mapping: 未修改、未 stage 现有无关 mock 改动。 |
+| reporting/dsl_score_monotonic_question_gate_report.md | 56 | fixture | docs_only | ignore_docs | * api key leakage: 未发现本任务新增真实密钥；宽松扫描仅命中既有测试 fixture / 文档引用。 |
+| reporting/dsl_score_monotonic_question_gate_summary.json | 28 | mock | docs_only | ignore_docs | "mockMappingTouched": false |
 | reporting/dsl_workbench_bottom_cleanup_report.md | 23 | mock | docs_only | ignore_docs | - 发送回答: 保留，仍可追加 mock PM 回答并显示 toast。 |
 | reporting/dsl_workbench_bottom_cleanup_report.md | 29 | mock | docs_only | ignore_docs | - 触发间隔: 使用固定 mock 序列 `[6, 8, 10, 7]`，初始 `nextSuggestionAt = 6`；推荐卡默认隐藏，连续 6 次发送后出现。 |
 | reporting/dsl_workbench_bottom_cleanup_summary.json | 10 | mock | docs_only | ignore_docs | "mockOnly": true |
@@ -3456,6 +3575,39 @@
 | reporting/mock_mapping_replacement_summary.json | 22 | Mock | docs_only | ignore_docs | "smokeMocks": true, |
 | reporting/mock_mapping_replacement_summary.json | 23 | Fixture | docs_only | ignore_docs | "agentExecutionFixtures": true, |
 | reporting/mock_mapping_replacement_summary.json | 48 | deMo | docs_only | ignore_docs | "nodeModulesCommitted": false, |
+| reporting/monitor_console_real_mapping_report.md | 6 | demo | docs_only | ignore_docs | * uncommitted files: 启动审计时已有 `agent(2)/agent/agent_core/storage/states/demo_task.json`、`reporting/agent1_inventory.json` 等未提交改动；当前还检测到 DSL gate 相关文件处于修改状态，包括 `server/services/skillOrchestrator.js`、`server/server.test.js`、`src/components/DSL |
+| reporting/monitor_console_real_mapping_report.md | 9 | Mock | docs_only | ignore_docs | ### 2. Mock 扫描结果 |
+| reporting/monitor_console_real_mapping_report.md | 12 | mock | docs_only | ignore_docs | * production_mock: 0 |
+| reporting/monitor_console_real_mapping_report.md | 13 | fixture | docs_only | ignore_docs | * test_fixture: 819 |
+| reporting/monitor_console_real_mapping_report.md | 14 | fallback | docs_only | ignore_docs | * safe_fallback: 181 |
+| reporting/monitor_console_real_mapping_report.md | 18 | mock | docs_only | ignore_docs | ### 3. 已替换的生产 mock |
+| reporting/monitor_console_real_mapping_report.md | 20 | mock | docs_only | ignore_docs | \| file \| old mock \| real source \| new behavior \| |
+| reporting/monitor_console_real_mapping_report.md | 22 | mock | docs_only | ignore_docs | \| `src/data/mockData.js` \| 监控台主数据 fixture \| persistence APIs / active project state \| 删除生产 mock 数据源 \| |
+| reporting/monitor_console_real_mapping_report.md | 22 | fixture | docs_only | ignore_docs | \| `src/data/mockData.js` \| 监控台主数据 fixture \| persistence APIs / active project state \| 删除生产 mock 数据源 \| |
+| reporting/monitor_console_real_mapping_report.md | 22 | mock | docs_only | ignore_docs | \| `src/data/mockData.js` \| 监控台主数据 fixture \| persistence APIs / active project state \| 删除生产 mock 数据源 \| |
+| reporting/monitor_console_real_mapping_report.md | 23 | fixture | docs_only | ignore_docs | \| `src/data/workspaceProjects.js` \| 默认项目列表 \| `/api/projects` \| 生产环境空数组，仅测试环境用 fixture \| |
+| reporting/monitor_console_real_mapping_report.md | 24 | fallback | docs_only | ignore_docs | \| `src/components/AppShell.jsx` \| 生产 fallback project \| persistence project list + active project \| 监控台默认读取后端项目，失败时显示空态/错误 \| |
+| reporting/monitor_console_real_mapping_report.md | 28 | canned | docs_only | ignore_docs | \| `src/components/RunList.jsx` / `PendingReportsQueue.jsx` / `CheckpointStrip.jsx` / `TaskTimeline.jsx` \| canned activity/run/report \| monitor model \| 只展示真实 run/activity/artifact \| |
+| reporting/monitor_console_real_mapping_report.md | 29 | mock | docs_only | ignore_docs | \| `src/components/RequirementReportModal.jsx` \| 导出 mock 文案 \| 当前导出服务状态 \| 不再把未接入能力标成 mock 成功 \| |
+| reporting/monitor_console_real_mapping_report.md | 29 | mock | docs_only | ignore_docs | \| `src/components/RequirementReportModal.jsx` \| 导出 mock 文案 \| 当前导出服务状态 \| 不再把未接入能力标成 mock 成功 \| |
+| reporting/monitor_console_real_mapping_report.md | 31 | fixture | docs_only | ignore_docs | ### 4. 保留的 fixture / fallback |
+| reporting/monitor_console_real_mapping_report.md | 31 | fallback | docs_only | ignore_docs | ### 4. 保留的 fixture / fallback |
+| reporting/monitor_console_real_mapping_report.md | 35 | fixture | docs_only | ignore_docs | \| `src/App.test.jsx` \| 测试 persistence-backed monitor fixture \| 仅 Vitest 测试使用 \| |
+| reporting/monitor_console_real_mapping_report.md | 36 | fixture | docs_only | ignore_docs | \| `src/components/AppShell.jsx` \| test mode initial project fixtures \| 仅 `import.meta.env.MODE === "test"`，避免旧测试 fetch stub 不提供 `/api/projects` 时阻塞 \| |
+| reporting/monitor_console_real_mapping_report.md | 37 | fixture | docs_only | ignore_docs | \| `server/**/*.test.js` \| 后端测试 fixture 和 redaction 用例 \| 不进入生产 UI \| |
+| reporting/monitor_console_real_mapping_report.md | 39 | fallback | docs_only | ignore_docs | \| `server/services/configPath.js` 等 \| local config fallback warning \| 仅安全 fallback / 配置提示 \| |
+| reporting/monitor_console_real_mapping_report.md | 39 | fallback | docs_only | ignore_docs | \| `server/services/configPath.js` 等 \| local config fallback warning \| 仅安全 fallback / 配置提示 \| |
+| reporting/monitor_console_real_mapping_report.md | 50 | LoginForm.jsx | docs_only | ignore_docs | * Review: persistence review items 或 agent workflow review；不再展示固定 `LoginForm.jsx` / `ErrorMessage.jsx` mock 文件。 |
+| reporting/monitor_console_real_mapping_report.md | 50 | ErrorMessage.jsx | docs_only | ignore_docs | * Review: persistence review items 或 agent workflow review；不再展示固定 `LoginForm.jsx` / `ErrorMessage.jsx` mock 文件。 |
+| reporting/monitor_console_real_mapping_report.md | 50 | mock | docs_only | ignore_docs | * Review: persistence review items 或 agent workflow review；不再展示固定 `LoginForm.jsx` / `ErrorMessage.jsx` mock 文件。 |
+| reporting/monitor_console_real_mapping_report.md | 66 | mock | docs_only | ignore_docs | * mock audit: 通过，`production_mock=0`。 |
+| reporting/monitor_console_real_mapping_report.md | 66 | mock | docs_only | ignore_docs | * mock audit: 通过，`production_mock=0`。 |
+| reporting/monitor_console_real_mapping_report.md | 76 | fixture | docs_only | ignore_docs | * api key leakage: 未发现本任务新增真实 API key；扫描命中均为既有测试 fixture、redacted 文本或历史报告路径说明。 |
+| reporting/monitor_console_real_mapping_summary.json | 6 | Mock | docs_only | ignore_docs | "productionMockRemaining": 0, |
+| reporting/monitor_console_real_mapping_summary.json | 7 | Fixture | docs_only | ignore_docs | "testFixturesKept": 819, |
+| reporting/monitor_console_real_mapping_summary.json | 8 | Fallback | docs_only | ignore_docs | "safeFallbackKept": 181, |
+| reporting/monitor_console_real_mapping_summary.json | 30 | mock | docs_only | ignore_docs | "mockAudit": "passed", |
+| reporting/monitor_console_real_mapping_summary.json | 41 | deMo | docs_only | ignore_docs | "nodeModulesCommitted": false, |
 | reporting/persistence_integration_final_report.md | 58 | mock | docs_only | ignore_docs | - smoke:e2e-real:dry-run: passed, `realWritePerformed: false`, `mockLlmUsed: false`. |
 | reporting/persistence_integration_final_report.md | 79 | mock | docs_only | ignore_docs | - mock_llm_used: false. |
 | reporting/persistence_integration_final_summary.json | 22 | mock | docs_only | ignore_docs | "e2eDryRun": "passed: realWritePerformed false, mockLlmUsed false", |
@@ -3666,36 +3818,42 @@
 | server/agent2Route.test.js | 22 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock", |
 | server/agent2Route.test.js | 54 | demo | test_fixture | keep_as_fixture | task_id: "demo_task", |
 | server/agent2Route.test.js | 116 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/agent2Route.test.js | 133 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toBe(targetRepoPath); |
-| server/agent2Route.test.js | 134 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe("1"); |
-| server/agent2Route.test.js | 135 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_PLANNER).toBe("1"); |
-| server/agent2Route.test.js | 136 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_CODER).toBe("1"); |
-| server/agent2Route.test.js | 137 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_TASK_ID).toMatch(/^RUN-/); |
-| server/agent2Route.test.js | 138 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_STATE_DIR).toContain("agent2_state"); |
-| server/agent2Route.test.js | 139 | mock | test_fixture | keep_as_fixture | const agentInput = JSON.parse(agent2Runner.mock.calls[0][0].input); |
+| server/agent2Route.test.js | 133 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).not.toBe(targetRepoPath); |
+| server/agent2Route.test.js | 134 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toContain(path.join("workspaces", payload.data.runId, "workspace")); |
+| server/agent2Route.test.js | 136 | mock | test_fixture | keep_as_fixture | expect(payload.data.targetRepoPath).toBe(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT); |
+| server/agent2Route.test.js | 137 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe("1"); |
+| server/agent2Route.test.js | 138 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_PLANNER).toBe("1"); |
+| server/agent2Route.test.js | 139 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_CODER).toBe("1"); |
+| server/agent2Route.test.js | 140 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_TASK_ID).toMatch(/^RUN-/); |
+| server/agent2Route.test.js | 141 | mock | test_fixture | keep_as_fixture | expect(agent2Runner.mock.calls[0][0].env.AGENT_STATE_DIR).toContain("agent2_state"); |
+| server/agent2Route.test.js | 142 | mock | test_fixture | keep_as_fixture | const agentInput = JSON.parse(agent2Runner.mock.calls[0][0].input); |
 | server/db/seed.js | 8 | conduit-realworld-example-app | unknown | needs_review | id: "conduit-realworld-example-app", |
 | server/db/seed.js | 9 | conduit-realworld-example-app | unknown | needs_review | name: "conduit-realworld-example-app", |
 | server/db/seed.js | 10 | sample | unknown | needs_review | description: "Conduit RealWorld sample app workspace", |
 | server/db/seed.js | 90 | LoginForm.jsx | unknown | needs_review | filePath: "src/components/LoginForm.jsx", |
 | server/httpEnvelope.js | 108 | fallback | safe_fallback | keep_as_safe_fallback | function safeErrorMessage(error, fallback) { |
 | server/httpEnvelope.js | 109 | fallback | safe_fallback | keep_as_safe_fallback | return String(error?.message \|\| error \|\| fallback); |
-| server/persistence.test.js | 34 | fixture | test_fixture | keep_as_fixture | api_key: "db-test-fixture-secret", |
-| server/persistence.test.js | 35 | fixture | test_fixture | keep_as_fixture | model: "ep-test-fixture" |
-| server/persistence.test.js | 40 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
-| server/persistence.test.js | 41 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock", |
-| server/persistence.test.js | 151 | LoginForm.jsx | test_fixture | keep_as_fixture | filePath: "src/LoginForm.jsx", |
-| server/persistence.test.js | 283 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, requirementId } = await createRequirementFixture("design-plan-api"); |
-| server/persistence.test.js | 301 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, requirementId } = await createRequirementFixture("planning-task-api"); |
-| server/persistence.test.js | 328 | Fake | test_fixture | keep_as_fixture | const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() }); |
-| server/persistence.test.js | 357 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, runId } = await createAgentRunFixture("review-api"); |
-| server/persistence.test.js | 375 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, requirementId, runId } = await createAgentRunFixture("pr-draft-api"); |
-| server/persistence.test.js | 394 | Fixture | test_fixture | keep_as_fixture | const { projectId } = await createDirectPersistenceFixture(dbName); |
-| server/persistence.test.js | 442 | Fixture | test_fixture | keep_as_fixture | async function createRequirementFixture(dbName) { |
-| server/persistence.test.js | 450 | fixture | test_fixture | keep_as_fixture | body: JSON.stringify({ title: `${dbName} requirement`, rawPmInput: "persist fixture" }) |
-| server/persistence.test.js | 455 | Fake | test_fixture | keep_as_fixture | function createFakeAgent2Runner() { |
-| server/persistence.test.js | 501 | Fixture | test_fixture | keep_as_fixture | async function createAgentRunFixture(dbName) { |
-| server/persistence.test.js | 504 | Fake | test_fixture | keep_as_fixture | const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() }); |
-| server/persistence.test.js | 520 | Fixture | test_fixture | keep_as_fixture | async function createDirectPersistenceFixture(dbName) { |
+| server/persistence.test.js | 41 | fixture | test_fixture | keep_as_fixture | api_key: "db-test-fixture-secret", |
+| server/persistence.test.js | 42 | fixture | test_fixture | keep_as_fixture | model: "ep-test-fixture" |
+| server/persistence.test.js | 49 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
+| server/persistence.test.js | 50 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock", |
+| server/persistence.test.js | 165 | LoginForm.jsx | test_fixture | keep_as_fixture | filePath: "src/LoginForm.jsx", |
+| server/persistence.test.js | 297 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, requirementId } = await createRequirementFixture("design-plan-api"); |
+| server/persistence.test.js | 315 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, requirementId } = await createRequirementFixture("planning-task-api"); |
+| server/persistence.test.js | 342 | Fake | test_fixture | keep_as_fixture | const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() }); |
+| server/persistence.test.js | 371 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, runId } = await createAgentRunFixture("review-api"); |
+| server/persistence.test.js | 389 | Fixture | test_fixture | keep_as_fixture | const { baseUrl, requirementId, runId } = await createAgentRunFixture("pr-draft-api"); |
+| server/persistence.test.js | 408 | Fixture | test_fixture | keep_as_fixture | const { projectId } = await createDirectPersistenceFixture(dbName); |
+| server/persistence.test.js | 423 | fake | test_fixture | keep_as_fixture | return fakeAgent2Stdout({ file: "src/App.jsx" }); |
+| server/persistence.test.js | 478 | fake | test_fixture | keep_as_fixture | return fakeAgent2Stdout({ file: "src/App.jsx" }); |
+| server/persistence.test.js | 514 | Fixture | test_fixture | keep_as_fixture | const { runId } = await createDirectPersistenceFixture(dbName); |
+| server/persistence.test.js | 564 | Fixture | test_fixture | keep_as_fixture | async function createRequirementFixture(dbName) { |
+| server/persistence.test.js | 572 | fixture | test_fixture | keep_as_fixture | body: JSON.stringify({ title: `${dbName} requirement`, rawPmInput: "persist fixture" }) |
+| server/persistence.test.js | 577 | Fake | test_fixture | keep_as_fixture | function createFakeAgent2Runner() { |
+| server/persistence.test.js | 623 | fake | test_fixture | keep_as_fixture | function fakeAgent2Stdout({ file = "src/App.jsx" } = {}) { |
+| server/persistence.test.js | 668 | Fixture | test_fixture | keep_as_fixture | async function createAgentRunFixture(dbName) { |
+| server/persistence.test.js | 671 | Fake | test_fixture | keep_as_fixture | const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() }); |
+| server/persistence.test.js | 687 | Fixture | test_fixture | keep_as_fixture | async function createDirectPersistenceFixture(dbName) { |
 | server/repositories/utils.js | 19 | fallback | safe_fallback | keep_as_safe_fallback | export function read(input, snakeName, camelName, fallback) { |
 | server/repositories/utils.js | 22 | fallback | safe_fallback | keep_as_safe_fallback | return fallback; |
 | server/repositories/utils.js | 47 | fallback | safe_fallback | keep_as_safe_fallback | export function cleanJson(value, fallback) { |
@@ -3744,92 +3902,92 @@
 | server/server.test.js | 612 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
 | server/server.test.js | 647 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
 | server/server.test.js | 688 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 738 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 788 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 839 | fallback | test_fixture | keep_as_fixture | it("marks skill orchestration fallback explicitly when model generation fails", async () => { |
-| server/server.test.js | 841 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 847 | mock | test_fixture | keep_as_fixture | throw new Error("mock model offline"); |
-| server/server.test.js | 852 | fallback | test_fixture | keep_as_fixture | expect(result.data.source.mode).toBe("fallback_guardrail"); |
-| server/server.test.js | 857 | fallback | test_fixture | keep_as_fixture | it("returns model_invalid_json fallback guardrail when a model response cannot be parsed", async () => { |
-| server/server.test.js | 859 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 868 | fallback | test_fixture | keep_as_fixture | expect(result.data.source.mode).toBe("fallback_guardrail"); |
-| server/server.test.js | 871 | mock | test_fixture | keep_as_fixture | expect(result.data.source.mode).not.toBe("mock"); |
-| server/server.test.js | 874 | mock | test_fixture | keep_as_fixture | it("reports real API unavailability as external_blocked instead of falling back to mock", async () => { |
-| server/server.test.js | 883 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 884 | mock | test_fixture | keep_as_fixture | pmMessages: [{ role: "pm", content: "真实模型不可用时不能 mock 冒充成功。" }], |
-| server/server.test.js | 901 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 909 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
-| server/server.test.js | 923 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 931 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
-| server/server.test.js | 945 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 953 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
-| server/server.test.js | 968 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1003 | fallback | test_fixture | keep_as_fixture | expect(result.data.source.mode).toBe("fallback_guardrail"); |
-| server/server.test.js | 1013 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1052 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1089 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1157 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1198 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1258 | mock | test_fixture | keep_as_fixture | it("uses timeout_seconds from Doubao api_config and writes timeout diagnostics without mock success", async () => { |
-| server/server.test.js | 1259 | fake | test_fixture | keep_as_fixture | const fakeArk = await startFakeOpenAiServer(async () => { |
-| server/server.test.js | 1259 | Fake | test_fixture | keep_as_fixture | const fakeArk = await startFakeOpenAiServer(async () => { |
-| server/server.test.js | 1271 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1277 | fake | test_fixture | keep_as_fixture | doubaoBaseURL: `${fakeArk.baseUrl}/api/v3`, |
-| server/server.test.js | 1296 | fallback | test_fixture | keep_as_fixture | it("returns structured slow-response fallback when fast skill turn exceeds maxLatencyMs", async () => { |
-| server/server.test.js | 1301 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1321 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
-| server/server.test.js | 1322 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
-| server/server.test.js | 1329 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1357 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
-| server/server.test.js | 1366 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1382 | fake | test_fixture | keep_as_fixture | artifactModelClient: fakeStandaloneArtifactModel |
-| server/server.test.js | 1389 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1403 | mock | test_fixture | keep_as_fixture | expect(finished.mockLlmUsed).toBe(false); |
-| server/server.test.js | 1423 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1442 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1448 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1511 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", agent2Runner }); |
-| server/server.test.js | 1517 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1544 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1550 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1563 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1577 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1595 | mock | test_fixture | keep_as_fixture | it("creates a successful DSL run with the mock runner", async () => { |
-| server/server.test.js | 1596 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1602 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1619 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock-fail" }); |
-| server/server.test.js | 1625 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1639 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1651 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1668 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
-| server/server.test.js | 1676 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1699 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
-| server/server.test.js | 1707 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1728 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1748 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
-| server/server.test.js | 1756 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1775 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 500 }); |
-| server/server.test.js | 1775 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 500 }); |
-| server/server.test.js | 1781 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
-| server/server.test.js | 1803 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 5000 }); |
-| server/server.test.js | 1803 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 5000 }); |
-| server/server.test.js | 1827 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 200 }); |
-| server/server.test.js | 1827 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 200 }); |
-| server/server.test.js | 1849 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock-fail" }); |
+| server/server.test.js | 737 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 787 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 838 | fallback | test_fixture | keep_as_fixture | it("marks skill orchestration fallback explicitly when model generation fails", async () => { |
+| server/server.test.js | 840 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 846 | mock | test_fixture | keep_as_fixture | throw new Error("mock model offline"); |
+| server/server.test.js | 851 | fallback | test_fixture | keep_as_fixture | expect(result.data.source.mode).toBe("fallback_guardrail"); |
+| server/server.test.js | 856 | fallback | test_fixture | keep_as_fixture | it("returns model_invalid_json fallback guardrail when a model response cannot be parsed", async () => { |
+| server/server.test.js | 858 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 867 | fallback | test_fixture | keep_as_fixture | expect(result.data.source.mode).toBe("fallback_guardrail"); |
+| server/server.test.js | 870 | mock | test_fixture | keep_as_fixture | expect(result.data.source.mode).not.toBe("mock"); |
+| server/server.test.js | 873 | mock | test_fixture | keep_as_fixture | it("reports real API unavailability as external_blocked instead of falling back to mock", async () => { |
+| server/server.test.js | 882 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 883 | mock | test_fixture | keep_as_fixture | pmMessages: [{ role: "pm", content: "真实模型不可用时不能 mock 冒充成功。" }], |
+| server/server.test.js | 900 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 908 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
+| server/server.test.js | 922 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 930 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
+| server/server.test.js | 944 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 952 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
+| server/server.test.js | 967 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1002 | fallback | test_fixture | keep_as_fixture | expect(result.data.source.mode).toBe("fallback_guardrail"); |
+| server/server.test.js | 1012 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1050 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1087 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1155 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1196 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1256 | mock | test_fixture | keep_as_fixture | it("uses timeout_seconds from Doubao api_config and writes timeout diagnostics without mock success", async () => { |
+| server/server.test.js | 1257 | fake | test_fixture | keep_as_fixture | const fakeArk = await startFakeOpenAiServer(async () => { |
+| server/server.test.js | 1257 | Fake | test_fixture | keep_as_fixture | const fakeArk = await startFakeOpenAiServer(async () => { |
+| server/server.test.js | 1269 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1275 | fake | test_fixture | keep_as_fixture | doubaoBaseURL: `${fakeArk.baseUrl}/api/v3`, |
+| server/server.test.js | 1294 | fallback | test_fixture | keep_as_fixture | it("returns structured slow-response fallback when fast skill turn exceeds maxLatencyMs", async () => { |
+| server/server.test.js | 1299 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1319 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
+| server/server.test.js | 1320 | mock | test_fixture | keep_as_fixture | skillModelMode: "mock" |
+| server/server.test.js | 1327 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1355 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
+| server/server.test.js | 1364 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1380 | fake | test_fixture | keep_as_fixture | artifactModelClient: fakeStandaloneArtifactModel |
+| server/server.test.js | 1387 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1401 | mock | test_fixture | keep_as_fixture | expect(finished.mockLlmUsed).toBe(false); |
+| server/server.test.js | 1421 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1440 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1446 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1510 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", agent2Runner }); |
+| server/server.test.js | 1516 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1543 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1549 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1562 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1576 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1594 | mock | test_fixture | keep_as_fixture | it("creates a successful DSL run with the mock runner", async () => { |
+| server/server.test.js | 1595 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1601 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1618 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock-fail" }); |
+| server/server.test.js | 1624 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1638 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1650 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1667 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
+| server/server.test.js | 1675 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1698 | mock | test_fixture | keep_as_fixture | runnerMode: "mock", |
+| server/server.test.js | 1706 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1727 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1747 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock" }); |
+| server/server.test.js | 1755 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1774 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 500 }); |
+| server/server.test.js | 1774 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 500 }); |
+| server/server.test.js | 1780 | conduit-realworld-example-app | test_fixture | keep_as_fixture | projectId: "conduit-realworld-example-app", |
+| server/server.test.js | 1802 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 5000 }); |
+| server/server.test.js | 1802 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 5000 }); |
+| server/server.test.js | 1826 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 200 }); |
+| server/server.test.js | 1826 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock", mockDelayMs: 200 }); |
+| server/server.test.js | 1848 | mock | test_fixture | keep_as_fixture | const baseUrl = await startTestServer({ runnerMode: "mock-fail" }); |
 | server/services/agent2Adapter.js | 14 | Fixture | unknown | needs_review | const result = request.agent2Result \|\| buildFixtureAgent2Result(request); |
 | server/services/agent2Adapter.js | 55 | fixture | unknown | needs_review | source: contextInput.agent2Result ? "request_agent2_result" : "workbench_fixture", |
-| server/services/agent2Adapter.js | 110 | conduit-realworld-example-app | unknown | needs_review | projectId: contextInput.projectId \|\| "conduit-realworld-example-app", |
-| server/services/agent2Adapter.js | 359 | Fixture | unknown | needs_review | function buildFixtureAgent2Result(request = {}) { |
-| server/services/agent2Adapter.js | 362 | fixture | unknown | needs_review | task_id: "workbench_fixture", |
-| server/services/agent2Adapter.js | 367 | fixture | unknown | needs_review | { selected_action: "locate_files", selected_tool: "locate_files", reason: "Use Workbench fixture candidates for dry-run preview." }, |
-| server/services/agent2Adapter.js | 398 | fixture | unknown | needs_review | summary: "Workbench fixture only; no repo writes performed." |
-| server/services/agent2Adapter.js | 417 | mock | unknown | needs_review | repo_mode: "mock" |
-| server/services/agentExecutionService.js | 581 | conduit-realworld-example-app | unknown | needs_review | projectId: request.projectId \|\| "conduit-realworld-example-app", |
-| server/services/agentExecutionService.js | 613 | LoginForm.jsx | unknown | needs_review | "src/components/LoginForm.jsx", |
-| server/services/agentExecutionService.js | 614 | ErrorMessage.jsx | unknown | needs_review | "src/components/ErrorMessage.jsx", |
-| server/services/agentExecutionService.js | 634 | fixture | unknown | needs_review | risk: index === 2 ? "Test fixture may need existing app context." : "UI copy may diverge from backend failure codes.", |
-| server/services/agentExecutionService.js | 715 | hardcoded | unknown | needs_review | ["hardcodedExternalDslV2", /F:\\dsl-v2/i], |
-| server/services/agentExecutionService.js | 739 | hardcoded | unknown | needs_review | dependsOnExternalDslV2: findings.some((item) => item.type === "hardcodedExternalDslV2"), |
+| server/services/agent2Adapter.js | 136 | conduit-realworld-example-app | unknown | needs_review | projectId: contextInput.projectId \|\| "conduit-realworld-example-app", |
+| server/services/agent2Adapter.js | 454 | Fixture | unknown | needs_review | function buildFixtureAgent2Result(request = {}) { |
+| server/services/agent2Adapter.js | 457 | fixture | unknown | needs_review | task_id: "workbench_fixture", |
+| server/services/agent2Adapter.js | 462 | fixture | unknown | needs_review | { selected_action: "locate_files", selected_tool: "locate_files", reason: "Use Workbench fixture candidates for dry-run preview." }, |
+| server/services/agent2Adapter.js | 493 | fixture | unknown | needs_review | summary: "Workbench fixture only; no repo writes performed." |
+| server/services/agent2Adapter.js | 512 | mock | unknown | needs_review | repo_mode: "mock" |
+| server/services/agentExecutionService.js | 708 | conduit-realworld-example-app | unknown | needs_review | projectId: request.projectId \|\| "conduit-realworld-example-app", |
+| server/services/agentExecutionService.js | 740 | LoginForm.jsx | unknown | needs_review | "src/components/LoginForm.jsx", |
+| server/services/agentExecutionService.js | 741 | ErrorMessage.jsx | unknown | needs_review | "src/components/ErrorMessage.jsx", |
+| server/services/agentExecutionService.js | 761 | fixture | unknown | needs_review | risk: index === 2 ? "Test fixture may need existing app context." : "UI copy may diverge from backend failure codes.", |
+| server/services/agentExecutionService.js | 842 | hardcoded | unknown | needs_review | ["hardcodedExternalDslV2", /F:\\dsl-v2/i], |
+| server/services/agentExecutionService.js | 866 | hardcoded | unknown | needs_review | dependsOnExternalDslV2: findings.some((item) => item.type === "hardcodedExternalDslV2"), |
 | server/services/configPath.js | 6 | fallback | safe_fallback | keep_as_safe_fallback | export const EXTERNAL_DSL_V2_WARNING = "External F:\\dsl-v2 config fallback used. Standalone mode should use configs/api_config.local.json."; |
 | server/services/configPath.js | 16 | Fallback | safe_fallback | keep_as_safe_fallback | usedExternalDslV2Fallback: false |
 | server/services/configPath.js | 22 | Fallback | safe_fallback | keep_as_safe_fallback | usedExternalDslV2Fallback: false |
@@ -3846,13 +4004,14 @@
 | server/services/openAiCompatibleClient.js | 40 | Fallback | safe_fallback | keep_as_safe_fallback | usedExternalDslV2Fallback: resolved.usedExternalDslV2Fallback, |
 | server/services/openAiCompatibleClient.js | 136 | Fallback | safe_fallback | keep_as_safe_fallback | usedExternalDslV2Fallback: config.usedExternalDslV2Fallback, |
 | server/services/openAiCompatibleClient.js | 136 | Fallback | safe_fallback | keep_as_safe_fallback | usedExternalDslV2Fallback: config.usedExternalDslV2Fallback, |
-| server/services/persistence/persistenceService.js | 705 | fallback | safe_fallback | keep_as_safe_fallback | function parseJson(value, fallback) { |
-| server/services/persistence/persistenceService.js | 707 | fallback | safe_fallback | keep_as_safe_fallback | return value ? JSON.parse(value) : fallback; |
-| server/services/persistence/persistenceService.js | 709 | fallback | safe_fallback | keep_as_safe_fallback | return fallback; |
+| server/services/persistence/persistenceService.js | 908 | fallback | safe_fallback | keep_as_safe_fallback | function parseJson(value, fallback) { |
+| server/services/persistence/persistenceService.js | 910 | fallback | safe_fallback | keep_as_safe_fallback | return value ? JSON.parse(value) : fallback; |
+| server/services/persistence/persistenceService.js | 912 | fallback | safe_fallback | keep_as_safe_fallback | return fallback; |
 | server/services/persistence/workbenchPersistenceAdapter.js | 19 | conduit-realworld-example-app | unknown | needs_review | const projectId = context.projectId \|\| "conduit-realworld-example-app"; |
 | server/services/persistence/workbenchPersistenceAdapter.js | 84 | conduit-realworld-example-app | unknown | needs_review | projectId: context.projectId \|\| "conduit-realworld-example-app", |
 | server/services/persistence/workbenchPersistenceAdapter.js | 109 | conduit-realworld-example-app | unknown | needs_review | projectId: context.projectId \|\| "conduit-realworld-example-app", |
 | server/services/persistence/workbenchPersistenceAdapter.js | 122 | conduit-realworld-example-app | unknown | needs_review | const projectId = run.context?.projectId \|\| "conduit-realworld-example-app"; |
+| server/services/persistence/workbenchPersistenceAdapter.js | 225 | conduit-realworld-example-app | unknown | needs_review | projectId: run.context?.projectId \|\| "conduit-realworld-example-app", |
 | server/services/previewLauncherService.test.js | 44 | Fixture | test_fixture | keep_as_fixture | const projectRoot = await createConduitFixture({ port: 3111 }); |
 | server/services/previewLauncherService.test.js | 63 | Fixture | test_fixture | keep_as_fixture | const projectRoot = await createConduitFixture({ port: 3113 }); |
 | server/services/previewLauncherService.test.js | 87 | Fixture | test_fixture | keep_as_fixture | const projectRoot = await createConduitFixture({ port: 3112 }); |
@@ -3937,28 +4096,41 @@
 | server/services/skillOrchestrator.js | 1093 | fallback | safe_fallback | keep_as_safe_fallback | const orderedFallback = [...fallback.slice(fallbackStart), ...fallback.slice(0, fallbackStart)]; |
 | server/services/skillOrchestrator.js | 1095 | Fallback | safe_fallback | keep_as_safe_fallback | ...(shouldPreferCanonicalQuestionSequence(input) ? orderedFallback : existing), |
 | server/services/skillOrchestrator.js | 1096 | Fallback | safe_fallback | keep_as_safe_fallback | ...(shouldPreferCanonicalQuestionSequence(input) ? existing : orderedFallback) |
-| server/services/skillOrchestrator.js | 1399 | fallback | safe_fallback | keep_as_safe_fallback | reasons: ["model_invalid_json", "fallback guardrail only"] |
-| server/services/skillOrchestrator.js | 1410 | fallback | safe_fallback | keep_as_safe_fallback | mode: "fallback_guardrail", |
-| server/services/skillOrchestrator.js | 1419 | fallback | safe_fallback | keep_as_safe_fallback | function fallbackSkillPayload(input, skillNames, error) { |
-| server/services/skillOrchestrator.js | 1421 | fallback | safe_fallback | keep_as_safe_fallback | assistant_message: `暂时无法完成模型编排，本轮仅保留安全 fallback：我已记录你的 PM 补充，但不会进入 Agent Plan、Handoff 或代码执行。请稍后重试模型生成。原因：${String(error.message \|\| error)}`, |
-| server/services/skillOrchestrator.js | 1424 | fallback | safe_fallback | keep_as_safe_fallback | title: "模型编排 fallback", |
-| server/services/skillOrchestrator.js | 1436 | fallback | safe_fallback | keep_as_safe_fallback | reasons: ["model generation failed", "fallback only"] |
-| server/services/skillOrchestrator.js | 1439 | fallback | safe_fallback | keep_as_safe_fallback | summary: "模型编排失败，本轮仅生成 fallback 记录。", |
-| server/services/skillOrchestrator.js | 1447 | fallback | safe_fallback | keep_as_safe_fallback | mode: "fallback_guardrail", |
-| server/services/skillOrchestrator.js | 1448 | fallback | safe_fallback | keep_as_safe_fallback | provider: "local_safety_fallback", |
-| server/services/skillOrchestrator.js | 1458 | fallback | safe_fallback | keep_as_safe_fallback | assistant_message: `我已经收到你的补充，并先按候选 DSL 记录下来；本轮模型响应超过快速澄清时限，所以先返回安全 fallback，不会进入 Agent Plan、Handoff 或代码执行。还需要确认一个关键口径：${question}`, |
-| server/services/skillOrchestrator.js | 1461 | fallback | safe_fallback | keep_as_safe_fallback | title: "快速澄清 slow response fallback", |
-| server/services/skillOrchestrator.js | 1463 | fallback | safe_fallback | keep_as_safe_fallback | scope: ["PM-to-DSL fast turn fallback"], |
-| server/services/skillOrchestrator.js | 1482 | fallback | safe_fallback | keep_as_safe_fallback | reasons: ["fast skill turn timed out", "fallback keeps clarification boundary"] |
-| server/services/skillOrchestrator.js | 1485 | fallback | safe_fallback | keep_as_safe_fallback | summary: "fast skill turn 超时，已返回结构化 slow_response fallback。", |
-| server/services/skillOrchestrator.js | 1486 | fallback | safe_fallback | keep_as_safe_fallback | in_scope: ["快速澄清 fallback"], |
+| server/services/skillOrchestrator.js | 1395 | fallback | safe_fallback | keep_as_safe_fallback | reasons: ["model_invalid_json", "fallback guardrail only"] |
+| server/services/skillOrchestrator.js | 1406 | fallback | safe_fallback | keep_as_safe_fallback | mode: "fallback_guardrail", |
+| server/services/skillOrchestrator.js | 1415 | fallback | safe_fallback | keep_as_safe_fallback | function fallbackSkillPayload(input, skillNames, error) { |
+| server/services/skillOrchestrator.js | 1417 | fallback | safe_fallback | keep_as_safe_fallback | assistant_message: `暂时无法完成模型编排，本轮仅保留安全 fallback：我已记录你的 PM 补充，但不会进入 Agent Plan、Handoff 或代码执行。请稍后重试模型生成。原因：${String(error.message \|\| error)}`, |
+| server/services/skillOrchestrator.js | 1420 | fallback | safe_fallback | keep_as_safe_fallback | title: "模型编排 fallback", |
+| server/services/skillOrchestrator.js | 1432 | fallback | safe_fallback | keep_as_safe_fallback | reasons: ["model generation failed", "fallback only"] |
+| server/services/skillOrchestrator.js | 1435 | fallback | safe_fallback | keep_as_safe_fallback | summary: "模型编排失败，本轮仅生成 fallback 记录。", |
+| server/services/skillOrchestrator.js | 1443 | fallback | safe_fallback | keep_as_safe_fallback | mode: "fallback_guardrail", |
+| server/services/skillOrchestrator.js | 1444 | fallback | safe_fallback | keep_as_safe_fallback | provider: "local_safety_fallback", |
+| server/services/skillOrchestrator.js | 1454 | fallback | safe_fallback | keep_as_safe_fallback | assistant_message: `我已经收到你的补充，并先按候选 DSL 记录下来；本轮模型响应超过快速澄清时限，所以先返回安全 fallback，不会进入 Agent Plan、Handoff 或代码执行。还需要确认一个关键口径：${question}`, |
+| server/services/skillOrchestrator.js | 1457 | fallback | safe_fallback | keep_as_safe_fallback | title: "快速澄清 slow response fallback", |
+| server/services/skillOrchestrator.js | 1459 | fallback | safe_fallback | keep_as_safe_fallback | scope: ["PM-to-DSL fast turn fallback"], |
+| server/services/skillOrchestrator.js | 1478 | fallback | safe_fallback | keep_as_safe_fallback | reasons: ["fast skill turn timed out", "fallback keeps clarification boundary"] |
+| server/services/skillOrchestrator.js | 1481 | fallback | safe_fallback | keep_as_safe_fallback | summary: "fast skill turn 超时，已返回结构化 slow_response fallback。", |
+| server/services/skillOrchestrator.js | 1482 | fallback | safe_fallback | keep_as_safe_fallback | in_scope: ["快速澄清 fallback"], |
 | server/services/standaloneArtifactRunner.js | 60 | Fallback | safe_fallback | keep_as_safe_fallback | allowExternalFallback: false, |
 | server/services/standaloneArtifactRunner.js | 121 | mock | safe_fallback | keep_as_safe_fallback | mockLlmUsed: false, |
 | server/services/standaloneArtifactRunner.js | 145 | mock | safe_fallback | keep_as_safe_fallback | mockLlmUsed: false, |
 | server/services/standaloneArtifactRunner.js | 269 | mock | safe_fallback | keep_as_safe_fallback | `- mockLlmUsed: false`, |
 | server/services/standaloneArtifactRunner.js | 282 | mock | safe_fallback | keep_as_safe_fallback | mockLlmUsed: false, |
 | server/services/standaloneArtifactRunner.js | 312 | mock | unknown | needs_review | mock_llm_used: false, |
+| server/services/workspaceAdapter.js | 164 | Mock | unknown | needs_review | export class MockWorkspaceAdapter extends CopyWorkspaceAdapter {} |
+| server/services/workspaceAdapter.js | 169 | mock | unknown | needs_review | if (options.adapterType === "mock") return new MockWorkspaceAdapter({ runsRoot }); |
+| server/services/workspaceAdapter.js | 169 | Mock | unknown | needs_review | if (options.adapterType === "mock") return new MockWorkspaceAdapter({ runsRoot }); |
 | skills/agent-conduit-article/skill.md | 26 | placeholder | docs_only | ignore_docs | 4. Apply context rule: Prefer concrete page, API, model, route, and controller files over generic placeholders |
+| src/adapters/agentWorkflowAdapter.js | 1 | fallback | safe_fallback | keep_as_safe_fallback | export function normalizeAgentWorkflow(run = {}, fallback = {}) { |
+| src/adapters/agentWorkflowAdapter.js | 7 | fallback | safe_fallback | keep_as_safe_fallback | fallback.stageEvents \|\| |
+| src/adapters/agentWorkflowAdapter.js | 12 | fallback | safe_fallback | keep_as_safe_fallback | ...fallback, |
+| src/adapters/agentWorkflowAdapter.js | 14 | fallback | safe_fallback | keep_as_safe_fallback | runId: run.runId \|\| run.id \|\| fallback.runId \|\| "", |
+| src/adapters/agentWorkflowAdapter.js | 15 | fallback | safe_fallback | keep_as_safe_fallback | status: run.status \|\| fallback.status \|\| "idle", |
+| src/adapters/agentWorkflowAdapter.js | 16 | fallback | safe_fallback | keep_as_safe_fallback | latestReturn: run.latestReturn \|\| run.resultSummary \|\| fallback.latestReturn \|\| "", |
+| src/adapters/agentWorkflowAdapter.js | 17 | fallback | safe_fallback | keep_as_safe_fallback | context: run.context \|\| run.contextSnapshot \|\| fallback.context \|\| null, |
+| src/adapters/agentWorkflowAdapter.js | 18 | fallback | safe_fallback | keep_as_safe_fallback | plan: run.plan \|\| run.planJson \|\| fallback.plan \|\| null, |
+| src/adapters/agentWorkflowAdapter.js | 19 | fallback | safe_fallback | keep_as_safe_fallback | dryRun: run.dryRun ?? fallback.dryRun ?? true, |
+| src/adapters/agentWorkflowAdapter.js | 20 | fallback | safe_fallback | keep_as_safe_fallback | realWritePerformed: run.realWritePerformed ?? fallback.realWritePerformed ?? false, |
 | src/adapters/dslArtifactAdapter.js | 1 | fallback | safe_fallback | keep_as_safe_fallback | const fallbackQuestion = { |
 | src/adapters/dslArtifactAdapter.js | 5 | fallback | safe_fallback | keep_as_safe_fallback | source: "本地 fallback" |
 | src/adapters/dslArtifactAdapter.js | 8 | fallback | safe_fallback | keep_as_safe_fallback | const fallbackReport = { |
@@ -3966,26 +4138,29 @@
 | src/adapters/dslArtifactAdapter.js | 33 | fallback | safe_fallback | keep_as_safe_fallback | note: "尚未生成真实 DSL，当前报告来自本地 fallback，需人工确认。" |
 | src/adapters/dslArtifactAdapter.js | 36 | fallback | safe_fallback | keep_as_safe_fallback | const fallbackCoverage = { |
 | src/adapters/dslArtifactAdapter.js | 41 | fallback | safe_fallback | keep_as_safe_fallback | const fallbackRisks = [ |
-| src/adapters/dslArtifactAdapter.js | 123 | fallback | safe_fallback | keep_as_safe_fallback | export function fallbackUiState() { |
-| src/adapters/dslArtifactAdapter.js | 129 | mock | safe_fallback | keep_as_safe_fallback | source: "mock", |
-| src/adapters/dslArtifactAdapter.js | 136 | fallback | safe_fallback | keep_as_safe_fallback | source: "fallback_safe_default" |
-| src/adapters/dslArtifactAdapter.js | 138 | fallback | safe_fallback | keep_as_safe_fallback | risks: fallbackRisks, |
-| src/adapters/dslArtifactAdapter.js | 139 | fallback | safe_fallback | keep_as_safe_fallback | recommendedQuestion: fallbackQuestion, |
-| src/adapters/dslArtifactAdapter.js | 140 | fallback | safe_fallback | keep_as_safe_fallback | humanReport: fallbackReport, |
-| src/adapters/dslArtifactAdapter.js | 141 | fallback | safe_fallback | keep_as_safe_fallback | coverageItems: fallbackCoverage, |
-| src/adapters/dslArtifactAdapter.js | 200 | fallback | safe_fallback | keep_as_safe_fallback | return { rawScore: 58, displayScore: 58, value: 58, source: "fallback_safe_default", displayNote: "clarification stage display score: rawScore is preserved" }; |
-| src/adapters/dslArtifactAdapter.js | 233 | fallback | safe_fallback | keep_as_safe_fallback | const source = ready === undefined && decision === undefined ? "fallback_safe_default" : "artifact"; |
-| src/adapters/dslArtifactAdapter.js | 253 | fallback | safe_fallback | keep_as_safe_fallback | if (!items.length) return fallbackRisks; |
-| src/adapters/dslArtifactAdapter.js | 265 | fallback | safe_fallback | keep_as_safe_fallback | if (!item) return fallbackQuestion; |
-| src/adapters/dslArtifactAdapter.js | 268 | fallback | safe_fallback | keep_as_safe_fallback | text: String(item.question \|\| item.text \|\| fallbackQuestion.text), |
-| src/adapters/dslArtifactAdapter.js | 276 | fallback | safe_fallback | keep_as_safe_fallback | if (!finalDsl && !scoring && !evpi && !summaryMd) return fallbackReport; |
-| src/adapters/dslArtifactAdapter.js | 278 | fallback | safe_fallback | keep_as_safe_fallback | const title = String(requirement.title \|\| finalDsl?.title \|\| fallbackReport.summary.title); |
-| src/adapters/dslArtifactAdapter.js | 284 | fallback | safe_fallback | keep_as_safe_fallback | "真实 DSL artifact 未提供完整摘要，部分内容来自 fallback，需人工确认。" |
-| src/adapters/dslArtifactAdapter.js | 298 | fallback | safe_fallback | keep_as_safe_fallback | fallbackReport.scope.inScope |
-| src/adapters/dslArtifactAdapter.js | 324 | fallback | safe_fallback | keep_as_safe_fallback | note: finalDsl ? "报告由真实 artifacts 映射生成；不完整字段已使用安全 fallback。" : fallbackReport.note |
-| src/adapters/dslArtifactAdapter.js | 324 | fallback | safe_fallback | keep_as_safe_fallback | note: finalDsl ? "报告由真实 artifacts 映射生成；不完整字段已使用安全 fallback。" : fallbackReport.note |
-| src/adapters/dslArtifactAdapter.js | 329 | fallback | safe_fallback | keep_as_safe_fallback | const covered = arrayFrom(scoring?.covered_items, evpi?.covered_items, fallbackCoverage.covered); |
-| src/adapters/dslArtifactAdapter.js | 330 | fallback | safe_fallback | keep_as_safe_fallback | const pending = arrayFrom(scoring?.pending_items, evpi?.missing_fields, evpi?.gap_fields, fallbackCoverage.pending); |
+| src/adapters/dslArtifactAdapter.js | 130 | fallback | safe_fallback | keep_as_safe_fallback | export function fallbackUiState() { |
+| src/adapters/dslArtifactAdapter.js | 136 | mock | safe_fallback | keep_as_safe_fallback | source: "mock", |
+| src/adapters/dslArtifactAdapter.js | 143 | fallback | safe_fallback | keep_as_safe_fallback | source: "fallback_safe_default" |
+| src/adapters/dslArtifactAdapter.js | 145 | fallback | safe_fallback | keep_as_safe_fallback | risks: fallbackRisks, |
+| src/adapters/dslArtifactAdapter.js | 146 | fallback | safe_fallback | keep_as_safe_fallback | recommendedQuestion: fallbackQuestion, |
+| src/adapters/dslArtifactAdapter.js | 147 | fallback | safe_fallback | keep_as_safe_fallback | activeRiskQuestion: fallbackQuestion, |
+| src/adapters/dslArtifactAdapter.js | 148 | fallback | safe_fallback | keep_as_safe_fallback | blockerQuestions: [fallbackQuestion], |
+| src/adapters/dslArtifactAdapter.js | 149 | fallback | safe_fallback | keep_as_safe_fallback | riskClarificationTarget: "fallback_risk", |
+| src/adapters/dslArtifactAdapter.js | 150 | fallback | safe_fallback | keep_as_safe_fallback | humanReport: fallbackReport, |
+| src/adapters/dslArtifactAdapter.js | 151 | fallback | safe_fallback | keep_as_safe_fallback | coverageItems: fallbackCoverage, |
+| src/adapters/dslArtifactAdapter.js | 210 | fallback | safe_fallback | keep_as_safe_fallback | return { rawScore: 58, displayScore: 58, value: 58, source: "fallback_safe_default", displayNote: "clarification stage display score: rawScore is preserved" }; |
+| src/adapters/dslArtifactAdapter.js | 243 | fallback | safe_fallback | keep_as_safe_fallback | const source = ready === undefined && decision === undefined ? "fallback_safe_default" : "artifact"; |
+| src/adapters/dslArtifactAdapter.js | 263 | fallback | safe_fallback | keep_as_safe_fallback | if (!items.length) return fallbackRisks; |
+| src/adapters/dslArtifactAdapter.js | 275 | fallback | safe_fallback | keep_as_safe_fallback | if (!item) return fallbackQuestion; |
+| src/adapters/dslArtifactAdapter.js | 278 | fallback | safe_fallback | keep_as_safe_fallback | text: String(item.question \|\| item.text \|\| fallbackQuestion.text), |
+| src/adapters/dslArtifactAdapter.js | 328 | fallback | safe_fallback | keep_as_safe_fallback | if (!finalDsl && !scoring && !evpi && !summaryMd) return fallbackReport; |
+| src/adapters/dslArtifactAdapter.js | 330 | fallback | safe_fallback | keep_as_safe_fallback | const title = String(requirement.title \|\| finalDsl?.title \|\| fallbackReport.summary.title); |
+| src/adapters/dslArtifactAdapter.js | 336 | fallback | safe_fallback | keep_as_safe_fallback | "真实 DSL artifact 未提供完整摘要，部分内容来自 fallback，需人工确认。" |
+| src/adapters/dslArtifactAdapter.js | 350 | fallback | safe_fallback | keep_as_safe_fallback | fallbackReport.scope.inScope |
+| src/adapters/dslArtifactAdapter.js | 376 | fallback | safe_fallback | keep_as_safe_fallback | note: finalDsl ? "报告由真实 artifacts 映射生成；不完整字段已使用安全 fallback。" : fallbackReport.note |
+| src/adapters/dslArtifactAdapter.js | 376 | fallback | safe_fallback | keep_as_safe_fallback | note: finalDsl ? "报告由真实 artifacts 映射生成；不完整字段已使用安全 fallback。" : fallbackReport.note |
+| src/adapters/dslArtifactAdapter.js | 381 | fallback | safe_fallback | keep_as_safe_fallback | const covered = arrayFrom(scoring?.covered_items, evpi?.covered_items, fallbackCoverage.covered); |
+| src/adapters/dslArtifactAdapter.js | 382 | fallback | safe_fallback | keep_as_safe_fallback | const pending = arrayFrom(scoring?.pending_items, evpi?.missing_fields, evpi?.gap_fields, fallbackCoverage.pending); |
 | src/adapters/dslArtifactAdapter.test.js | 91 | fallback | test_fixture | keep_as_fixture | it("uses safe readiness defaults and fallback suggestion when artifacts are incomplete", () => { |
 | src/adapters/dslArtifactAdapter.test.js | 98 | fallback | test_fixture | keep_as_fixture | expect(uiState.readiness.source).toBe("fallback_safe_default"); |
 | src/adapters/dslArtifactAdapter.test.js | 99 | fallback | test_fixture | keep_as_fixture | expect(uiState.recommendedQuestion.source).toBe("本地 fallback"); |
@@ -4012,6 +4187,41 @@
 | src/api/persistenceClient.test.js | 71 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
 | src/api/persistenceClient.test.js | 76 | Mock | test_fixture | keep_as_fixture | expect(fetchMock).toHaveBeenCalledWith("/api/review-items/review-1", expect.objectContaining({ |
 | src/api/persistenceClient.test.js | 80 | Mock | test_fixture | keep_as_fixture | expect(fetchMock).toHaveBeenCalledWith("/api/requirements/req-1/pr-draft", expect.objectContaining({ |
+| src/api/prDraftClient.js | 1 | Mock | production_mock | replace | import { getMockPrDraftContext, regenerateMockPrDraft } from "../mocks/prDraftMock.js"; |
+| src/api/prDraftClient.js | 1 | Mock | production_mock | replace | import { getMockPrDraftContext, regenerateMockPrDraft } from "../mocks/prDraftMock.js"; |
+| src/api/prDraftClient.js | 1 | mock | production_mock | replace | import { getMockPrDraftContext, regenerateMockPrDraft } from "../mocks/prDraftMock.js"; |
+| src/api/prDraftClient.js | 1 | Mock | production_mock | replace | import { getMockPrDraftContext, regenerateMockPrDraft } from "../mocks/prDraftMock.js"; |
+| src/api/prDraftClient.js | 3 | FALLBACK | safe_fallback | keep_as_safe_fallback | const FALLBACK_CODES = new Set(["network_error", "not_found", "pr_draft_not_found", "artifact_missing"]); |
+| src/api/prDraftClient.js | 27 | Mock | production_mock | replace | return normalizeContext({ requirement, prDraft, agentRun, reviewItems, artifacts, activity, changeRecords, usedMockFallback: false }); |
+| src/api/prDraftClient.js | 27 | Fallback | safe_fallback | keep_as_safe_fallback | return normalizeContext({ requirement, prDraft, agentRun, reviewItems, artifacts, activity, changeRecords, usedMockFallback: false }); |
+| src/api/prDraftClient.js | 29 | Fallback | safe_fallback | keep_as_safe_fallback | if (!shouldUseFallback(error)) throw error; |
+| src/api/prDraftClient.js | 30 | Mock | production_mock | replace | return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error \|\| { code: "network_error", message: error.message } }); |
+| src/api/prDraftClient.js | 30 | Mock | production_mock | replace | return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error \|\| { code: "network_error", message: error.message } }); |
+| src/api/prDraftClient.js | 30 | Fallback | safe_fallback | keep_as_safe_fallback | return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error \|\| { code: "network_error", message: error.message } }); |
+| src/api/prDraftClient.js | 30 | fallback | safe_fallback | keep_as_safe_fallback | return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error \|\| { code: "network_error", message: error.message } }); |
+| src/api/prDraftClient.js | 42 | Fallback | safe_fallback | keep_as_safe_fallback | if (!shouldUseFallback(error)) throw error; |
+| src/api/prDraftClient.js | 43 | mock | production_mock | replace | return normalizePrDraft({ ...payload, id: payload.id \|\| `mock-saved-${Date.now()}`, requirementId, updatedAt: new Date().toISOString() }); |
+| src/api/prDraftClient.js | 55 | Fallback | safe_fallback | keep_as_safe_fallback | if (!shouldUseFallback(error)) throw error; |
+| src/api/prDraftClient.js | 68 | Fallback | safe_fallback | keep_as_safe_fallback | if (!shouldUseFallback(error)) throw error; |
+| src/api/prDraftClient.js | 69 | Mock | production_mock | replace | return normalizePrDraft(regenerateMockPrDraft(requirementId, runId)); |
+| src/api/prDraftClient.js | 126 | Mock | production_mock | replace | usedMockFallback: Boolean(input.usedMockFallback), |
+| src/api/prDraftClient.js | 126 | Fallback | safe_fallback | keep_as_safe_fallback | usedMockFallback: Boolean(input.usedMockFallback), |
+| src/api/prDraftClient.js | 126 | Mock | production_mock | replace | usedMockFallback: Boolean(input.usedMockFallback), |
+| src/api/prDraftClient.js | 126 | Fallback | safe_fallback | keep_as_safe_fallback | usedMockFallback: Boolean(input.usedMockFallback), |
+| src/api/prDraftClient.js | 127 | fallback | safe_fallback | keep_as_safe_fallback | fallbackReason: input.fallbackReason \|\| null |
+| src/api/prDraftClient.js | 127 | fallback | safe_fallback | keep_as_safe_fallback | fallbackReason: input.fallbackReason \|\| null |
+| src/api/prDraftClient.js | 149 | fallback | safe_fallback | keep_as_safe_fallback | function normalizeRequirement(input, fallbackId = "") { |
+| src/api/prDraftClient.js | 152 | fallback | safe_fallback | keep_as_safe_fallback | id: input.id \|\| fallbackId \|\| "req-pr-draft-center", |
+| src/api/prDraftClient.js | 163 | fallback | safe_fallback | keep_as_safe_fallback | function normalizeAgentRun(input, fallbackRunId = "") { |
+| src/api/prDraftClient.js | 165 | fallback | safe_fallback | keep_as_safe_fallback | id: input.id \|\| input.runId \|\| fallbackRunId \|\| "", |
+| src/api/prDraftClient.js | 166 | fallback | safe_fallback | keep_as_safe_fallback | runId: input.runId \|\| input.id \|\| fallbackRunId \|\| "", |
+| src/api/prDraftClient.js | 291 | Fallback | safe_fallback | keep_as_safe_fallback | function shouldUseFallback(error) { |
+| src/api/prDraftClient.js | 293 | FALLBACK | safe_fallback | keep_as_safe_fallback | return !code \|\| FALLBACK_CODES.has(code) \|\| code === "network_error" \|\| String(code).endsWith("_not_found"); |
+| src/api/prDraftClient.test.js | 31 | mock | test_fixture | keep_as_fixture | it("falls back to mock context when backend is unavailable", async () => { |
+| src/api/prDraftClient.test.js | 38 | Mock | test_fixture | keep_as_fixture | expect(context.usedMockFallback).toBe(true); |
+| src/api/prDraftClient.test.js | 38 | Fallback | test_fixture | keep_as_fixture | expect(context.usedMockFallback).toBe(true); |
+| src/api/prDraftClient.test.js | 51 | Mock | test_fixture | keep_as_fixture | expect(context.usedMockFallback).toBe(true); |
+| src/api/prDraftClient.test.js | 51 | Fallback | test_fixture | keep_as_fixture | expect(context.usedMockFallback).toBe(true); |
 | src/App.test.jsx | 8 | mock | test_fixture | keep_as_fixture | defaultPersistenceFetch.mockClear(); |
 | src/App.test.jsx | 27 | fixture | test_fixture | keep_as_fixture | it("maps the monitor console to persistence-backed fixture data", async () => { |
 | src/App.test.jsx | 35 | conduit-realworld-example-app | test_fixture | keep_as_fixture | expect(screen.queryByText("conduit-realworld-example-app")).not.toBeInTheDocument(); |
@@ -4029,173 +4239,173 @@
 | src/App.test.jsx | 180 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/projects")).toBe(true)); |
 | src/App.test.jsx | 180 | mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/projects")).toBe(true)); |
 | src/App.test.jsx | 192 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
-| src/App.test.jsx | 200 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
-| src/App.test.jsx | 211 | Mock | test_fixture | keep_as_fixture | const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body); |
-| src/App.test.jsx | 211 | mock | test_fixture | keep_as_fixture | const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body); |
-| src/App.test.jsx | 214 | conduit-realworld-example-app | test_fixture | keep_as_fixture | expect(runBody.targetRepoPath).toBe("C:\\Users\\www30\\Desktop\\conduit-realworld-example-app"); |
-| src/App.test.jsx | 216 | placeholder | test_fixture | keep_as_fixture | expect(runBody.requirementDsl.constraints).toContain("Prefer concrete code/style changes over placeholder comments."); |
-| src/App.test.jsx | 220 | LoginForm.jsx | test_fixture | keep_as_fixture | expect(screen.getAllByText("src/components/LoginForm.jsx").length).toBeGreaterThan(0); |
-| src/App.test.jsx | 265 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/App.test.jsx | 283 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 297 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/projects", expect.objectContaining({ |
-| src/App.test.jsx | 304 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/projects/project-c", expect.objectContaining({ |
-| src/App.test.jsx | 324 | mock | test_fixture | keep_as_fixture | it("opens, cancels, and mock-creates a project without filesystem work", () => { |
-| src/App.test.jsx | 345 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/App.test.jsx | 372 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 380 | conduit-realworld-example-app | test_fixture | keep_as_fixture | target: { value: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" } |
-| src/App.test.jsx | 385 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
-| src/App.test.jsx | 389 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
-| src/App.test.jsx | 393 | Mock | test_fixture | keep_as_fixture | const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/status"))[1].body); |
-| src/App.test.jsx | 393 | mock | test_fixture | keep_as_fixture | const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/status"))[1].body); |
-| src/App.test.jsx | 396 | conduit-realworld-example-app | test_fixture | keep_as_fixture | localPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" |
-| src/App.test.jsx | 404 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/App.test.jsx | 430 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 455 | Mock | test_fixture | keep_as_fixture | const statusBodies = fetchMock.mock.calls |
-| src/App.test.jsx | 455 | mock | test_fixture | keep_as_fixture | const statusBodies = fetchMock.mock.calls |
-| src/App.test.jsx | 465 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/App.test.jsx | 489 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 504 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
-| src/App.test.jsx | 504 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
-| src/App.test.jsx | 508 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/App.test.jsx | 532 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 540 | conduit-realworld-example-app | test_fixture | keep_as_fixture | target: { value: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" } |
-| src/App.test.jsx | 547 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
-| src/App.test.jsx | 547 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
-| src/App.test.jsx | 551 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/App.test.jsx | 587 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 600 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
-| src/App.test.jsx | 607 | fallback | test_fixture | keep_as_fixture | it("shows the audit preview fallback when backend startup fails", async () => { |
-| src/App.test.jsx | 608 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/App.test.jsx | 634 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 674 | fallback | test_fixture | keep_as_fixture | expect(screen.queryByText("fallback_safe_default")).not.toBeInTheDocument(); |
-| src/App.test.jsx | 687 | fallback | test_fixture | keep_as_fixture | it("labels skill reply source as real, fallback, or mock in the status console", () => { |
-| src/App.test.jsx | 687 | mock | test_fixture | keep_as_fixture | it("labels skill reply source as real, fallback, or mock in the status console", () => { |
-| src/App.test.jsx | 714 | fallback | test_fixture | keep_as_fixture | runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "fallback", skillSourceMode: "fallback_guardrail" }} |
-| src/App.test.jsx | 714 | fallback | test_fixture | keep_as_fixture | runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "fallback", skillSourceMode: "fallback_guardrail" }} |
-| src/App.test.jsx | 717 | Fallback | test_fixture | keep_as_fixture | expect(screen.getByText("回复来源：Fallback guardrail")).toBeInTheDocument(); |
-| src/App.test.jsx | 723 | mock | test_fixture | keep_as_fixture | runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "done", skillSourceMode: "mock" }} |
-| src/App.test.jsx | 726 | Mock | test_fixture | keep_as_fixture | expect(screen.getByText("回复来源：Mock model")).toBeInTheDocument(); |
-| src/App.test.jsx | 809 | conduit-realworld-example-app | test_fixture | keep_as_fixture | expect(reportCta).not.toHaveTextContent("conduit-realworld-example-app"); |
-| src/App.test.jsx | 847 | Placeholder | test_fixture | keep_as_fixture | expect(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分...")).toBeInTheDocument(); |
-| src/App.test.jsx | 854 | Placeholder | test_fixture | keep_as_fixture | fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), { |
-| src/App.test.jsx | 862 | Placeholder | test_fixture | keep_as_fixture | fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), { |
-| src/App.test.jsx | 881 | Placeholder | test_fixture | keep_as_fixture | fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), { |
-| src/App.test.jsx | 961 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 975 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 986 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
-| src/App.test.jsx | 990 | Mock | test_fixture | keep_as_fixture | expect(fetchMock).toHaveBeenCalledWith( |
-| src/App.test.jsx | 995 | Mock | test_fixture | keep_as_fixture | const skillCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/pm-dsl-turn")); |
-| src/App.test.jsx | 995 | mock | test_fixture | keep_as_fixture | const skillCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/pm-dsl-turn")); |
-| src/App.test.jsx | 1062 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1077 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1103 | Mock | test_fixture | keep_as_fixture | const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
-| src/App.test.jsx | 1103 | mock | test_fixture | keep_as_fixture | const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
-| src/App.test.jsx | 1113 | Mock | test_fixture | keep_as_fixture | const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
-| src/App.test.jsx | 1113 | mock | test_fixture | keep_as_fixture | const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
-| src/App.test.jsx | 1122 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/agent"))).toBe(false); |
-| src/App.test.jsx | 1122 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/agent"))).toBe(false); |
-| src/App.test.jsx | 1126 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1134 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1146 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
-| src/App.test.jsx | 1146 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
-| src/App.test.jsx | 1147 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/dsl/runs/start"))).toBe(false); |
-| src/App.test.jsx | 1147 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/dsl/runs/start"))).toBe(false); |
-| src/App.test.jsx | 1171 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1183 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1197 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(2); |
-| src/App.test.jsx | 1197 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(2); |
-| src/App.test.jsx | 1213 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1223 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1234 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
-| src/App.test.jsx | 1234 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
-| src/App.test.jsx | 1237 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1)); |
-| src/App.test.jsx | 1237 | mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1)); |
-| src/App.test.jsx | 1240 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1); |
-| src/App.test.jsx | 1240 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1); |
-| src/App.test.jsx | 1275 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1289 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1317 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => ({ |
-| src/App.test.jsx | 1343 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1354 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalled()); |
-| src/App.test.jsx | 1422 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1442 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1471 | Mock | test_fixture | keep_as_fixture | const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length; |
-| src/App.test.jsx | 1471 | mock | test_fixture | keep_as_fixture | const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length; |
-| src/App.test.jsx | 1473 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true)); |
-| src/App.test.jsx | 1473 | mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true)); |
-| src/App.test.jsx | 1476 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length).toBe(skillCallsBeforeRetry); |
-| src/App.test.jsx | 1476 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length).toBe(skillCallsBeforeRetry); |
-| src/App.test.jsx | 1480 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1509 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1527 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/cancel"))).toBe(true); |
-| src/App.test.jsx | 1527 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/cancel"))).toBe(true); |
-| src/App.test.jsx | 1545 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1593 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1615 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true); |
-| src/App.test.jsx | 1615 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true); |
-| src/App.test.jsx | 1664 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
-| src/App.test.jsx | 1669 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/App.test.jsx | 1687 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/pm-dsl-turn"))).toBe(true); |
-| src/App.test.jsx | 1687 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/pm-dsl-turn"))).toBe(true); |
-| src/App.test.jsx | 1688 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/start"))).toBe(true); |
-| src/App.test.jsx | 1688 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/start"))).toBe(true); |
-| src/App.test.jsx | 1697 | Fixture | test_fixture | keep_as_fixture | const defaultProjectFixtures = [ |
-| src/App.test.jsx | 1701 | fixture | test_fixture | keep_as_fixture | description: "Project fixture returned by persistence API", |
-| src/App.test.jsx | 1711 | fixture | test_fixture | keep_as_fixture | description: "Workbench fixture", |
-| src/App.test.jsx | 1720 | fixture | test_fixture | keep_as_fixture | description: "Agent fixture", |
-| src/App.test.jsx | 1729 | fixture | test_fixture | keep_as_fixture | description: "Pipeline fixture", |
-| src/App.test.jsx | 1737 | Fixture | test_fixture | keep_as_fixture | const defaultRequirementFixture = { |
-| src/App.test.jsx | 1750 | Fixture | test_fixture | keep_as_fixture | const defaultAgentRunFixture = { |
-| src/App.test.jsx | 1766 | Fixture | test_fixture | keep_as_fixture | if (target === "/api/projects" && method === "GET") return jsonOk(defaultProjectFixtures); |
-| src/App.test.jsx | 1773 | Fixture | test_fixture | keep_as_fixture | if (target === "/api/projects/persistence-project/requirements") return jsonOk([defaultRequirementFixture]); |
-| src/App.test.jsx | 1796 | Fixture | test_fixture | keep_as_fixture | if (target === "/api/agent/runs/RUN-persisted-monitor") return jsonOk(defaultAgentRunFixture); |
-| src/App.test.jsx | 1807 | fixture | test_fixture | keep_as_fixture | return jsonOk({ status: "project_path_missing", available: false, message: "No preview fixture." }); |
-| src/App.test.jsx | 1816 | fixture | test_fixture | keep_as_fixture | reason: "question group fixture", |
-| src/App.test.jsx | 1867 | fixture | test_fixture | keep_as_fixture | recommendedQuestion: complete ? null : { title: "Skill suggestion", text: questionItems[0]?.question \|\| question, reason: "question group fixture", source: "skill_model" }, |
+| src/App.test.jsx | 199 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
+| src/App.test.jsx | 209 | Mock | test_fixture | keep_as_fixture | const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body); |
+| src/App.test.jsx | 209 | mock | test_fixture | keep_as_fixture | const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body); |
+| src/App.test.jsx | 212 | conduit-realworld-example-app | test_fixture | keep_as_fixture | expect(runBody.targetRepoPath).toBe("C:\\Users\\www30\\Desktop\\conduit-realworld-example-app"); |
+| src/App.test.jsx | 214 | placeholder | test_fixture | keep_as_fixture | expect(runBody.requirementDsl.constraints).toContain("Prefer concrete code/style changes over placeholder comments."); |
+| src/App.test.jsx | 218 | LoginForm.jsx | test_fixture | keep_as_fixture | expect(screen.getAllByText("src/components/LoginForm.jsx").length).toBeGreaterThan(0); |
+| src/App.test.jsx | 263 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/App.test.jsx | 281 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 295 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/projects", expect.objectContaining({ |
+| src/App.test.jsx | 302 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/projects/project-c", expect.objectContaining({ |
+| src/App.test.jsx | 322 | mock | test_fixture | keep_as_fixture | it("opens, cancels, and mock-creates a project without filesystem work", () => { |
+| src/App.test.jsx | 343 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/App.test.jsx | 370 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 378 | conduit-realworld-example-app | test_fixture | keep_as_fixture | target: { value: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" } |
+| src/App.test.jsx | 383 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
+| src/App.test.jsx | 387 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
+| src/App.test.jsx | 391 | Mock | test_fixture | keep_as_fixture | const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/status"))[1].body); |
+| src/App.test.jsx | 391 | mock | test_fixture | keep_as_fixture | const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/status"))[1].body); |
+| src/App.test.jsx | 394 | conduit-realworld-example-app | test_fixture | keep_as_fixture | localPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" |
+| src/App.test.jsx | 402 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/App.test.jsx | 428 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 453 | Mock | test_fixture | keep_as_fixture | const statusBodies = fetchMock.mock.calls |
+| src/App.test.jsx | 453 | mock | test_fixture | keep_as_fixture | const statusBodies = fetchMock.mock.calls |
+| src/App.test.jsx | 463 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/App.test.jsx | 487 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 502 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
+| src/App.test.jsx | 502 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
+| src/App.test.jsx | 506 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/App.test.jsx | 530 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 538 | conduit-realworld-example-app | test_fixture | keep_as_fixture | target: { value: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app" } |
+| src/App.test.jsx | 545 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
+| src/App.test.jsx | 545 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false); |
+| src/App.test.jsx | 549 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/App.test.jsx | 585 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 598 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
+| src/App.test.jsx | 605 | fallback | test_fixture | keep_as_fixture | it("shows the audit preview fallback when backend startup fails", async () => { |
+| src/App.test.jsx | 606 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/App.test.jsx | 632 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 672 | fallback | test_fixture | keep_as_fixture | expect(screen.queryByText("fallback_safe_default")).not.toBeInTheDocument(); |
+| src/App.test.jsx | 685 | fallback | test_fixture | keep_as_fixture | it("labels skill reply source as real, fallback, or mock in the status console", () => { |
+| src/App.test.jsx | 685 | mock | test_fixture | keep_as_fixture | it("labels skill reply source as real, fallback, or mock in the status console", () => { |
+| src/App.test.jsx | 712 | fallback | test_fixture | keep_as_fixture | runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "fallback", skillSourceMode: "fallback_guardrail" }} |
+| src/App.test.jsx | 712 | fallback | test_fixture | keep_as_fixture | runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "fallback", skillSourceMode: "fallback_guardrail" }} |
+| src/App.test.jsx | 715 | Fallback | test_fixture | keep_as_fixture | expect(screen.getByText("回复来源：Fallback guardrail")).toBeInTheDocument(); |
+| src/App.test.jsx | 721 | mock | test_fixture | keep_as_fixture | runState={{ runId: "RUN-source", status: "skill_turn", skillStatus: "done", skillSourceMode: "mock" }} |
+| src/App.test.jsx | 724 | Mock | test_fixture | keep_as_fixture | expect(screen.getByText("回复来源：Mock model")).toBeInTheDocument(); |
+| src/App.test.jsx | 807 | conduit-realworld-example-app | test_fixture | keep_as_fixture | expect(reportCta).not.toHaveTextContent("conduit-realworld-example-app"); |
+| src/App.test.jsx | 845 | Placeholder | test_fixture | keep_as_fixture | expect(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分...")).toBeInTheDocument(); |
+| src/App.test.jsx | 852 | Placeholder | test_fixture | keep_as_fixture | fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), { |
+| src/App.test.jsx | 860 | Placeholder | test_fixture | keep_as_fixture | fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), { |
+| src/App.test.jsx | 879 | Placeholder | test_fixture | keep_as_fixture | fireEvent.change(screen.getByPlaceholderText("请按序号回答，也可以只回答你确定的部分..."), { |
+| src/App.test.jsx | 959 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 973 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 984 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith( |
+| src/App.test.jsx | 988 | Mock | test_fixture | keep_as_fixture | expect(fetchMock).toHaveBeenCalledWith( |
+| src/App.test.jsx | 993 | Mock | test_fixture | keep_as_fixture | const skillCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/pm-dsl-turn")); |
+| src/App.test.jsx | 993 | mock | test_fixture | keep_as_fixture | const skillCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith("/pm-dsl-turn")); |
+| src/App.test.jsx | 1066 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1081 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1107 | Mock | test_fixture | keep_as_fixture | const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
+| src/App.test.jsx | 1107 | mock | test_fixture | keep_as_fixture | const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
+| src/App.test.jsx | 1117 | Mock | test_fixture | keep_as_fixture | const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
+| src/App.test.jsx | 1117 | mock | test_fixture | keep_as_fixture | const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body); |
+| src/App.test.jsx | 1126 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/agent"))).toBe(false); |
+| src/App.test.jsx | 1126 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).includes("/api/agent"))).toBe(false); |
+| src/App.test.jsx | 1130 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1138 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1150 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
+| src/App.test.jsx | 1150 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
+| src/App.test.jsx | 1151 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/dsl/runs/start"))).toBe(false); |
+| src/App.test.jsx | 1151 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/dsl/runs/start"))).toBe(false); |
+| src/App.test.jsx | 1175 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1187 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1201 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(2); |
+| src/App.test.jsx | 1201 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(2); |
+| src/App.test.jsx | 1217 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1227 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1238 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
+| src/App.test.jsx | 1238 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toBe(false); |
+| src/App.test.jsx | 1241 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1)); |
+| src/App.test.jsx | 1241 | mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1)); |
+| src/App.test.jsx | 1244 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1); |
+| src/App.test.jsx | 1244 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn"))).toHaveLength(1); |
+| src/App.test.jsx | 1279 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1293 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1321 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => ({ |
+| src/App.test.jsx | 1347 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1358 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalled()); |
+| src/App.test.jsx | 1426 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1446 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1475 | Mock | test_fixture | keep_as_fixture | const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length; |
+| src/App.test.jsx | 1475 | mock | test_fixture | keep_as_fixture | const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length; |
+| src/App.test.jsx | 1477 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true)); |
+| src/App.test.jsx | 1477 | mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true)); |
+| src/App.test.jsx | 1480 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length).toBe(skillCallsBeforeRetry); |
+| src/App.test.jsx | 1480 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/pm-dsl-turn")).length).toBe(skillCallsBeforeRetry); |
+| src/App.test.jsx | 1484 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1513 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1531 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/cancel"))).toBe(true); |
+| src/App.test.jsx | 1531 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/cancel"))).toBe(true); |
+| src/App.test.jsx | 1549 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1597 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1619 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true); |
+| src/App.test.jsx | 1619 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/retry"))).toBe(true); |
+| src/App.test.jsx | 1668 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/App.test.jsx | 1673 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/App.test.jsx | 1691 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/pm-dsl-turn"))).toBe(true); |
+| src/App.test.jsx | 1691 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/pm-dsl-turn"))).toBe(true); |
+| src/App.test.jsx | 1692 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/start"))).toBe(true); |
+| src/App.test.jsx | 1692 | mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/start"))).toBe(true); |
+| src/App.test.jsx | 1701 | Fixture | test_fixture | keep_as_fixture | const defaultProjectFixtures = [ |
+| src/App.test.jsx | 1705 | fixture | test_fixture | keep_as_fixture | description: "Project fixture returned by persistence API", |
+| src/App.test.jsx | 1715 | fixture | test_fixture | keep_as_fixture | description: "Workbench fixture", |
+| src/App.test.jsx | 1724 | fixture | test_fixture | keep_as_fixture | description: "Agent fixture", |
+| src/App.test.jsx | 1733 | fixture | test_fixture | keep_as_fixture | description: "Pipeline fixture", |
+| src/App.test.jsx | 1741 | Fixture | test_fixture | keep_as_fixture | const defaultRequirementFixture = { |
+| src/App.test.jsx | 1754 | Fixture | test_fixture | keep_as_fixture | const defaultAgentRunFixture = { |
+| src/App.test.jsx | 1770 | Fixture | test_fixture | keep_as_fixture | if (target === "/api/projects" && method === "GET") return jsonOk(defaultProjectFixtures); |
+| src/App.test.jsx | 1777 | Fixture | test_fixture | keep_as_fixture | if (target === "/api/projects/persistence-project/requirements") return jsonOk([defaultRequirementFixture]); |
+| src/App.test.jsx | 1800 | Fixture | test_fixture | keep_as_fixture | if (target === "/api/agent/runs/RUN-persisted-monitor") return jsonOk(defaultAgentRunFixture); |
+| src/App.test.jsx | 1811 | fixture | test_fixture | keep_as_fixture | return jsonOk({ status: "project_path_missing", available: false, message: "No preview fixture." }); |
+| src/App.test.jsx | 1820 | fixture | test_fixture | keep_as_fixture | reason: "question group fixture", |
+| src/App.test.jsx | 1876 | fixture | test_fixture | keep_as_fixture | recommendedQuestion: complete ? null : { title: "Skill suggestion", text: questionItems[0]?.question \|\| question, reason: "question group fixture", source: "skill_model" }, |
 | src/components/ClarificationChat.jsx | 25 | fallback | unknown | needs_review | const fallbackQuestion = { |
 | src/components/ClarificationChat.jsx | 27 | fallback | unknown | needs_review | source: "本地 fallback" |
 | src/components/ClarificationChat.jsx | 30 | fallback | unknown | needs_review | const question = hasRealSuggestion ? realSuggestion : fallbackQuestion; |
 | src/components/ClarificationChat.jsx | 165 | placeholder | unknown | needs_review | placeholder="请按序号回答，也可以只回答你确定的部分..." |
-| src/components/DesignPlanningWorkbench.jsx | 262 | placeholder | unknown | needs_review | "Prefer concrete code/style changes over placeholder comments." |
-| src/components/DSLStatusConsole.jsx | 27 | fallback | unknown | needs_review | const draftReportMode = ["failed", "timeout"].includes(runStatus) && ["done", "fallback"].includes(skillStatus); |
-| src/components/DSLStatusConsole.jsx | 66 | fallback | unknown | needs_review | {skillStatus === "fallback" ? <p>快速澄清已使用安全 fallback，完整 artifacts 可继续后台同步。</p> : null} |
-| src/components/DSLStatusConsole.jsx | 66 | fallback | unknown | needs_review | {skillStatus === "fallback" ? <p>快速澄清已使用安全 fallback，完整 artifacts 可继续后台同步。</p> : null} |
-| src/components/DSLStatusConsole.jsx | 175 | fallback | unknown | needs_review | if (sourceMode === "fallback_guardrail" \|\| sourceMode === "fallback" \|\| sourceMode === "slow_response") { |
-| src/components/DSLStatusConsole.jsx | 175 | fallback | unknown | needs_review | if (sourceMode === "fallback_guardrail" \|\| sourceMode === "fallback" \|\| sourceMode === "slow_response") { |
-| src/components/DSLStatusConsole.jsx | 176 | Fallback | unknown | needs_review | return `Fallback guardrail${suffix ? ` · ${suffix}` : ""}`; |
-| src/components/DSLStatusConsole.jsx | 178 | mock | unknown | needs_review | if (sourceMode === "mock") return "Mock model"; |
-| src/components/DSLStatusConsole.jsx | 178 | Mock | unknown | needs_review | if (sourceMode === "mock") return "Mock model"; |
-| src/components/DSLStatusConsole.jsx | 185 | mock | unknown | needs_review | if (sourceMode === "mock") return "mock"; |
-| src/components/DSLStatusConsole.jsx | 185 | mock | unknown | needs_review | if (sourceMode === "mock") return "mock"; |
-| src/components/DSLStatusConsole.jsx | 187 | fallback | unknown | needs_review | return "fallback"; |
-| src/components/DSLStatusConsole.jsx | 275 | Placeholder | unknown | needs_review | const isPlaceholderRunId = !runId \|\| runId === "undefined" \|\| runId === "null" \|\| /^<.*>$/.test(runId); |
-| src/components/DSLStatusConsole.jsx | 282 | fallback | unknown | needs_review | const fallbackWithoutRun = |
-| src/components/DSLStatusConsole.jsx | 283 | Placeholder | unknown | needs_review | isPlaceholderRunId && |
-| src/components/DSLStatusConsole.jsx | 284 | fallback | unknown | needs_review | (uiState?.dslCompletion?.source === "fallback_safe_default" \|\| |
-| src/components/DSLStatusConsole.jsx | 285 | fallback | unknown | needs_review | uiState?.readiness?.source === "fallback_safe_default" \|\| |
-| src/components/DSLStatusConsole.jsx | 286 | mock | unknown | needs_review | uiState?.dslCompletion?.source === "mock"); |
-| src/components/DSLStatusConsole.jsx | 288 | Placeholder | unknown | needs_review | (isPlaceholderRunId \|\| runState?.artifactStatus === "idle" \|\| runState?.status === "idle") && |
-| src/components/DSLStatusConsole.jsx | 290 | fallback | unknown | needs_review | (notStartedUi \|\| noRequirementSignal \|\| fallbackWithoutRun) |
-| src/components/DSLStatusConsole.jsx | 302 | fallback | unknown | needs_review | function getGlobalNumber(name, fallback = 0) { |
-| src/components/DSLStatusConsole.jsx | 304 | fallback | unknown | needs_review | return Number.isFinite(value) && value > 0 ? value : fallback; |
+| src/components/DesignPlanningWorkbench.jsx | 278 | placeholder | unknown | needs_review | "Prefer concrete code/style changes over placeholder comments." |
+| src/components/DSLStatusConsole.jsx | 28 | fallback | unknown | needs_review | const draftReportMode = ["failed", "timeout"].includes(runStatus) && ["done", "fallback"].includes(skillStatus); |
+| src/components/DSLStatusConsole.jsx | 67 | fallback | unknown | needs_review | {skillStatus === "fallback" ? <p>快速澄清已使用安全 fallback，完整 artifacts 可继续后台同步。</p> : null} |
+| src/components/DSLStatusConsole.jsx | 67 | fallback | unknown | needs_review | {skillStatus === "fallback" ? <p>快速澄清已使用安全 fallback，完整 artifacts 可继续后台同步。</p> : null} |
+| src/components/DSLStatusConsole.jsx | 168 | fallback | unknown | needs_review | if (sourceMode === "fallback_guardrail" \|\| sourceMode === "fallback" \|\| sourceMode === "slow_response") { |
+| src/components/DSLStatusConsole.jsx | 168 | fallback | unknown | needs_review | if (sourceMode === "fallback_guardrail" \|\| sourceMode === "fallback" \|\| sourceMode === "slow_response") { |
+| src/components/DSLStatusConsole.jsx | 169 | Fallback | unknown | needs_review | return `Fallback guardrail${suffix ? ` · ${suffix}` : ""}`; |
+| src/components/DSLStatusConsole.jsx | 171 | mock | unknown | needs_review | if (sourceMode === "mock") return "Mock model"; |
+| src/components/DSLStatusConsole.jsx | 171 | Mock | unknown | needs_review | if (sourceMode === "mock") return "Mock model"; |
+| src/components/DSLStatusConsole.jsx | 178 | mock | unknown | needs_review | if (sourceMode === "mock") return "mock"; |
+| src/components/DSLStatusConsole.jsx | 178 | mock | unknown | needs_review | if (sourceMode === "mock") return "mock"; |
+| src/components/DSLStatusConsole.jsx | 180 | fallback | unknown | needs_review | return "fallback"; |
+| src/components/DSLStatusConsole.jsx | 273 | Placeholder | unknown | needs_review | const isPlaceholderRunId = !runId \|\| runId === "undefined" \|\| runId === "null" \|\| /^<.*>$/.test(runId); |
+| src/components/DSLStatusConsole.jsx | 280 | fallback | unknown | needs_review | const fallbackWithoutRun = |
+| src/components/DSLStatusConsole.jsx | 281 | Placeholder | unknown | needs_review | isPlaceholderRunId && |
+| src/components/DSLStatusConsole.jsx | 282 | fallback | unknown | needs_review | (uiState?.dslCompletion?.source === "fallback_safe_default" \|\| |
+| src/components/DSLStatusConsole.jsx | 283 | fallback | unknown | needs_review | uiState?.readiness?.source === "fallback_safe_default" \|\| |
+| src/components/DSLStatusConsole.jsx | 284 | mock | unknown | needs_review | uiState?.dslCompletion?.source === "mock"); |
+| src/components/DSLStatusConsole.jsx | 286 | Placeholder | unknown | needs_review | (isPlaceholderRunId \|\| runState?.artifactStatus === "idle" \|\| runState?.status === "idle") && |
+| src/components/DSLStatusConsole.jsx | 288 | fallback | unknown | needs_review | (notStartedUi \|\| noRequirementSignal \|\| fallbackWithoutRun) |
+| src/components/DSLStatusConsole.jsx | 300 | fallback | unknown | needs_review | function getGlobalNumber(name, fallback = 0) { |
+| src/components/DSLStatusConsole.jsx | 302 | fallback | unknown | needs_review | return Number.isFinite(value) && value > 0 ? value : fallback; |
 | src/components/DSLWorkbench.jsx | 11 | fallback | unknown | needs_review | import { emptyUiState, fallbackUiState } from "../adapters/dslArtifactAdapter.js"; |
-| src/components/DSLWorkbench.jsx | 220 | conduit-realworld-example-app | unknown | needs_review | const createdRequirement = await createRequirement(activeProject?.id ?? "conduit-realworld-example-app", { |
-| src/components/DSLWorkbench.jsx | 243 | conduit-realworld-example-app | unknown | needs_review | projectId: activeProject?.id ?? "conduit-realworld-example-app", |
-| src/components/DSLWorkbench.jsx | 431 | conduit-realworld-example-app | unknown | needs_review | projectId: activeProject?.id ?? loadedRequirement.projectId ?? "conduit-realworld-example-app", |
-| src/components/DSLWorkbench.jsx | 538 | fallback | unknown | needs_review | uiState: job.uiState \|\| fallbackUiState() |
-| src/components/DSLWorkbench.jsx | 555 | fallback | unknown | needs_review | uiState: latestJob.uiState \|\| fallbackUiState() |
-| src/components/DSLWorkbench.jsx | 665 | conduit-realworld-example-app | unknown | needs_review | <span>{activeProject?.name ?? "conduit-realworld-example-app"}</span> |
-| src/components/DSLWorkbench.jsx | 855 | fallback | unknown | needs_review | if (["fallback", "fallback_guardrail", "slow_response"].includes(sourceMode)) return "fallback"; |
-| src/components/DSLWorkbench.jsx | 855 | fallback | unknown | needs_review | if (["fallback", "fallback_guardrail", "slow_response"].includes(sourceMode)) return "fallback"; |
-| src/components/DSLWorkbench.jsx | 855 | fallback | unknown | needs_review | if (["fallback", "fallback_guardrail", "slow_response"].includes(sourceMode)) return "fallback"; |
-| src/components/DSLWorkbench.jsx | 893 | mock | unknown | needs_review | return ["model_generated", "model_generated_real", "mock", "fallback", "fallback_guardrail", "slow_response"].includes(source); |
-| src/components/DSLWorkbench.jsx | 893 | fallback | unknown | needs_review | return ["model_generated", "model_generated_real", "mock", "fallback", "fallback_guardrail", "slow_response"].includes(source); |
-| src/components/DSLWorkbench.jsx | 893 | fallback | unknown | needs_review | return ["model_generated", "model_generated_real", "mock", "fallback", "fallback_guardrail", "slow_response"].includes(source); |
-| src/components/DSLWorkbench.jsx | 1029 | conduit-realworld-example-app | unknown | needs_review | projectId: projectId \|\| "conduit-realworld-example-app", |
-| src/components/DSLWorkbench.jsx | 1057 | mock | unknown | needs_review | mockLlmUsed: job.mockLlmUsed ?? null, |
-| src/components/DSLWorkbench.jsx | 1057 | mock | unknown | needs_review | mockLlmUsed: job.mockLlmUsed ?? null, |
-| src/components/DSLWorkbench.jsx | 1148 | fallback | unknown | needs_review | function getGlobalNumber(name, fallback = 0) { |
-| src/components/DSLWorkbench.jsx | 1150 | fallback | unknown | needs_review | return Number.isFinite(value) && value > 0 ? value : fallback; |
+| src/components/DSLWorkbench.jsx | 235 | conduit-realworld-example-app | unknown | needs_review | const createdRequirement = await createRequirement(activeProject?.id ?? "conduit-realworld-example-app", { |
+| src/components/DSLWorkbench.jsx | 258 | conduit-realworld-example-app | unknown | needs_review | projectId: activeProject?.id ?? "conduit-realworld-example-app", |
+| src/components/DSLWorkbench.jsx | 449 | conduit-realworld-example-app | unknown | needs_review | projectId: activeProject?.id ?? loadedRequirement.projectId ?? "conduit-realworld-example-app", |
+| src/components/DSLWorkbench.jsx | 556 | fallback | unknown | needs_review | uiState: job.uiState \|\| fallbackUiState() |
+| src/components/DSLWorkbench.jsx | 573 | fallback | unknown | needs_review | uiState: latestJob.uiState \|\| fallbackUiState() |
+| src/components/DSLWorkbench.jsx | 683 | conduit-realworld-example-app | unknown | needs_review | <span>{activeProject?.name ?? "conduit-realworld-example-app"}</span> |
+| src/components/DSLWorkbench.jsx | 874 | fallback | unknown | needs_review | if (["fallback", "fallback_guardrail", "slow_response"].includes(sourceMode)) return "fallback"; |
+| src/components/DSLWorkbench.jsx | 874 | fallback | unknown | needs_review | if (["fallback", "fallback_guardrail", "slow_response"].includes(sourceMode)) return "fallback"; |
+| src/components/DSLWorkbench.jsx | 874 | fallback | unknown | needs_review | if (["fallback", "fallback_guardrail", "slow_response"].includes(sourceMode)) return "fallback"; |
+| src/components/DSLWorkbench.jsx | 912 | mock | unknown | needs_review | return ["model_generated", "model_generated_real", "mock", "fallback", "fallback_guardrail", "slow_response"].includes(source); |
+| src/components/DSLWorkbench.jsx | 912 | fallback | unknown | needs_review | return ["model_generated", "model_generated_real", "mock", "fallback", "fallback_guardrail", "slow_response"].includes(source); |
+| src/components/DSLWorkbench.jsx | 912 | fallback | unknown | needs_review | return ["model_generated", "model_generated_real", "mock", "fallback", "fallback_guardrail", "slow_response"].includes(source); |
+| src/components/DSLWorkbench.jsx | 1048 | conduit-realworld-example-app | unknown | needs_review | projectId: projectId \|\| "conduit-realworld-example-app", |
+| src/components/DSLWorkbench.jsx | 1076 | mock | unknown | needs_review | mockLlmUsed: job.mockLlmUsed ?? null, |
+| src/components/DSLWorkbench.jsx | 1076 | mock | unknown | needs_review | mockLlmUsed: job.mockLlmUsed ?? null, |
+| src/components/DSLWorkbench.jsx | 1169 | fallback | unknown | needs_review | function getGlobalNumber(name, fallback = 0) { |
+| src/components/DSLWorkbench.jsx | 1171 | fallback | unknown | needs_review | return Number.isFinite(value) && value > 0 ? value : fallback; |
 | src/components/frontendPersistence.test.jsx | 37 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
 | src/components/frontendPersistence.test.jsx | 56 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
 | src/components/frontendPersistence.test.jsx | 72 | Mock | test_fixture | keep_as_fixture | expect(fetchMock.mock.calls.some(([url, options]) => String(url) === "/api/projects" && options?.method === "POST")).toBe(true); |
@@ -4214,21 +4424,75 @@
 | src/components/frontendPersistence.test.jsx | 150 | LoginForm.jsx | test_fixture | keep_as_fixture | expect(screen.queryByText("src/components/LoginForm.jsx")).not.toBeInTheDocument(); |
 | src/components/frontendPersistence.test.jsx | 151 | ErrorMessage.jsx | test_fixture | keep_as_fixture | expect(screen.queryByText("src/components/ErrorMessage.jsx")).not.toBeInTheDocument(); |
 | src/components/frontendPersistence.test.jsx | 184 | LoginForm.jsx | test_fixture | keep_as_fixture | expect(screen.queryByText("src/components/LoginForm.jsx")).not.toBeInTheDocument(); |
-| src/components/frontendPersistence.test.jsx | 188 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
-| src/components/frontendPersistence.test.jsx | 206 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
-| src/components/frontendPersistence.test.jsx | 215 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/requirements/req-1/pr-draft", expect.objectContaining({ |
-| src/components/frontendPersistence.test.jsx | 219 | Mock | test_fixture | keep_as_fixture | const patchBody = JSON.parse(fetchMock.mock.calls.find(([url, options]) => |
-| src/components/frontendPersistence.test.jsx | 219 | mock | test_fixture | keep_as_fixture | const patchBody = JSON.parse(fetchMock.mock.calls.find(([url, options]) => |
-| src/components/frontendPersistence.test.jsx | 225 | fallback | test_fixture | keep_as_fixture | it("shows an empty PR state instead of fallback PR draft when no draft exists", async () => { |
+| src/components/frontendPersistence.test.jsx | 189 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/components/frontendPersistence.test.jsx | 220 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/components/frontendPersistence.test.jsx | 236 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/agent/runs/RUN-rollback-ui/rollback/file", expect.objectContaining({ |
+| src/components/frontendPersistence.test.jsx | 246 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url) => { |
+| src/components/frontendPersistence.test.jsx | 261 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/components/frontendPersistence.test.jsx | 277 | Mock | test_fixture | keep_as_fixture | const fetchMock = vi.fn(async (url, options = {}) => { |
+| src/components/frontendPersistence.test.jsx | 295 | Mock | test_fixture | keep_as_fixture | vi.stubGlobal("fetch", fetchMock); |
+| src/components/frontendPersistence.test.jsx | 304 | Mock | test_fixture | keep_as_fixture | await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/requirements/req-1/pr-draft", expect.objectContaining({ |
+| src/components/frontendPersistence.test.jsx | 308 | Mock | test_fixture | keep_as_fixture | const patchBody = JSON.parse(fetchMock.mock.calls.find(([url, options]) => |
+| src/components/frontendPersistence.test.jsx | 308 | mock | test_fixture | keep_as_fixture | const patchBody = JSON.parse(fetchMock.mock.calls.find(([url, options]) => |
+| src/components/frontendPersistence.test.jsx | 314 | fallback | test_fixture | keep_as_fixture | it("shows an empty PR state instead of fallback PR draft when no draft exists", async () => { |
 | src/components/NewProjectModal.jsx | 39 | placeholder | unknown | needs_review | placeholder="例如：Research Workspace" |
 | src/components/NewProjectModal.jsx | 48 | placeholder | unknown | needs_review | placeholder="F:\\Projects\\Research Workspace" |
 | src/components/RequirementReportModal.jsx | 11 | fallback | safe_fallback | keep_as_safe_fallback | const draftReportMode = runFailed && ["done", "fallback"].includes(runState?.skillStatus); |
 | src/components/RequirementReportModal.jsx | 35 | fallback | safe_fallback | keep_as_safe_fallback | <p>{draftReportMode ? `由快速澄清草稿生成，完整 artifacts 尚未成功：${runState.runId}` : (runState?.runId ? `由真实 artifacts 映射生成：${runState.runId}` : "尚未生成真实 DSL，当前显示 fallback 报告")}</p> |
+| src/components/RequirementReportModal.jsx | 40 | mock | production_mock | replace | <button type="button" onClick={() => onToast("已导出 JSON（mock）")}><Code2 size={16} />导出 JSON</button> |
+| src/components/RequirementReportModal.jsx | 41 | mock | production_mock | replace | <button type="button" onClick={() => onToast("已导出 Markdown（mock）")}><FileDown size={16} />导出 Markdown</button> |
 | src/components/RequirementReportModal.jsx | 60 | fallback | safe_fallback | keep_as_safe_fallback | <span><small>来源</small><strong>{summary.source \|\| "fallback"}</strong></span> |
-| src/components/ReviewCheckWorkbench.jsx | 406 | fallback | safe_fallback | keep_as_safe_fallback | function buildTests(items, fallbackReview) { |
-| src/components/ReviewCheckWorkbench.jsx | 407 | fallback | safe_fallback | keep_as_safe_fallback | if (items.length === 0) return fallbackReview?.tests \|\| []; |
-| src/components/ReviewCheckWorkbench.jsx | 411 | fallback | safe_fallback | keep_as_safe_fallback | function buildConfirmations(items, fallbackReview) { |
-| src/components/ReviewCheckWorkbench.jsx | 412 | fallback | safe_fallback | keep_as_safe_fallback | if (items.length === 0) return fallbackReview?.manualConfirmations \|\| ["请先生成 Agent real-run 审计结果。"]; |
-| src/components/ReviewCheckWorkbench.jsx | 438 | fallback | safe_fallback | keep_as_safe_fallback | function normalizePreviewResult(result, fallbackPath) { |
-| src/components/ReviewCheckWorkbench.jsx | 444 | fallback | safe_fallback | keep_as_safe_fallback | projectRoot: result?.projectRoot \|\| fallbackPath \|\| "", |
-| src/components/ReviewCheckWorkbench.jsx | 445 | fallback | safe_fallback | keep_as_safe_fallback | requestedProjectRoot: result?.requestedProjectRoot \|\| result?.projectRoot \|\| fallbackPath \|\| "", |
+| src/components/ReviewCheckWorkbench.jsx | 603 | fallback | safe_fallback | keep_as_safe_fallback | function buildTests(items, fallbackReview) { |
+| src/components/ReviewCheckWorkbench.jsx | 604 | fallback | safe_fallback | keep_as_safe_fallback | if (items.length === 0) return fallbackReview?.tests \|\| []; |
+| src/components/ReviewCheckWorkbench.jsx | 608 | fallback | safe_fallback | keep_as_safe_fallback | function buildConfirmations(items, fallbackReview) { |
+| src/components/ReviewCheckWorkbench.jsx | 609 | fallback | safe_fallback | keep_as_safe_fallback | if (items.length === 0) return fallbackReview?.manualConfirmations \|\| ["请先生成 Agent real-run 审计结果。"]; |
+| src/components/ReviewCheckWorkbench.jsx | 635 | fallback | safe_fallback | keep_as_safe_fallback | function normalizePreviewResult(result, fallbackPath) { |
+| src/components/ReviewCheckWorkbench.jsx | 641 | fallback | safe_fallback | keep_as_safe_fallback | projectRoot: result?.projectRoot \|\| fallbackPath \|\| "", |
+| src/components/ReviewCheckWorkbench.jsx | 642 | fallback | safe_fallback | keep_as_safe_fallback | requestedProjectRoot: result?.requestedProjectRoot \|\| result?.projectRoot \|\| fallbackPath \|\| "", |
+| src/components/RiskBlockerChat.jsx | 73 | placeholder | unknown | needs_review | placeholder="输入答案，Enter 发送，Shift+Enter 换行" |
+| src/components/RiskBlockerChat.jsx | 120 | fallback | safe_fallback | keep_as_safe_fallback | function normalizeQuestion(item, fallbackId, order = 99) { |
+| src/components/RiskBlockerChat.jsx | 125 | fallback | safe_fallback | keep_as_safe_fallback | id: String(item.id \|\| item.questionId \|\| fallbackId), |
+| src/components/RiskBlockerChat.jsx | 126 | fallback | safe_fallback | keep_as_safe_fallback | questionId: String(item.questionId \|\| item.id \|\| fallbackId), |
+| src/components/WorkspaceShell.jsx | 39 | mock | production_mock | replace | if (!routeRequirementId && /^(pending\|mock)-/.test(String(activeProject.id))) return () => { |
+| src/mocks/prDraftMock.js | 38 | mock | unknown | needs_review | changeSummary: "Added envelope-aware API client with mock fallback.", |
+| src/mocks/prDraftMock.js | 38 | fallback | safe_fallback | keep_as_safe_fallback | changeSummary: "Added envelope-aware API client with mock fallback.", |
+| src/mocks/prDraftMock.js | 40 | mock | unknown | needs_review | requirementPoint: "API client and mock fallback", |
+| src/mocks/prDraftMock.js | 40 | fallback | safe_fallback | keep_as_safe_fallback | requirementPoint: "API client and mock fallback", |
+| src/mocks/prDraftMock.js | 41 | Fallback | safe_fallback | keep_as_safe_fallback | risk: "Fallback should not hide real validation errors.", |
+| src/mocks/prDraftMock.js | 92 | Mock | unknown | needs_review | export const prDraftMockCases = { |
+| src/mocks/prDraftMock.js | 98 | Fallback | safe_fallback | keep_as_safe_fallback | { id: "review-resolved", filePath: "src/api/prDraftClient.js", status: "resolved", required: false, message: "Fallback behavior documented." } |
+| src/mocks/prDraftMock.js | 135 | Mock | unknown | needs_review | export function getMockPrDraftContext(requirementId = "req-pr-draft-center") { |
+| src/mocks/prDraftMock.js | 145 | Mock | unknown | needs_review | return clone({ ...prDraftMockCases[key], mockCase: key }); |
+| src/mocks/prDraftMock.js | 145 | mock | unknown | needs_review | return clone({ ...prDraftMockCases[key], mockCase: key }); |
+| src/mocks/prDraftMock.js | 148 | Mock | unknown | needs_review | export function regenerateMockPrDraft(requirementId, runId) { |
+| src/mocks/prDraftMock.js | 149 | Mock | unknown | needs_review | const context = getMockPrDraftContext(String(requirementId).includes("ready") ? requirementId : "req-ready"); |
+| src/mocks/prDraftMock.js | 152 | mock | unknown | needs_review | id: `mock-regenerated-${Date.now()}`, |
+| src/mocks/prDraftMock.js | 177 | mock | unknown | needs_review | "Provides mock fallback data so the page remains usable without backend availability." |
+| src/mocks/prDraftMock.js | 177 | fallback | safe_fallback | keep_as_safe_fallback | "Provides mock fallback data so the page remains usable without backend availability." |
+| src/mocks/prDraftMock.js | 190 | fallback | safe_fallback | keep_as_safe_fallback | { id: "review-resolved", filePath: "src/api/prDraftClient.js", status: "resolved", required: false, message: "Envelope parsing and fallback are covered." } |
+| src/pages/PrDraftCenter.jsx | 133 | mock | unknown | needs_review | await patchPrDraft(draft.id \|\| "mock-pr-draft", { status: "copied", copiedAt }); |
+| src/pages/PrDraftCenter.jsx | 149 | Mock | unknown | needs_review | <PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} /> |
+| src/pages/PrDraftCenter.jsx | 149 | Fallback | safe_fallback | keep_as_safe_fallback | <PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} /> |
+| src/pages/PrDraftCenter.jsx | 149 | Mock | unknown | needs_review | <PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} /> |
+| src/pages/PrDraftCenter.jsx | 149 | Fallback | safe_fallback | keep_as_safe_fallback | <PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} /> |
+| src/pages/PrDraftCenter.jsx | 187 | Mock | unknown | needs_review | function PrDraftHeader({ context, draft, readiness, usedMockFallback }) { |
+| src/pages/PrDraftCenter.jsx | 187 | Fallback | safe_fallback | keep_as_safe_fallback | function PrDraftHeader({ context, draft, readiness, usedMockFallback }) { |
+| src/pages/PrDraftCenter.jsx | 196 | Mock | unknown | needs_review | {usedMockFallback ? <span className="pr-fallback-badge">mock fallback</span> : null} |
+| src/pages/PrDraftCenter.jsx | 196 | Fallback | safe_fallback | keep_as_safe_fallback | {usedMockFallback ? <span className="pr-fallback-badge">mock fallback</span> : null} |
+| src/pages/PrDraftCenter.jsx | 196 | fallback | safe_fallback | keep_as_safe_fallback | {usedMockFallback ? <span className="pr-fallback-badge">mock fallback</span> : null} |
+| src/pages/PrDraftCenter.jsx | 196 | mock | unknown | needs_review | {usedMockFallback ? <span className="pr-fallback-badge">mock fallback</span> : null} |
+| src/pages/PrDraftCenter.jsx | 196 | fallback | safe_fallback | keep_as_safe_fallback | {usedMockFallback ? <span className="pr-fallback-badge">mock fallback</span> : null} |
+| src/pages/PrDraftCenter.jsx | 260 | placeholder | unknown | needs_review | <input id="pr-title" aria-label="PR 标题" value={draft.title} onChange={(event) => onDraftChange({ title: event.target.value })} placeholder="PR title" /> |
+| src/pages/PrDraftCenter.jsx | 505 | Mock | unknown | needs_review | usedMockFallback: false |
+| src/pages/PrDraftCenter.jsx | 505 | Fallback | safe_fallback | keep_as_safe_fallback | usedMockFallback: false |
+| src/pages/PrDraftCenter.test.jsx | 11 | mock | test_fixture | keep_as_fixture | it("renders the PR Draft Center page with mock fallback", async () => { |
+| src/pages/PrDraftCenter.test.jsx | 11 | fallback | test_fixture | keep_as_fixture | it("renders the PR Draft Center page with mock fallback", async () => { |
+| src/pages/PrDraftCenter.test.jsx | 20 | mock | test_fixture | keep_as_fixture | expect(screen.getByText("mock fallback")).toBeInTheDocument(); |
+| src/pages/PrDraftCenter.test.jsx | 20 | fallback | test_fixture | keep_as_fixture | expect(screen.getByText("mock fallback")).toBeInTheDocument(); |
+| src/pages/PrDraftCenter.test.jsx | 59 | mock | test_fixture | keep_as_fixture | expect(writeText.mock.calls[0][0]).toContain("## Summary"); |
+| src/pages/PrDraftCenter.test.jsx | 60 | mock | test_fixture | keep_as_fixture | expect(writeText.mock.calls[0][0]).toContain("## Changed Files"); |
+| src/pages/PrDraftCenter.test.jsx | 122 | fallback | test_fixture | keep_as_fixture | it("API envelope error displays ErrorState when not eligible for fallback", async () => { |
+| src/pages/PrDraftCenter.test.jsx | 136 | mock | test_fixture | keep_as_fixture | it("mock fallback is usable", async () => { |
+| src/pages/PrDraftCenter.test.jsx | 136 | fallback | test_fixture | keep_as_fixture | it("mock fallback is usable", async () => { |
+| src/pages/PrDraftCenter.test.jsx | 144 | mock | test_fixture | keep_as_fixture | expect(screen.getByText("mock fallback")).toBeInTheDocument(); |
+| src/pages/PrDraftCenter.test.jsx | 144 | fallback | test_fixture | keep_as_fixture | expect(screen.getByText("mock fallback")).toBeInTheDocument(); |

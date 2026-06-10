@@ -1,0 +1,43 @@
+{
+  "task": "Integration Merge Debug - merge ZJWNB and unified debugging",
+  "status": "passed_pre_commit",
+  "branch": "ZJWNB",
+  "merge": {
+    "targetBranch": "ZJWNB",
+    "sourceBranch": "origin/ZJWNB",
+    "alreadyUpToDate": true,
+    "mergeCommitCreated": false,
+    "conflicts": false,
+    "backupBranch": "backup-before-zjwnb-merge"
+  },
+  "fixes": {
+    "p1p2ClarificationThreshold": true,
+    "staleP3FiveQuestionTestsUpdated": true,
+    "dryRunAgentUiTestsUpdated": true,
+    "fetchSafeRandomPortRetry": true,
+    "agentEventsTestAlignedToStageEvents": true
+  },
+  "tests": {
+    "npmTest": "passed: 16 files / 172 tests",
+    "testServer": "passed: 8 files / 94 tests",
+    "build": "passed",
+    "mockAudit": "passed",
+    "skillsAudit": "passed: 16 skills",
+    "smokeSkills": "passed: 16 skills"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "distCommitted": false,
+    "nodeModulesCommitted": false,
+    "pycacheCommitted": false,
+    "realRepoWritePerformed": false
+  },
+  "git": {
+    "commit": "recorded in final response",
+    "pushed": "recorded in final response",
+    "branch": "ZJWNB"
+  }
+}

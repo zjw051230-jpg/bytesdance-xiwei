@@ -1,11 +1,11 @@
 {
   "summary": {
-    "totalMatches": 4219,
-    "production_mock": 0,
-    "test_fixture": 819,
-    "safe_fallback": 181,
-    "docs_only": 668,
-    "unknown": 2551
+    "totalMatches": 4483,
+    "production_mock": 14,
+    "test_fixture": 846,
+    "safe_fallback": 229,
+    "docs_only": 732,
+    "unknown": 2662
   },
   "records": [
     {
@@ -5217,6 +5217,54 @@
       "action": "needs_review"
     },
     {
+      "file": "agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json",
+      "line": 8,
+      "keyword": "LoginForm.jsx",
+      "context": "\"frontend/src/components/LoginForm/LoginForm.jsx\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json",
+      "line": 14,
+      "keyword": "LoginForm.jsx",
+      "context": "\"frontend/src/components/LoginForm/LoginForm.jsx\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json",
+      "line": 16,
+      "keyword": "LoginForm.jsx",
+      "context": "\"LoginForm.jsx\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json",
+      "line": 21,
+      "keyword": "LoginForm.jsx",
+      "context": "\"For login form changes, prefer frontend/src/components/LoginForm/LoginForm.jsx.\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json",
+      "line": 29,
+      "keyword": "LoginForm.jsx",
+      "context": "\"file\": \"frontend/src/components/LoginForm/LoginForm.jsx\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/skills/definitions/conduit_login_auth.json",
+      "line": 48,
+      "keyword": "LoginForm.jsx",
+      "context": "\"frontend/src/components/LoginForm/LoginForm.jsx\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
       "file": "agent(2)/agent/agent_core/skills/definitions/conduit_theme.json",
       "line": 11,
       "keyword": "placeholder",
@@ -7938,7 +7986,7 @@
     },
     {
       "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
-      "line": 15,
+      "line": 70,
       "keyword": "demo",
       "context": "\"task_id\": \"demo_task\",",
       "classification": "unknown",
@@ -7946,7 +7994,295 @@
     },
     {
       "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
-      "line": 218,
+      "line": 87,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 107,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 157,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 177,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 227,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 247,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 297,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 317,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 367,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 387,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 437,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 457,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 507,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 533,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 540,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 570,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 580,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 582,
+      "keyword": "mock",
+      "context": "\"verification_mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 652,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 679,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 710,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 737,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 846,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 872,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 882,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 909,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 935,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 945,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 972,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 983,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1034,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1059,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1066,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1096,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1106,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1108,
+      "keyword": "mock",
+      "context": "\"verification_mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1174,
       "keyword": "demo",
       "context": "\"trace_id\": \"demo_task\",",
       "classification": "unknown",
@@ -7954,7 +8290,7 @@
     },
     {
       "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
-      "line": 221,
+      "line": 1177,
       "keyword": "demo",
       "context": "\"run_id\": \"run_demo_task\",",
       "classification": "unknown",
@@ -7962,15 +8298,383 @@
     },
     {
       "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
-      "line": 268,
+      "line": 1187,
       "keyword": "demo",
-      "context": "\"idempotency_key\": \"PR_DRAFT_CREATED:demo_task:blocked\",",
+      "context": "\"idempotency_key\": \"REPLAY_STARTED:demo_task:replay_REQ-REPLAY-JSON_generate_patch\",",
       "classification": "unknown",
       "action": "needs_review"
     },
     {
       "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
-      "line": 270,
+      "line": 1189,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1277,
+      "keyword": "demo",
+      "context": "\"trace_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1280,
+      "keyword": "demo",
+      "context": "\"run_id\": \"run_demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1292,
+      "keyword": "demo",
+      "context": "\"idempotency_key\": \"ACTION_DECIDED:demo_task:5\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1294,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1300,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1360,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1387,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1397,
+      "keyword": "demo",
+      "context": "\"trace_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1400,
+      "keyword": "demo",
+      "context": "\"run_id\": \"run_demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1424,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1449,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1456,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1486,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1496,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1498,
+      "keyword": "mock",
+      "context": "\"verification_mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1516,
+      "keyword": "demo",
+      "context": "\"idempotency_key\": \"TASK_FINISHED:demo_task:5\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1518,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1566,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1592,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1602,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1616,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1627,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1656,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1663,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1693,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1703,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1705,
+      "keyword": "mock",
+      "context": "\"verification_mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1722,
+      "keyword": "demo",
+      "context": "\"trace_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1725,
+      "keyword": "demo",
+      "context": "\"run_id\": \"run_demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1750,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1757,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1787,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1797,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1799,
+      "keyword": "mock",
+      "context": "\"verification_mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1813,
+      "keyword": "demo",
+      "context": "\"idempotency_key\": \"PR_DRAFT_CREATED:demo_task:5\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1815,
+      "keyword": "demo",
+      "context": "\"task_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1842,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1867,
+      "keyword": "mock",
+      "context": "\"mode\": \"mock_repo\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1874,
+      "keyword": "placeholder",
+      "context": "\"reason\": \"Generic patch plan placeholder based on the current requirement\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1904,
+      "keyword": "Mock",
+      "context": "\"output\": \"Mock test passed\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1914,
+      "keyword": "mock",
+      "context": "\"execution_mode\": \"mock_repo\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1916,
+      "keyword": "mock",
+      "context": "\"verification_mode\": \"mock_test\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1937,
+      "keyword": "demo",
+      "context": "\"trace_id\": \"demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1940,
+      "keyword": "demo",
+      "context": "\"run_id\": \"run_demo_task\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1950,
+      "keyword": "demo",
+      "context": "\"idempotency_key\": \"REPLAY_COMPLETED:demo_task:replay_REQ-REPLAY-JSON_generate_patch\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "agent(2)/agent/agent_core/storage/states/demo_task.json",
+      "line": 1952,
       "keyword": "demo",
       "context": "\"task_id\": \"demo_task\",",
       "classification": "unknown",
@@ -24857,6 +25561,126 @@
       "action": "needs_review"
     },
     {
+      "file": "docs/PR_DRAFT_CENTER_DESIGN.md",
+      "line": 87,
+      "keyword": "Mock",
+      "context": "## Mock fallback",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_DESIGN.md",
+      "line": 87,
+      "keyword": "fallback",
+      "context": "## Mock fallback",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_DESIGN.md",
+      "line": 89,
+      "keyword": "Mock",
+      "context": "Mock data lives in `src/mocks/prDraftMock.js`.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_DESIGN.md",
+      "line": 89,
+      "keyword": "mock",
+      "context": "Mock data lives in `src/mocks/prDraftMock.js`.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_DESIGN.md",
+      "line": 89,
+      "keyword": "Mock",
+      "context": "Mock data lives in `src/mocks/prDraftMock.js`.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_DESIGN.md",
+      "line": 99,
+      "keyword": "fallback",
+      "context": "The API client uses fallback for unavailable backend, `not_found`, `pr_draft_not_found`, and missing artifact style failures. Validation errors are surfaced in the page error state.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 5,
+      "keyword": "mock",
+      "context": "This report covers the implemented PR Draft Center page, API client, mock fallback, readiness gates, copy markdown behavior, and redaction-safe artifact rendering.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 5,
+      "keyword": "fallback",
+      "context": "This report covers the implemented PR Draft Center page, API client, mock fallback, readiness gates, copy markdown behavior, and redaction-safe artifact rendering.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 25,
+      "keyword": "Mock",
+      "context": "- Mock fallback is usable.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 25,
+      "keyword": "fallback",
+      "context": "- Mock fallback is usable.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 49,
+      "keyword": "Mock",
+      "context": "- Mock fallback cases.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 49,
+      "keyword": "fallback",
+      "context": "- Mock fallback cases.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 52,
+      "keyword": "fallback",
+      "context": "- Copy with clipboard fallback.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 53,
+      "keyword": "mock",
+      "context": "- Save and regenerate actions with mock fallback.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "docs/PR_DRAFT_CENTER_TEST_REPORT.md",
+      "line": 53,
+      "keyword": "fallback",
+      "context": "- Save and regenerate actions with mock fallback.",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
       "file": "e2e/agent/agent-runner.mjs",
       "line": 6,
       "keyword": "conduit-realworld-example-app",
@@ -25079,6 +25903,86 @@
       "context": "\"@vitest/mocker\": \"4.1.8\",",
       "classification": "unknown",
       "action": "needs_review"
+    },
+    {
+      "file": "reporting/agent_orchestrator_humanized_panel_report.md",
+      "line": 12,
+      "keyword": "mock",
+      "context": "- mock text: 面板里的 “Ready for real Agent(2) execution” / “No real agent run has been started.” 等英文占位文案会让用户误以为真实 Agent 写入已经是主入口。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_orchestrator_humanized_panel_summary.json",
+      "line": 5,
+      "keyword": "mock",
+      "context": "\"mockTextRemoved\": true,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_orchestrator_humanized_panel_summary.json",
+      "line": 15,
+      "keyword": "fake",
+      "context": "\"fakeLatestResponseBlocked\": true,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_orchestrator_humanized_panel_summary.json",
+      "line": 16,
+      "keyword": "fake",
+      "context": "\"fakeArtifactsBlocked\": true",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_orchestrator_humanized_panel_summary.json",
+      "line": 43,
+      "keyword": "deMo",
+      "context": "\"nodeModulesCommitted\": false,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_stage_events_initialization_fix_report.md",
+      "line": 12,
+      "keyword": "fallback",
+      "context": "* frontend fallback: 设计规划页读取 run/artifacts/workflow 时统一通过数组兜底，非数组或缺失值会转为空数组。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_stage_events_initialization_fix_summary.json",
+      "line": 6,
+      "keyword": "Fallback",
+      "context": "\"frontendFallbackArray\": true,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_work_matrix_report.md",
+      "line": 31,
+      "keyword": "fake",
+      "context": "- no fake completed: 未收到真实 completed 事件时不会伪造成 completed。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_work_matrix_summary.json",
+      "line": 13,
+      "keyword": "Fallback",
+      "context": "\"missingStageEventsFallbackIdle\": true,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/agent_work_matrix_summary.json",
+      "line": 14,
+      "keyword": "fake",
+      "context": "\"fakeCompletedBlocked\": true",
+      "classification": "docs_only",
+      "action": "ignore_docs"
     },
     {
       "file": "reporting/agent1_integration_summary.json",
@@ -26881,6 +27785,54 @@
       "action": "ignore_docs"
     },
     {
+      "file": "reporting/dsl_score_monotonic_question_gate_report.md",
+      "line": 5,
+      "keyword": "fallback",
+      "context": "* why score jumped to 45: 前端初始需求、持久化 fallback、artifact adapter 都存在阶段分兜底或低分上抬逻辑；右侧状态控制台 running 时还会用默认 72 再夹到高分段。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/dsl_score_monotonic_question_gate_report.md",
+      "line": 31,
+      "keyword": "fallback",
+      "context": "* blocked generic questions: 通用 fallback 不再默认询问目标用户，除非需求文本显式涉及用户群体、角色或受众。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/dsl_score_monotonic_question_gate_report.md",
+      "line": 45,
+      "keyword": "mock",
+      "context": "* mock mapping: 未修改、未 stage 现有无关 mock 改动。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/dsl_score_monotonic_question_gate_report.md",
+      "line": 45,
+      "keyword": "mock",
+      "context": "* mock mapping: 未修改、未 stage 现有无关 mock 改动。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/dsl_score_monotonic_question_gate_report.md",
+      "line": 56,
+      "keyword": "fixture",
+      "context": "* api key leakage: 未发现本任务新增真实密钥；宽松扫描仅命中既有测试 fixture / 文档引用。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/dsl_score_monotonic_question_gate_summary.json",
+      "line": 28,
+      "keyword": "mock",
+      "context": "\"mockMappingTouched\": false",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
       "file": "reporting/dsl_workbench_bottom_cleanup_report.md",
       "line": 23,
       "keyword": "mock",
@@ -27547,6 +28499,270 @@
     {
       "file": "reporting/mock_mapping_replacement_summary.json",
       "line": 48,
+      "keyword": "deMo",
+      "context": "\"nodeModulesCommitted\": false,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 6,
+      "keyword": "demo",
+      "context": "* uncommitted files: 启动审计时已有 `agent(2)/agent/agent_core/storage/states/demo_task.json`、`reporting/agent1_inventory.json` 等未提交改动；当前还检测到 DSL gate 相关文件处于修改状态，包括 `server/services/skillOrchestrator.js`、`server/server.test.js`、`src/components/DSL",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 9,
+      "keyword": "Mock",
+      "context": "### 2. Mock 扫描结果",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 12,
+      "keyword": "mock",
+      "context": "* production_mock: 0",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 13,
+      "keyword": "fixture",
+      "context": "* test_fixture: 819",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 14,
+      "keyword": "fallback",
+      "context": "* safe_fallback: 181",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 18,
+      "keyword": "mock",
+      "context": "### 3. 已替换的生产 mock",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 20,
+      "keyword": "mock",
+      "context": "| file | old mock | real source | new behavior |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 22,
+      "keyword": "mock",
+      "context": "| `src/data/mockData.js` | 监控台主数据 fixture | persistence APIs / active project state | 删除生产 mock 数据源 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 22,
+      "keyword": "fixture",
+      "context": "| `src/data/mockData.js` | 监控台主数据 fixture | persistence APIs / active project state | 删除生产 mock 数据源 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 22,
+      "keyword": "mock",
+      "context": "| `src/data/mockData.js` | 监控台主数据 fixture | persistence APIs / active project state | 删除生产 mock 数据源 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 23,
+      "keyword": "fixture",
+      "context": "| `src/data/workspaceProjects.js` | 默认项目列表 | `/api/projects` | 生产环境空数组，仅测试环境用 fixture |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 24,
+      "keyword": "fallback",
+      "context": "| `src/components/AppShell.jsx` | 生产 fallback project | persistence project list + active project | 监控台默认读取后端项目，失败时显示空态/错误 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 28,
+      "keyword": "canned",
+      "context": "| `src/components/RunList.jsx` / `PendingReportsQueue.jsx` / `CheckpointStrip.jsx` / `TaskTimeline.jsx` | canned activity/run/report | monitor model | 只展示真实 run/activity/artifact |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 29,
+      "keyword": "mock",
+      "context": "| `src/components/RequirementReportModal.jsx` | 导出 mock 文案 | 当前导出服务状态 | 不再把未接入能力标成 mock 成功 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 29,
+      "keyword": "mock",
+      "context": "| `src/components/RequirementReportModal.jsx` | 导出 mock 文案 | 当前导出服务状态 | 不再把未接入能力标成 mock 成功 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 31,
+      "keyword": "fixture",
+      "context": "### 4. 保留的 fixture / fallback",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 31,
+      "keyword": "fallback",
+      "context": "### 4. 保留的 fixture / fallback",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 35,
+      "keyword": "fixture",
+      "context": "| `src/App.test.jsx` | 测试 persistence-backed monitor fixture | 仅 Vitest 测试使用 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 36,
+      "keyword": "fixture",
+      "context": "| `src/components/AppShell.jsx` | test mode initial project fixtures | 仅 `import.meta.env.MODE === \"test\"`，避免旧测试 fetch stub 不提供 `/api/projects` 时阻塞 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 37,
+      "keyword": "fixture",
+      "context": "| `server/**/*.test.js` | 后端测试 fixture 和 redaction 用例 | 不进入生产 UI |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 39,
+      "keyword": "fallback",
+      "context": "| `server/services/configPath.js` 等 | local config fallback warning | 仅安全 fallback / 配置提示 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 39,
+      "keyword": "fallback",
+      "context": "| `server/services/configPath.js` 等 | local config fallback warning | 仅安全 fallback / 配置提示 |",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 50,
+      "keyword": "LoginForm.jsx",
+      "context": "* Review: persistence review items 或 agent workflow review；不再展示固定 `LoginForm.jsx` / `ErrorMessage.jsx` mock 文件。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 50,
+      "keyword": "ErrorMessage.jsx",
+      "context": "* Review: persistence review items 或 agent workflow review；不再展示固定 `LoginForm.jsx` / `ErrorMessage.jsx` mock 文件。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 50,
+      "keyword": "mock",
+      "context": "* Review: persistence review items 或 agent workflow review；不再展示固定 `LoginForm.jsx` / `ErrorMessage.jsx` mock 文件。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 66,
+      "keyword": "mock",
+      "context": "* mock audit: 通过，`production_mock=0`。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 66,
+      "keyword": "mock",
+      "context": "* mock audit: 通过，`production_mock=0`。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_report.md",
+      "line": 76,
+      "keyword": "fixture",
+      "context": "* api key leakage: 未发现本任务新增真实 API key；扫描命中均为既有测试 fixture、redacted 文本或历史报告路径说明。",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_summary.json",
+      "line": 6,
+      "keyword": "Mock",
+      "context": "\"productionMockRemaining\": 0,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_summary.json",
+      "line": 7,
+      "keyword": "Fixture",
+      "context": "\"testFixturesKept\": 819,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_summary.json",
+      "line": 8,
+      "keyword": "Fallback",
+      "context": "\"safeFallbackKept\": 181,",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_summary.json",
+      "line": 30,
+      "keyword": "mock",
+      "context": "\"mockAudit\": \"passed\",",
+      "classification": "docs_only",
+      "action": "ignore_docs"
+    },
+    {
+      "file": "reporting/monitor_console_real_mapping_summary.json",
+      "line": 41,
       "keyword": "deMo",
       "context": "\"nodeModulesCommitted\": false,",
       "classification": "docs_only",
@@ -29236,7 +30452,7 @@
       "file": "server/agent2Route.test.js",
       "line": 133,
       "keyword": "mock",
-      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toBe(targetRepoPath);",
+      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).not.toBe(targetRepoPath);",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
@@ -29244,15 +30460,7 @@
       "file": "server/agent2Route.test.js",
       "line": 134,
       "keyword": "mock",
-      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe(\"1\");",
-      "classification": "test_fixture",
-      "action": "keep_as_fixture"
-    },
-    {
-      "file": "server/agent2Route.test.js",
-      "line": 135,
-      "keyword": "mock",
-      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_PLANNER).toBe(\"1\");",
+      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toContain(path.join(\"workspaces\", payload.data.runId, \"workspace\"));",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
@@ -29260,7 +30468,7 @@
       "file": "server/agent2Route.test.js",
       "line": 136,
       "keyword": "mock",
-      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_CODER).toBe(\"1\");",
+      "context": "expect(payload.data.targetRepoPath).toBe(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT);",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
@@ -29268,7 +30476,7 @@
       "file": "server/agent2Route.test.js",
       "line": 137,
       "keyword": "mock",
-      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_TASK_ID).toMatch(/^RUN-/);",
+      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe(\"1\");",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
@@ -29276,13 +30484,37 @@
       "file": "server/agent2Route.test.js",
       "line": 138,
       "keyword": "mock",
-      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_STATE_DIR).toContain(\"agent2_state\");",
+      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_PLANNER).toBe(\"1\");",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
     {
       "file": "server/agent2Route.test.js",
       "line": 139,
+      "keyword": "mock",
+      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_CODER).toBe(\"1\");",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "server/agent2Route.test.js",
+      "line": 140,
+      "keyword": "mock",
+      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_TASK_ID).toMatch(/^RUN-/);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "server/agent2Route.test.js",
+      "line": 141,
+      "keyword": "mock",
+      "context": "expect(agent2Runner.mock.calls[0][0].env.AGENT_STATE_DIR).toContain(\"agent2_state\");",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "server/agent2Route.test.js",
+      "line": 142,
       "keyword": "mock",
       "context": "const agentInput = JSON.parse(agent2Runner.mock.calls[0][0].input);",
       "classification": "test_fixture",
@@ -29338,7 +30570,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 34,
+      "line": 41,
       "keyword": "fixture",
       "context": "api_key: \"db-test-fixture-secret\",",
       "classification": "test_fixture",
@@ -29346,7 +30578,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 35,
+      "line": 42,
       "keyword": "fixture",
       "context": "model: \"ep-test-fixture\"",
       "classification": "test_fixture",
@@ -29354,7 +30586,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 40,
+      "line": 49,
       "keyword": "mock",
       "context": "runnerMode: \"mock\",",
       "classification": "test_fixture",
@@ -29362,7 +30594,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 41,
+      "line": 50,
       "keyword": "mock",
       "context": "skillModelMode: \"mock\",",
       "classification": "test_fixture",
@@ -29370,7 +30602,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 151,
+      "line": 165,
       "keyword": "LoginForm.jsx",
       "context": "filePath: \"src/LoginForm.jsx\",",
       "classification": "test_fixture",
@@ -29378,7 +30610,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 283,
+      "line": 297,
       "keyword": "Fixture",
       "context": "const { baseUrl, requirementId } = await createRequirementFixture(\"design-plan-api\");",
       "classification": "test_fixture",
@@ -29386,7 +30618,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 301,
+      "line": 315,
       "keyword": "Fixture",
       "context": "const { baseUrl, requirementId } = await createRequirementFixture(\"planning-task-api\");",
       "classification": "test_fixture",
@@ -29394,7 +30626,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 328,
+      "line": 342,
       "keyword": "Fake",
       "context": "const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() });",
       "classification": "test_fixture",
@@ -29402,7 +30634,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 357,
+      "line": 371,
       "keyword": "Fixture",
       "context": "const { baseUrl, runId } = await createAgentRunFixture(\"review-api\");",
       "classification": "test_fixture",
@@ -29410,7 +30642,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 375,
+      "line": 389,
       "keyword": "Fixture",
       "context": "const { baseUrl, requirementId, runId } = await createAgentRunFixture(\"pr-draft-api\");",
       "classification": "test_fixture",
@@ -29418,7 +30650,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 394,
+      "line": 408,
       "keyword": "Fixture",
       "context": "const { projectId } = await createDirectPersistenceFixture(dbName);",
       "classification": "test_fixture",
@@ -29426,7 +30658,31 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 442,
+      "line": 423,
+      "keyword": "fake",
+      "context": "return fakeAgent2Stdout({ file: \"src/App.jsx\" });",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "server/persistence.test.js",
+      "line": 478,
+      "keyword": "fake",
+      "context": "return fakeAgent2Stdout({ file: \"src/App.jsx\" });",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "server/persistence.test.js",
+      "line": 514,
+      "keyword": "Fixture",
+      "context": "const { runId } = await createDirectPersistenceFixture(dbName);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "server/persistence.test.js",
+      "line": 564,
       "keyword": "Fixture",
       "context": "async function createRequirementFixture(dbName) {",
       "classification": "test_fixture",
@@ -29434,7 +30690,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 450,
+      "line": 572,
       "keyword": "fixture",
       "context": "body: JSON.stringify({ title: `${dbName} requirement`, rawPmInput: \"persist fixture\" })",
       "classification": "test_fixture",
@@ -29442,7 +30698,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 455,
+      "line": 577,
       "keyword": "Fake",
       "context": "function createFakeAgent2Runner() {",
       "classification": "test_fixture",
@@ -29450,7 +30706,15 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 501,
+      "line": 623,
+      "keyword": "fake",
+      "context": "function fakeAgent2Stdout({ file = \"src/App.jsx\" } = {}) {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "server/persistence.test.js",
+      "line": 668,
       "keyword": "Fixture",
       "context": "async function createAgentRunFixture(dbName) {",
       "classification": "test_fixture",
@@ -29458,7 +30722,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 504,
+      "line": 671,
       "keyword": "Fake",
       "context": "const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() });",
       "classification": "test_fixture",
@@ -29466,7 +30730,7 @@
     },
     {
       "file": "server/persistence.test.js",
-      "line": 520,
+      "line": 687,
       "keyword": "Fixture",
       "context": "async function createDirectPersistenceFixture(dbName) {",
       "classification": "test_fixture",
@@ -29858,7 +31122,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 738,
+      "line": 737,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -29866,7 +31130,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 788,
+      "line": 787,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -29874,7 +31138,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 839,
+      "line": 838,
       "keyword": "fallback",
       "context": "it(\"marks skill orchestration fallback explicitly when model generation fails\", async () => {",
       "classification": "test_fixture",
@@ -29882,7 +31146,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 841,
+      "line": 840,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -29890,7 +31154,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 847,
+      "line": 846,
       "keyword": "mock",
       "context": "throw new Error(\"mock model offline\");",
       "classification": "test_fixture",
@@ -29898,7 +31162,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 852,
+      "line": 851,
       "keyword": "fallback",
       "context": "expect(result.data.source.mode).toBe(\"fallback_guardrail\");",
       "classification": "test_fixture",
@@ -29906,7 +31170,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 857,
+      "line": 856,
       "keyword": "fallback",
       "context": "it(\"returns model_invalid_json fallback guardrail when a model response cannot be parsed\", async () => {",
       "classification": "test_fixture",
@@ -29914,7 +31178,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 859,
+      "line": 858,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -29922,7 +31186,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 868,
+      "line": 867,
       "keyword": "fallback",
       "context": "expect(result.data.source.mode).toBe(\"fallback_guardrail\");",
       "classification": "test_fixture",
@@ -29930,7 +31194,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 871,
+      "line": 870,
       "keyword": "mock",
       "context": "expect(result.data.source.mode).not.toBe(\"mock\");",
       "classification": "test_fixture",
@@ -29938,7 +31202,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 874,
+      "line": 873,
       "keyword": "mock",
       "context": "it(\"reports real API unavailability as external_blocked instead of falling back to mock\", async () => {",
       "classification": "test_fixture",
@@ -29946,7 +31210,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 883,
+      "line": 882,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -29954,7 +31218,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 884,
+      "line": 883,
       "keyword": "mock",
       "context": "pmMessages: [{ role: \"pm\", content: \"真实模型不可用时不能 mock 冒充成功。\" }],",
       "classification": "test_fixture",
@@ -29962,7 +31226,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 901,
+      "line": 900,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -29970,7 +31234,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 909,
+      "line": 908,
       "keyword": "mock",
       "context": "skillModelMode: \"mock\"",
       "classification": "test_fixture",
@@ -29978,7 +31242,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 923,
+      "line": 922,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -29986,7 +31250,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 931,
+      "line": 930,
       "keyword": "mock",
       "context": "skillModelMode: \"mock\"",
       "classification": "test_fixture",
@@ -29994,7 +31258,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 945,
+      "line": 944,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30002,7 +31266,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 953,
+      "line": 952,
       "keyword": "mock",
       "context": "skillModelMode: \"mock\"",
       "classification": "test_fixture",
@@ -30010,7 +31274,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 968,
+      "line": 967,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30018,7 +31282,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1003,
+      "line": 1002,
       "keyword": "fallback",
       "context": "expect(result.data.source.mode).toBe(\"fallback_guardrail\");",
       "classification": "test_fixture",
@@ -30026,7 +31290,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1013,
+      "line": 1012,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30034,7 +31298,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1052,
+      "line": 1050,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30042,7 +31306,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1089,
+      "line": 1087,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30050,7 +31314,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1157,
+      "line": 1155,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30058,7 +31322,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1198,
+      "line": 1196,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30066,7 +31330,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1258,
+      "line": 1256,
       "keyword": "mock",
       "context": "it(\"uses timeout_seconds from Doubao api_config and writes timeout diagnostics without mock success\", async () => {",
       "classification": "test_fixture",
@@ -30074,7 +31338,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1259,
+      "line": 1257,
       "keyword": "fake",
       "context": "const fakeArk = await startFakeOpenAiServer(async () => {",
       "classification": "test_fixture",
@@ -30082,7 +31346,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1259,
+      "line": 1257,
       "keyword": "Fake",
       "context": "const fakeArk = await startFakeOpenAiServer(async () => {",
       "classification": "test_fixture",
@@ -30090,7 +31354,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1271,
+      "line": 1269,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30098,7 +31362,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1277,
+      "line": 1275,
       "keyword": "fake",
       "context": "doubaoBaseURL: `${fakeArk.baseUrl}/api/v3`,",
       "classification": "test_fixture",
@@ -30106,7 +31370,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1296,
+      "line": 1294,
       "keyword": "fallback",
       "context": "it(\"returns structured slow-response fallback when fast skill turn exceeds maxLatencyMs\", async () => {",
       "classification": "test_fixture",
@@ -30114,7 +31378,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1301,
+      "line": 1299,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30122,7 +31386,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1321,
+      "line": 1319,
       "keyword": "mock",
       "context": "runnerMode: \"mock\",",
       "classification": "test_fixture",
@@ -30130,7 +31394,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1322,
+      "line": 1320,
       "keyword": "mock",
       "context": "skillModelMode: \"mock\"",
       "classification": "test_fixture",
@@ -30138,7 +31402,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1329,
+      "line": 1327,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30146,7 +31410,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1357,
+      "line": 1355,
       "keyword": "mock",
       "context": "runnerMode: \"mock\",",
       "classification": "test_fixture",
@@ -30154,7 +31418,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1366,
+      "line": 1364,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30162,7 +31426,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1382,
+      "line": 1380,
       "keyword": "fake",
       "context": "artifactModelClient: fakeStandaloneArtifactModel",
       "classification": "test_fixture",
@@ -30170,7 +31434,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1389,
+      "line": 1387,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30178,7 +31442,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1403,
+      "line": 1401,
       "keyword": "mock",
       "context": "expect(finished.mockLlmUsed).toBe(false);",
       "classification": "test_fixture",
@@ -30186,7 +31450,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1423,
+      "line": 1421,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30194,7 +31458,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1442,
+      "line": 1440,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30202,7 +31466,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1448,
+      "line": 1446,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30210,7 +31474,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1511,
+      "line": 1510,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\", agent2Runner });",
       "classification": "test_fixture",
@@ -30218,7 +31482,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1517,
+      "line": 1516,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30226,7 +31490,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1544,
+      "line": 1543,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30234,7 +31498,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1550,
+      "line": 1549,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30242,7 +31506,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1563,
+      "line": 1562,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30250,7 +31514,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1577,
+      "line": 1576,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30258,7 +31522,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1595,
+      "line": 1594,
       "keyword": "mock",
       "context": "it(\"creates a successful DSL run with the mock runner\", async () => {",
       "classification": "test_fixture",
@@ -30266,7 +31530,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1596,
+      "line": 1595,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30274,7 +31538,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1602,
+      "line": 1601,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30282,7 +31546,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1619,
+      "line": 1618,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock-fail\" });",
       "classification": "test_fixture",
@@ -30290,7 +31554,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1625,
+      "line": 1624,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30298,7 +31562,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1639,
+      "line": 1638,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30306,7 +31570,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1651,
+      "line": 1650,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30314,7 +31578,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1668,
+      "line": 1667,
       "keyword": "mock",
       "context": "runnerMode: \"mock\",",
       "classification": "test_fixture",
@@ -30322,7 +31586,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1676,
+      "line": 1675,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30330,7 +31594,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1699,
+      "line": 1698,
       "keyword": "mock",
       "context": "runnerMode: \"mock\",",
       "classification": "test_fixture",
@@ -30338,7 +31602,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1707,
+      "line": 1706,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30346,7 +31610,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1728,
+      "line": 1727,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30354,7 +31618,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1748,
+      "line": 1747,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\" });",
       "classification": "test_fixture",
@@ -30362,7 +31626,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1756,
+      "line": 1755,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30370,7 +31634,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1775,
+      "line": 1774,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\", mockDelayMs: 500 });",
       "classification": "test_fixture",
@@ -30378,7 +31642,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1775,
+      "line": 1774,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\", mockDelayMs: 500 });",
       "classification": "test_fixture",
@@ -30386,7 +31650,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1781,
+      "line": 1780,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: \"conduit-realworld-example-app\",",
       "classification": "test_fixture",
@@ -30394,7 +31658,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1803,
+      "line": 1802,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\", mockDelayMs: 5000 });",
       "classification": "test_fixture",
@@ -30402,7 +31666,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1803,
+      "line": 1802,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\", mockDelayMs: 5000 });",
       "classification": "test_fixture",
@@ -30410,7 +31674,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1827,
+      "line": 1826,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\", mockDelayMs: 200 });",
       "classification": "test_fixture",
@@ -30418,7 +31682,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1827,
+      "line": 1826,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock\", mockDelayMs: 200 });",
       "classification": "test_fixture",
@@ -30426,7 +31690,7 @@
     },
     {
       "file": "server/server.test.js",
-      "line": 1849,
+      "line": 1848,
       "keyword": "mock",
       "context": "const baseUrl = await startTestServer({ runnerMode: \"mock-fail\" });",
       "classification": "test_fixture",
@@ -30450,7 +31714,7 @@
     },
     {
       "file": "server/services/agent2Adapter.js",
-      "line": 110,
+      "line": 136,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: contextInput.projectId || \"conduit-realworld-example-app\",",
       "classification": "unknown",
@@ -30458,7 +31722,7 @@
     },
     {
       "file": "server/services/agent2Adapter.js",
-      "line": 359,
+      "line": 454,
       "keyword": "Fixture",
       "context": "function buildFixtureAgent2Result(request = {}) {",
       "classification": "unknown",
@@ -30466,7 +31730,7 @@
     },
     {
       "file": "server/services/agent2Adapter.js",
-      "line": 362,
+      "line": 457,
       "keyword": "fixture",
       "context": "task_id: \"workbench_fixture\",",
       "classification": "unknown",
@@ -30474,7 +31738,7 @@
     },
     {
       "file": "server/services/agent2Adapter.js",
-      "line": 367,
+      "line": 462,
       "keyword": "fixture",
       "context": "{ selected_action: \"locate_files\", selected_tool: \"locate_files\", reason: \"Use Workbench fixture candidates for dry-run preview.\" },",
       "classification": "unknown",
@@ -30482,7 +31746,7 @@
     },
     {
       "file": "server/services/agent2Adapter.js",
-      "line": 398,
+      "line": 493,
       "keyword": "fixture",
       "context": "summary: \"Workbench fixture only; no repo writes performed.\"",
       "classification": "unknown",
@@ -30490,7 +31754,7 @@
     },
     {
       "file": "server/services/agent2Adapter.js",
-      "line": 417,
+      "line": 512,
       "keyword": "mock",
       "context": "repo_mode: \"mock\"",
       "classification": "unknown",
@@ -30498,7 +31762,7 @@
     },
     {
       "file": "server/services/agentExecutionService.js",
-      "line": 581,
+      "line": 708,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: request.projectId || \"conduit-realworld-example-app\",",
       "classification": "unknown",
@@ -30506,7 +31770,7 @@
     },
     {
       "file": "server/services/agentExecutionService.js",
-      "line": 613,
+      "line": 740,
       "keyword": "LoginForm.jsx",
       "context": "\"src/components/LoginForm.jsx\",",
       "classification": "unknown",
@@ -30514,7 +31778,7 @@
     },
     {
       "file": "server/services/agentExecutionService.js",
-      "line": 614,
+      "line": 741,
       "keyword": "ErrorMessage.jsx",
       "context": "\"src/components/ErrorMessage.jsx\",",
       "classification": "unknown",
@@ -30522,7 +31786,7 @@
     },
     {
       "file": "server/services/agentExecutionService.js",
-      "line": 634,
+      "line": 761,
       "keyword": "fixture",
       "context": "risk: index === 2 ? \"Test fixture may need existing app context.\" : \"UI copy may diverge from backend failure codes.\",",
       "classification": "unknown",
@@ -30530,7 +31794,7 @@
     },
     {
       "file": "server/services/agentExecutionService.js",
-      "line": 715,
+      "line": 842,
       "keyword": "hardcoded",
       "context": "[\"hardcodedExternalDslV2\", /F:\\\\dsl-v2/i],",
       "classification": "unknown",
@@ -30538,7 +31802,7 @@
     },
     {
       "file": "server/services/agentExecutionService.js",
-      "line": 739,
+      "line": 866,
       "keyword": "hardcoded",
       "context": "dependsOnExternalDslV2: findings.some((item) => item.type === \"hardcodedExternalDslV2\"),",
       "classification": "unknown",
@@ -30674,7 +31938,7 @@
     },
     {
       "file": "server/services/persistence/persistenceService.js",
-      "line": 705,
+      "line": 908,
       "keyword": "fallback",
       "context": "function parseJson(value, fallback) {",
       "classification": "safe_fallback",
@@ -30682,7 +31946,7 @@
     },
     {
       "file": "server/services/persistence/persistenceService.js",
-      "line": 707,
+      "line": 910,
       "keyword": "fallback",
       "context": "return value ? JSON.parse(value) : fallback;",
       "classification": "safe_fallback",
@@ -30690,7 +31954,7 @@
     },
     {
       "file": "server/services/persistence/persistenceService.js",
-      "line": 709,
+      "line": 912,
       "keyword": "fallback",
       "context": "return fallback;",
       "classification": "safe_fallback",
@@ -30725,6 +31989,14 @@
       "line": 122,
       "keyword": "conduit-realworld-example-app",
       "context": "const projectId = run.context?.projectId || \"conduit-realworld-example-app\";",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "server/services/persistence/workbenchPersistenceAdapter.js",
+      "line": 225,
+      "keyword": "conduit-realworld-example-app",
+      "context": "projectId: run.context?.projectId || \"conduit-realworld-example-app\",",
       "classification": "unknown",
       "action": "needs_review"
     },
@@ -31402,7 +32674,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1399,
+      "line": 1395,
       "keyword": "fallback",
       "context": "reasons: [\"model_invalid_json\", \"fallback guardrail only\"]",
       "classification": "safe_fallback",
@@ -31410,7 +32682,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1410,
+      "line": 1406,
       "keyword": "fallback",
       "context": "mode: \"fallback_guardrail\",",
       "classification": "safe_fallback",
@@ -31418,7 +32690,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1419,
+      "line": 1415,
       "keyword": "fallback",
       "context": "function fallbackSkillPayload(input, skillNames, error) {",
       "classification": "safe_fallback",
@@ -31426,7 +32698,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1421,
+      "line": 1417,
       "keyword": "fallback",
       "context": "assistant_message: `暂时无法完成模型编排，本轮仅保留安全 fallback：我已记录你的 PM 补充，但不会进入 Agent Plan、Handoff 或代码执行。请稍后重试模型生成。原因：${String(error.message || error)}`,",
       "classification": "safe_fallback",
@@ -31434,7 +32706,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1424,
+      "line": 1420,
       "keyword": "fallback",
       "context": "title: \"模型编排 fallback\",",
       "classification": "safe_fallback",
@@ -31442,7 +32714,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1436,
+      "line": 1432,
       "keyword": "fallback",
       "context": "reasons: [\"model generation failed\", \"fallback only\"]",
       "classification": "safe_fallback",
@@ -31450,7 +32722,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1439,
+      "line": 1435,
       "keyword": "fallback",
       "context": "summary: \"模型编排失败，本轮仅生成 fallback 记录。\",",
       "classification": "safe_fallback",
@@ -31458,7 +32730,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1447,
+      "line": 1443,
       "keyword": "fallback",
       "context": "mode: \"fallback_guardrail\",",
       "classification": "safe_fallback",
@@ -31466,7 +32738,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1448,
+      "line": 1444,
       "keyword": "fallback",
       "context": "provider: \"local_safety_fallback\",",
       "classification": "safe_fallback",
@@ -31474,7 +32746,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1458,
+      "line": 1454,
       "keyword": "fallback",
       "context": "assistant_message: `我已经收到你的补充，并先按候选 DSL 记录下来；本轮模型响应超过快速澄清时限，所以先返回安全 fallback，不会进入 Agent Plan、Handoff 或代码执行。还需要确认一个关键口径：${question}`,",
       "classification": "safe_fallback",
@@ -31482,7 +32754,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1461,
+      "line": 1457,
       "keyword": "fallback",
       "context": "title: \"快速澄清 slow response fallback\",",
       "classification": "safe_fallback",
@@ -31490,7 +32762,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1463,
+      "line": 1459,
       "keyword": "fallback",
       "context": "scope: [\"PM-to-DSL fast turn fallback\"],",
       "classification": "safe_fallback",
@@ -31498,7 +32770,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1482,
+      "line": 1478,
       "keyword": "fallback",
       "context": "reasons: [\"fast skill turn timed out\", \"fallback keeps clarification boundary\"]",
       "classification": "safe_fallback",
@@ -31506,7 +32778,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1485,
+      "line": 1481,
       "keyword": "fallback",
       "context": "summary: \"fast skill turn 超时，已返回结构化 slow_response fallback。\",",
       "classification": "safe_fallback",
@@ -31514,7 +32786,7 @@
     },
     {
       "file": "server/services/skillOrchestrator.js",
-      "line": 1486,
+      "line": 1482,
       "keyword": "fallback",
       "context": "in_scope: [\"快速澄清 fallback\"],",
       "classification": "safe_fallback",
@@ -31569,12 +32841,116 @@
       "action": "needs_review"
     },
     {
+      "file": "server/services/workspaceAdapter.js",
+      "line": 164,
+      "keyword": "Mock",
+      "context": "export class MockWorkspaceAdapter extends CopyWorkspaceAdapter {}",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "server/services/workspaceAdapter.js",
+      "line": 169,
+      "keyword": "mock",
+      "context": "if (options.adapterType === \"mock\") return new MockWorkspaceAdapter({ runsRoot });",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "server/services/workspaceAdapter.js",
+      "line": 169,
+      "keyword": "Mock",
+      "context": "if (options.adapterType === \"mock\") return new MockWorkspaceAdapter({ runsRoot });",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
       "file": "skills/agent-conduit-article/skill.md",
       "line": 26,
       "keyword": "placeholder",
       "context": "4. Apply context rule: Prefer concrete page, API, model, route, and controller files over generic placeholders",
       "classification": "docs_only",
       "action": "ignore_docs"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 1,
+      "keyword": "fallback",
+      "context": "export function normalizeAgentWorkflow(run = {}, fallback = {}) {",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 7,
+      "keyword": "fallback",
+      "context": "fallback.stageEvents ||",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 12,
+      "keyword": "fallback",
+      "context": "...fallback,",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 14,
+      "keyword": "fallback",
+      "context": "runId: run.runId || run.id || fallback.runId || \"\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 15,
+      "keyword": "fallback",
+      "context": "status: run.status || fallback.status || \"idle\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 16,
+      "keyword": "fallback",
+      "context": "latestReturn: run.latestReturn || run.resultSummary || fallback.latestReturn || \"\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 17,
+      "keyword": "fallback",
+      "context": "context: run.context || run.contextSnapshot || fallback.context || null,",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 18,
+      "keyword": "fallback",
+      "context": "plan: run.plan || run.planJson || fallback.plan || null,",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 19,
+      "keyword": "fallback",
+      "context": "dryRun: run.dryRun ?? fallback.dryRun ?? true,",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/agentWorkflowAdapter.js",
+      "line": 20,
+      "keyword": "fallback",
+      "context": "realWritePerformed: run.realWritePerformed ?? fallback.realWritePerformed ?? false,",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
@@ -31634,7 +33010,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 123,
+      "line": 130,
       "keyword": "fallback",
       "context": "export function fallbackUiState() {",
       "classification": "safe_fallback",
@@ -31642,7 +33018,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 129,
+      "line": 136,
       "keyword": "mock",
       "context": "source: \"mock\",",
       "classification": "safe_fallback",
@@ -31650,7 +33026,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 136,
+      "line": 143,
       "keyword": "fallback",
       "context": "source: \"fallback_safe_default\"",
       "classification": "safe_fallback",
@@ -31658,7 +33034,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 138,
+      "line": 145,
       "keyword": "fallback",
       "context": "risks: fallbackRisks,",
       "classification": "safe_fallback",
@@ -31666,7 +33042,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 139,
+      "line": 146,
       "keyword": "fallback",
       "context": "recommendedQuestion: fallbackQuestion,",
       "classification": "safe_fallback",
@@ -31674,7 +33050,31 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 140,
+      "line": 147,
+      "keyword": "fallback",
+      "context": "activeRiskQuestion: fallbackQuestion,",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/dslArtifactAdapter.js",
+      "line": 148,
+      "keyword": "fallback",
+      "context": "blockerQuestions: [fallbackQuestion],",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/dslArtifactAdapter.js",
+      "line": 149,
+      "keyword": "fallback",
+      "context": "riskClarificationTarget: \"fallback_risk\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/adapters/dslArtifactAdapter.js",
+      "line": 150,
       "keyword": "fallback",
       "context": "humanReport: fallbackReport,",
       "classification": "safe_fallback",
@@ -31682,7 +33082,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 141,
+      "line": 151,
       "keyword": "fallback",
       "context": "coverageItems: fallbackCoverage,",
       "classification": "safe_fallback",
@@ -31690,7 +33090,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 200,
+      "line": 210,
       "keyword": "fallback",
       "context": "return { rawScore: 58, displayScore: 58, value: 58, source: \"fallback_safe_default\", displayNote: \"clarification stage display score: rawScore is preserved\" };",
       "classification": "safe_fallback",
@@ -31698,7 +33098,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 233,
+      "line": 243,
       "keyword": "fallback",
       "context": "const source = ready === undefined && decision === undefined ? \"fallback_safe_default\" : \"artifact\";",
       "classification": "safe_fallback",
@@ -31706,7 +33106,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 253,
+      "line": 263,
       "keyword": "fallback",
       "context": "if (!items.length) return fallbackRisks;",
       "classification": "safe_fallback",
@@ -31714,7 +33114,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 265,
+      "line": 275,
       "keyword": "fallback",
       "context": "if (!item) return fallbackQuestion;",
       "classification": "safe_fallback",
@@ -31722,7 +33122,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 268,
+      "line": 278,
       "keyword": "fallback",
       "context": "text: String(item.question || item.text || fallbackQuestion.text),",
       "classification": "safe_fallback",
@@ -31730,7 +33130,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 276,
+      "line": 328,
       "keyword": "fallback",
       "context": "if (!finalDsl && !scoring && !evpi && !summaryMd) return fallbackReport;",
       "classification": "safe_fallback",
@@ -31738,7 +33138,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 278,
+      "line": 330,
       "keyword": "fallback",
       "context": "const title = String(requirement.title || finalDsl?.title || fallbackReport.summary.title);",
       "classification": "safe_fallback",
@@ -31746,7 +33146,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 284,
+      "line": 336,
       "keyword": "fallback",
       "context": "\"真实 DSL artifact 未提供完整摘要，部分内容来自 fallback，需人工确认。\"",
       "classification": "safe_fallback",
@@ -31754,7 +33154,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 298,
+      "line": 350,
       "keyword": "fallback",
       "context": "fallbackReport.scope.inScope",
       "classification": "safe_fallback",
@@ -31762,7 +33162,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 324,
+      "line": 376,
       "keyword": "fallback",
       "context": "note: finalDsl ? \"报告由真实 artifacts 映射生成；不完整字段已使用安全 fallback。\" : fallbackReport.note",
       "classification": "safe_fallback",
@@ -31770,7 +33170,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 324,
+      "line": 376,
       "keyword": "fallback",
       "context": "note: finalDsl ? \"报告由真实 artifacts 映射生成；不完整字段已使用安全 fallback。\" : fallbackReport.note",
       "classification": "safe_fallback",
@@ -31778,7 +33178,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 329,
+      "line": 381,
       "keyword": "fallback",
       "context": "const covered = arrayFrom(scoring?.covered_items, evpi?.covered_items, fallbackCoverage.covered);",
       "classification": "safe_fallback",
@@ -31786,7 +33186,7 @@
     },
     {
       "file": "src/adapters/dslArtifactAdapter.js",
-      "line": 330,
+      "line": 382,
       "keyword": "fallback",
       "context": "const pending = arrayFrom(scoring?.pending_items, evpi?.missing_fields, evpi?.gap_fields, fallbackCoverage.pending);",
       "classification": "safe_fallback",
@@ -32001,6 +33401,286 @@
       "action": "keep_as_fixture"
     },
     {
+      "file": "src/api/prDraftClient.js",
+      "line": 1,
+      "keyword": "Mock",
+      "context": "import { getMockPrDraftContext, regenerateMockPrDraft } from \"../mocks/prDraftMock.js\";",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 1,
+      "keyword": "Mock",
+      "context": "import { getMockPrDraftContext, regenerateMockPrDraft } from \"../mocks/prDraftMock.js\";",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 1,
+      "keyword": "mock",
+      "context": "import { getMockPrDraftContext, regenerateMockPrDraft } from \"../mocks/prDraftMock.js\";",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 1,
+      "keyword": "Mock",
+      "context": "import { getMockPrDraftContext, regenerateMockPrDraft } from \"../mocks/prDraftMock.js\";",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 3,
+      "keyword": "FALLBACK",
+      "context": "const FALLBACK_CODES = new Set([\"network_error\", \"not_found\", \"pr_draft_not_found\", \"artifact_missing\"]);",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 27,
+      "keyword": "Mock",
+      "context": "return normalizeContext({ requirement, prDraft, agentRun, reviewItems, artifacts, activity, changeRecords, usedMockFallback: false });",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 27,
+      "keyword": "Fallback",
+      "context": "return normalizeContext({ requirement, prDraft, agentRun, reviewItems, artifacts, activity, changeRecords, usedMockFallback: false });",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 29,
+      "keyword": "Fallback",
+      "context": "if (!shouldUseFallback(error)) throw error;",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 30,
+      "keyword": "Mock",
+      "context": "return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error || { code: \"network_error\", message: error.message } });",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 30,
+      "keyword": "Mock",
+      "context": "return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error || { code: \"network_error\", message: error.message } });",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 30,
+      "keyword": "Fallback",
+      "context": "return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error || { code: \"network_error\", message: error.message } });",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 30,
+      "keyword": "fallback",
+      "context": "return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error || { code: \"network_error\", message: error.message } });",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 42,
+      "keyword": "Fallback",
+      "context": "if (!shouldUseFallback(error)) throw error;",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 43,
+      "keyword": "mock",
+      "context": "return normalizePrDraft({ ...payload, id: payload.id || `mock-saved-${Date.now()}`, requirementId, updatedAt: new Date().toISOString() });",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 55,
+      "keyword": "Fallback",
+      "context": "if (!shouldUseFallback(error)) throw error;",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 68,
+      "keyword": "Fallback",
+      "context": "if (!shouldUseFallback(error)) throw error;",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 69,
+      "keyword": "Mock",
+      "context": "return normalizePrDraft(regenerateMockPrDraft(requirementId, runId));",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 126,
+      "keyword": "Mock",
+      "context": "usedMockFallback: Boolean(input.usedMockFallback),",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 126,
+      "keyword": "Fallback",
+      "context": "usedMockFallback: Boolean(input.usedMockFallback),",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 126,
+      "keyword": "Mock",
+      "context": "usedMockFallback: Boolean(input.usedMockFallback),",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 126,
+      "keyword": "Fallback",
+      "context": "usedMockFallback: Boolean(input.usedMockFallback),",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 127,
+      "keyword": "fallback",
+      "context": "fallbackReason: input.fallbackReason || null",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 127,
+      "keyword": "fallback",
+      "context": "fallbackReason: input.fallbackReason || null",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 149,
+      "keyword": "fallback",
+      "context": "function normalizeRequirement(input, fallbackId = \"\") {",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 152,
+      "keyword": "fallback",
+      "context": "id: input.id || fallbackId || \"req-pr-draft-center\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 163,
+      "keyword": "fallback",
+      "context": "function normalizeAgentRun(input, fallbackRunId = \"\") {",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 165,
+      "keyword": "fallback",
+      "context": "id: input.id || input.runId || fallbackRunId || \"\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 166,
+      "keyword": "fallback",
+      "context": "runId: input.runId || input.id || fallbackRunId || \"\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 291,
+      "keyword": "Fallback",
+      "context": "function shouldUseFallback(error) {",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.js",
+      "line": 293,
+      "keyword": "FALLBACK",
+      "context": "return !code || FALLBACK_CODES.has(code) || code === \"network_error\" || String(code).endsWith(\"_not_found\");",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/api/prDraftClient.test.js",
+      "line": 31,
+      "keyword": "mock",
+      "context": "it(\"falls back to mock context when backend is unavailable\", async () => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/api/prDraftClient.test.js",
+      "line": 38,
+      "keyword": "Mock",
+      "context": "expect(context.usedMockFallback).toBe(true);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/api/prDraftClient.test.js",
+      "line": 38,
+      "keyword": "Fallback",
+      "context": "expect(context.usedMockFallback).toBe(true);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/api/prDraftClient.test.js",
+      "line": 51,
+      "keyword": "Mock",
+      "context": "expect(context.usedMockFallback).toBe(true);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/api/prDraftClient.test.js",
+      "line": 51,
+      "keyword": "Fallback",
+      "context": "expect(context.usedMockFallback).toBe(true);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
       "file": "src/App.test.jsx",
       "line": 8,
       "keyword": "mock",
@@ -32138,7 +33818,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 200,
+      "line": 199,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(",
       "classification": "test_fixture",
@@ -32146,7 +33826,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 211,
+      "line": 209,
       "keyword": "Mock",
       "context": "const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith(\"/run\"))[1].body);",
       "classification": "test_fixture",
@@ -32154,7 +33834,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 211,
+      "line": 209,
       "keyword": "mock",
       "context": "const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith(\"/run\"))[1].body);",
       "classification": "test_fixture",
@@ -32162,7 +33842,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 214,
+      "line": 212,
       "keyword": "conduit-realworld-example-app",
       "context": "expect(runBody.targetRepoPath).toBe(\"C:\\\\Users\\\\www30\\\\Desktop\\\\conduit-realworld-example-app\");",
       "classification": "test_fixture",
@@ -32170,7 +33850,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 216,
+      "line": 214,
       "keyword": "placeholder",
       "context": "expect(runBody.requirementDsl.constraints).toContain(\"Prefer concrete code/style changes over placeholder comments.\");",
       "classification": "test_fixture",
@@ -32178,7 +33858,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 220,
+      "line": 218,
       "keyword": "LoginForm.jsx",
       "context": "expect(screen.getAllByText(\"src/components/LoginForm.jsx\").length).toBeGreaterThan(0);",
       "classification": "test_fixture",
@@ -32186,7 +33866,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 265,
+      "line": 263,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -32194,7 +33874,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 283,
+      "line": 281,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32202,7 +33882,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 297,
+      "line": 295,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(\"/api/projects\", expect.objectContaining({",
       "classification": "test_fixture",
@@ -32210,7 +33890,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 304,
+      "line": 302,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(\"/api/projects/project-c\", expect.objectContaining({",
       "classification": "test_fixture",
@@ -32218,7 +33898,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 324,
+      "line": 322,
       "keyword": "mock",
       "context": "it(\"opens, cancels, and mock-creates a project without filesystem work\", () => {",
       "classification": "test_fixture",
@@ -32226,7 +33906,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 345,
+      "line": 343,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -32234,7 +33914,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 372,
+      "line": 370,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32242,7 +33922,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 380,
+      "line": 378,
       "keyword": "conduit-realworld-example-app",
       "context": "target: { value: \"C:\\\\Users\\\\www30\\\\Desktop\\\\conduit-realworld-example-app\" }",
       "classification": "test_fixture",
@@ -32250,7 +33930,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 385,
+      "line": 383,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(",
       "classification": "test_fixture",
@@ -32258,7 +33938,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 389,
+      "line": 387,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(",
       "classification": "test_fixture",
@@ -32266,7 +33946,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 393,
+      "line": 391,
       "keyword": "Mock",
       "context": "const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith(\"/status\"))[1].body);",
       "classification": "test_fixture",
@@ -32274,7 +33954,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 393,
+      "line": 391,
       "keyword": "mock",
       "context": "const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith(\"/status\"))[1].body);",
       "classification": "test_fixture",
@@ -32282,7 +33962,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 396,
+      "line": 394,
       "keyword": "conduit-realworld-example-app",
       "context": "localPath: \"C:\\\\Users\\\\www30\\\\Desktop\\\\conduit-realworld-example-app\"",
       "classification": "test_fixture",
@@ -32290,7 +33970,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 404,
+      "line": 402,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -32298,7 +33978,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 430,
+      "line": 428,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32306,7 +33986,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 455,
+      "line": 453,
       "keyword": "Mock",
       "context": "const statusBodies = fetchMock.mock.calls",
       "classification": "test_fixture",
@@ -32314,7 +33994,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 455,
+      "line": 453,
       "keyword": "mock",
       "context": "const statusBodies = fetchMock.mock.calls",
       "classification": "test_fixture",
@@ -32322,7 +34002,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 465,
+      "line": 463,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -32330,7 +34010,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 489,
+      "line": 487,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32338,7 +34018,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 504,
+      "line": 502,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/preview/start\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32346,7 +34026,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 504,
+      "line": 502,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/preview/start\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32354,7 +34034,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 508,
+      "line": 506,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -32362,7 +34042,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 532,
+      "line": 530,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32370,7 +34050,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 540,
+      "line": 538,
       "keyword": "conduit-realworld-example-app",
       "context": "target: { value: \"C:\\\\Users\\\\www30\\\\Desktop\\\\conduit-realworld-example-app\" }",
       "classification": "test_fixture",
@@ -32378,7 +34058,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 547,
+      "line": 545,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/preview/start\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32386,7 +34066,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 547,
+      "line": 545,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/preview/start\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32394,7 +34074,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 551,
+      "line": 549,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -32402,7 +34082,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 587,
+      "line": 585,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32410,7 +34090,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 600,
+      "line": 598,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(",
       "classification": "test_fixture",
@@ -32418,7 +34098,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 607,
+      "line": 605,
       "keyword": "fallback",
       "context": "it(\"shows the audit preview fallback when backend startup fails\", async () => {",
       "classification": "test_fixture",
@@ -32426,7 +34106,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 608,
+      "line": 606,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -32434,7 +34114,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 634,
+      "line": 632,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32442,7 +34122,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 674,
+      "line": 672,
       "keyword": "fallback",
       "context": "expect(screen.queryByText(\"fallback_safe_default\")).not.toBeInTheDocument();",
       "classification": "test_fixture",
@@ -32450,7 +34130,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 687,
+      "line": 685,
       "keyword": "fallback",
       "context": "it(\"labels skill reply source as real, fallback, or mock in the status console\", () => {",
       "classification": "test_fixture",
@@ -32458,7 +34138,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 687,
+      "line": 685,
       "keyword": "mock",
       "context": "it(\"labels skill reply source as real, fallback, or mock in the status console\", () => {",
       "classification": "test_fixture",
@@ -32466,7 +34146,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 714,
+      "line": 712,
       "keyword": "fallback",
       "context": "runState={{ runId: \"RUN-source\", status: \"skill_turn\", skillStatus: \"fallback\", skillSourceMode: \"fallback_guardrail\" }}",
       "classification": "test_fixture",
@@ -32474,7 +34154,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 714,
+      "line": 712,
       "keyword": "fallback",
       "context": "runState={{ runId: \"RUN-source\", status: \"skill_turn\", skillStatus: \"fallback\", skillSourceMode: \"fallback_guardrail\" }}",
       "classification": "test_fixture",
@@ -32482,7 +34162,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 717,
+      "line": 715,
       "keyword": "Fallback",
       "context": "expect(screen.getByText(\"回复来源：Fallback guardrail\")).toBeInTheDocument();",
       "classification": "test_fixture",
@@ -32490,7 +34170,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 723,
+      "line": 721,
       "keyword": "mock",
       "context": "runState={{ runId: \"RUN-source\", status: \"skill_turn\", skillStatus: \"done\", skillSourceMode: \"mock\" }}",
       "classification": "test_fixture",
@@ -32498,7 +34178,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 726,
+      "line": 724,
       "keyword": "Mock",
       "context": "expect(screen.getByText(\"回复来源：Mock model\")).toBeInTheDocument();",
       "classification": "test_fixture",
@@ -32506,7 +34186,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 809,
+      "line": 807,
       "keyword": "conduit-realworld-example-app",
       "context": "expect(reportCta).not.toHaveTextContent(\"conduit-realworld-example-app\");",
       "classification": "test_fixture",
@@ -32514,7 +34194,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 847,
+      "line": 845,
       "keyword": "Placeholder",
       "context": "expect(screen.getByPlaceholderText(\"请按序号回答，也可以只回答你确定的部分...\")).toBeInTheDocument();",
       "classification": "test_fixture",
@@ -32522,7 +34202,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 854,
+      "line": 852,
       "keyword": "Placeholder",
       "context": "fireEvent.change(screen.getByPlaceholderText(\"请按序号回答，也可以只回答你确定的部分...\"), {",
       "classification": "test_fixture",
@@ -32530,7 +34210,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 862,
+      "line": 860,
       "keyword": "Placeholder",
       "context": "fireEvent.change(screen.getByPlaceholderText(\"请按序号回答，也可以只回答你确定的部分...\"), {",
       "classification": "test_fixture",
@@ -32538,7 +34218,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 881,
+      "line": 879,
       "keyword": "Placeholder",
       "context": "fireEvent.change(screen.getByPlaceholderText(\"请按序号回答，也可以只回答你确定的部分...\"), {",
       "classification": "test_fixture",
@@ -32546,7 +34226,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 961,
+      "line": 959,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32554,7 +34234,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 975,
+      "line": 973,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32562,7 +34242,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 986,
+      "line": 984,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(",
       "classification": "test_fixture",
@@ -32570,7 +34250,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 990,
+      "line": 988,
       "keyword": "Mock",
       "context": "expect(fetchMock).toHaveBeenCalledWith(",
       "classification": "test_fixture",
@@ -32578,7 +34258,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 995,
+      "line": 993,
       "keyword": "Mock",
       "context": "const skillCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith(\"/pm-dsl-turn\"));",
       "classification": "test_fixture",
@@ -32586,7 +34266,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 995,
+      "line": 993,
       "keyword": "mock",
       "context": "const skillCall = fetchMock.mock.calls.find(([url]) => String(url).endsWith(\"/pm-dsl-turn\"));",
       "classification": "test_fixture",
@@ -32594,7 +34274,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1062,
+      "line": 1066,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32602,7 +34282,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1077,
+      "line": 1081,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32610,7 +34290,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1103,
+      "line": 1107,
       "keyword": "Mock",
       "context": "const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\")).at(-1)[1].body);",
       "classification": "test_fixture",
@@ -32618,7 +34298,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1103,
+      "line": 1107,
       "keyword": "mock",
       "context": "const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\")).at(-1)[1].body);",
       "classification": "test_fixture",
@@ -32626,7 +34306,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1113,
+      "line": 1117,
       "keyword": "Mock",
       "context": "const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\")).at(-1)[1].body);",
       "classification": "test_fixture",
@@ -32634,25 +34314,9 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1113,
+      "line": 1117,
       "keyword": "mock",
       "context": "const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\")).at(-1)[1].body);",
-      "classification": "test_fixture",
-      "action": "keep_as_fixture"
-    },
-    {
-      "file": "src/App.test.jsx",
-      "line": 1122,
-      "keyword": "Mock",
-      "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).includes(\"/api/agent\"))).toBe(false);",
-      "classification": "test_fixture",
-      "action": "keep_as_fixture"
-    },
-    {
-      "file": "src/App.test.jsx",
-      "line": 1122,
-      "keyword": "mock",
-      "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).includes(\"/api/agent\"))).toBe(false);",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
@@ -32660,13 +34324,29 @@
       "file": "src/App.test.jsx",
       "line": 1126,
       "keyword": "Mock",
+      "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).includes(\"/api/agent\"))).toBe(false);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/App.test.jsx",
+      "line": 1126,
+      "keyword": "mock",
+      "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).includes(\"/api/agent\"))).toBe(false);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/App.test.jsx",
+      "line": 1130,
+      "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1134,
+      "line": 1138,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32674,7 +34354,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1146,
+      "line": 1150,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32682,7 +34362,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1146,
+      "line": 1150,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32690,7 +34370,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1147,
+      "line": 1151,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/dsl/runs/start\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32698,7 +34378,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1147,
+      "line": 1151,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/dsl/runs/start\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32706,7 +34386,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1171,
+      "line": 1175,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32714,7 +34394,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1183,
+      "line": 1187,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32722,7 +34402,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1197,
+      "line": 1201,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toHaveLength(2);",
       "classification": "test_fixture",
@@ -32730,7 +34410,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1197,
+      "line": 1201,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toHaveLength(2);",
       "classification": "test_fixture",
@@ -32738,7 +34418,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1213,
+      "line": 1217,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32746,7 +34426,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1223,
+      "line": 1227,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32754,7 +34434,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1234,
+      "line": 1238,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32762,7 +34442,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1234,
+      "line": 1238,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toBe(false);",
       "classification": "test_fixture",
@@ -32770,7 +34450,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1237,
+      "line": 1241,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toHaveLength(1));",
       "classification": "test_fixture",
@@ -32778,7 +34458,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1237,
+      "line": 1241,
       "keyword": "mock",
       "context": "await waitFor(() => expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toHaveLength(1));",
       "classification": "test_fixture",
@@ -32786,7 +34466,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1240,
+      "line": 1244,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toHaveLength(1);",
       "classification": "test_fixture",
@@ -32794,7 +34474,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1240,
+      "line": 1244,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/api/skill/pm-dsl-turn\"))).toHaveLength(1);",
       "classification": "test_fixture",
@@ -32802,7 +34482,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1275,
+      "line": 1279,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32810,7 +34490,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1289,
+      "line": 1293,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32818,7 +34498,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1317,
+      "line": 1321,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => ({",
       "classification": "test_fixture",
@@ -32826,7 +34506,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1343,
+      "line": 1347,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32834,7 +34514,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1354,
+      "line": 1358,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalled());",
       "classification": "test_fixture",
@@ -32842,7 +34522,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1422,
+      "line": 1426,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32850,7 +34530,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1442,
+      "line": 1446,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32858,7 +34538,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1471,
+      "line": 1475,
       "keyword": "Mock",
       "context": "const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/pm-dsl-turn\")).length;",
       "classification": "test_fixture",
@@ -32866,7 +34546,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1471,
+      "line": 1475,
       "keyword": "mock",
       "context": "const skillCallsBeforeRetry = fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/pm-dsl-turn\")).length;",
       "classification": "test_fixture",
@@ -32874,7 +34554,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1473,
+      "line": 1477,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/retry\"))).toBe(true));",
       "classification": "test_fixture",
@@ -32882,25 +34562,9 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1473,
+      "line": 1477,
       "keyword": "mock",
       "context": "await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/retry\"))).toBe(true));",
-      "classification": "test_fixture",
-      "action": "keep_as_fixture"
-    },
-    {
-      "file": "src/App.test.jsx",
-      "line": 1476,
-      "keyword": "Mock",
-      "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/pm-dsl-turn\")).length).toBe(skillCallsBeforeRetry);",
-      "classification": "test_fixture",
-      "action": "keep_as_fixture"
-    },
-    {
-      "file": "src/App.test.jsx",
-      "line": 1476,
-      "keyword": "mock",
-      "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/pm-dsl-turn\")).length).toBe(skillCallsBeforeRetry);",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
@@ -32908,13 +34572,29 @@
       "file": "src/App.test.jsx",
       "line": 1480,
       "keyword": "Mock",
+      "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/pm-dsl-turn\")).length).toBe(skillCallsBeforeRetry);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/App.test.jsx",
+      "line": 1480,
+      "keyword": "mock",
+      "context": "expect(fetchMock.mock.calls.filter(([url]) => String(url).endsWith(\"/pm-dsl-turn\")).length).toBe(skillCallsBeforeRetry);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/App.test.jsx",
+      "line": 1484,
+      "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
       "action": "keep_as_fixture"
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1509,
+      "line": 1513,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32922,7 +34602,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1527,
+      "line": 1531,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/cancel\"))).toBe(true);",
       "classification": "test_fixture",
@@ -32930,7 +34610,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1527,
+      "line": 1531,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/cancel\"))).toBe(true);",
       "classification": "test_fixture",
@@ -32938,7 +34618,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1545,
+      "line": 1549,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32946,7 +34626,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1593,
+      "line": 1597,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32954,7 +34634,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1615,
+      "line": 1619,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/retry\"))).toBe(true);",
       "classification": "test_fixture",
@@ -32962,7 +34642,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1615,
+      "line": 1619,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/retry\"))).toBe(true);",
       "classification": "test_fixture",
@@ -32970,7 +34650,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1664,
+      "line": 1668,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url) => {",
       "classification": "test_fixture",
@@ -32978,7 +34658,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1669,
+      "line": 1673,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -32986,7 +34666,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1687,
+      "line": 1691,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/pm-dsl-turn\"))).toBe(true);",
       "classification": "test_fixture",
@@ -32994,7 +34674,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1687,
+      "line": 1691,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/pm-dsl-turn\"))).toBe(true);",
       "classification": "test_fixture",
@@ -33002,7 +34682,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1688,
+      "line": 1692,
       "keyword": "Mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/start\"))).toBe(true);",
       "classification": "test_fixture",
@@ -33010,7 +34690,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1688,
+      "line": 1692,
       "keyword": "mock",
       "context": "expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith(\"/start\"))).toBe(true);",
       "classification": "test_fixture",
@@ -33018,7 +34698,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1697,
+      "line": 1701,
       "keyword": "Fixture",
       "context": "const defaultProjectFixtures = [",
       "classification": "test_fixture",
@@ -33026,7 +34706,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1701,
+      "line": 1705,
       "keyword": "fixture",
       "context": "description: \"Project fixture returned by persistence API\",",
       "classification": "test_fixture",
@@ -33034,7 +34714,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1711,
+      "line": 1715,
       "keyword": "fixture",
       "context": "description: \"Workbench fixture\",",
       "classification": "test_fixture",
@@ -33042,7 +34722,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1720,
+      "line": 1724,
       "keyword": "fixture",
       "context": "description: \"Agent fixture\",",
       "classification": "test_fixture",
@@ -33050,7 +34730,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1729,
+      "line": 1733,
       "keyword": "fixture",
       "context": "description: \"Pipeline fixture\",",
       "classification": "test_fixture",
@@ -33058,7 +34738,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1737,
+      "line": 1741,
       "keyword": "Fixture",
       "context": "const defaultRequirementFixture = {",
       "classification": "test_fixture",
@@ -33066,7 +34746,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1750,
+      "line": 1754,
       "keyword": "Fixture",
       "context": "const defaultAgentRunFixture = {",
       "classification": "test_fixture",
@@ -33074,7 +34754,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1766,
+      "line": 1770,
       "keyword": "Fixture",
       "context": "if (target === \"/api/projects\" && method === \"GET\") return jsonOk(defaultProjectFixtures);",
       "classification": "test_fixture",
@@ -33082,7 +34762,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1773,
+      "line": 1777,
       "keyword": "Fixture",
       "context": "if (target === \"/api/projects/persistence-project/requirements\") return jsonOk([defaultRequirementFixture]);",
       "classification": "test_fixture",
@@ -33090,7 +34770,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1796,
+      "line": 1800,
       "keyword": "Fixture",
       "context": "if (target === \"/api/agent/runs/RUN-persisted-monitor\") return jsonOk(defaultAgentRunFixture);",
       "classification": "test_fixture",
@@ -33098,7 +34778,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1807,
+      "line": 1811,
       "keyword": "fixture",
       "context": "return jsonOk({ status: \"project_path_missing\", available: false, message: \"No preview fixture.\" });",
       "classification": "test_fixture",
@@ -33106,7 +34786,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1816,
+      "line": 1820,
       "keyword": "fixture",
       "context": "reason: \"question group fixture\",",
       "classification": "test_fixture",
@@ -33114,7 +34794,7 @@
     },
     {
       "file": "src/App.test.jsx",
-      "line": 1867,
+      "line": 1876,
       "keyword": "fixture",
       "context": "recommendedQuestion: complete ? null : { title: \"Skill suggestion\", text: questionItems[0]?.question || question, reason: \"question group fixture\", source: \"skill_model\" },",
       "classification": "test_fixture",
@@ -33154,7 +34834,7 @@
     },
     {
       "file": "src/components/DesignPlanningWorkbench.jsx",
-      "line": 262,
+      "line": 278,
       "keyword": "placeholder",
       "context": "\"Prefer concrete code/style changes over placeholder comments.\"",
       "classification": "unknown",
@@ -33162,7 +34842,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 27,
+      "line": 28,
       "keyword": "fallback",
       "context": "const draftReportMode = [\"failed\", \"timeout\"].includes(runStatus) && [\"done\", \"fallback\"].includes(skillStatus);",
       "classification": "unknown",
@@ -33170,7 +34850,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 66,
+      "line": 67,
       "keyword": "fallback",
       "context": "{skillStatus === \"fallback\" ? <p>快速澄清已使用安全 fallback，完整 artifacts 可继续后台同步。</p> : null}",
       "classification": "unknown",
@@ -33178,7 +34858,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 66,
+      "line": 67,
       "keyword": "fallback",
       "context": "{skillStatus === \"fallback\" ? <p>快速澄清已使用安全 fallback，完整 artifacts 可继续后台同步。</p> : null}",
       "classification": "unknown",
@@ -33186,7 +34866,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 175,
+      "line": 168,
       "keyword": "fallback",
       "context": "if (sourceMode === \"fallback_guardrail\" || sourceMode === \"fallback\" || sourceMode === \"slow_response\") {",
       "classification": "unknown",
@@ -33194,7 +34874,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 175,
+      "line": 168,
       "keyword": "fallback",
       "context": "if (sourceMode === \"fallback_guardrail\" || sourceMode === \"fallback\" || sourceMode === \"slow_response\") {",
       "classification": "unknown",
@@ -33202,7 +34882,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 176,
+      "line": 169,
       "keyword": "Fallback",
       "context": "return `Fallback guardrail${suffix ? ` · ${suffix}` : \"\"}`;",
       "classification": "unknown",
@@ -33210,7 +34890,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 178,
+      "line": 171,
       "keyword": "mock",
       "context": "if (sourceMode === \"mock\") return \"Mock model\";",
       "classification": "unknown",
@@ -33218,7 +34898,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 178,
+      "line": 171,
       "keyword": "Mock",
       "context": "if (sourceMode === \"mock\") return \"Mock model\";",
       "classification": "unknown",
@@ -33226,7 +34906,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 185,
+      "line": 178,
       "keyword": "mock",
       "context": "if (sourceMode === \"mock\") return \"mock\";",
       "classification": "unknown",
@@ -33234,7 +34914,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 185,
+      "line": 178,
       "keyword": "mock",
       "context": "if (sourceMode === \"mock\") return \"mock\";",
       "classification": "unknown",
@@ -33242,7 +34922,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 187,
+      "line": 180,
       "keyword": "fallback",
       "context": "return \"fallback\";",
       "classification": "unknown",
@@ -33250,7 +34930,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 275,
+      "line": 273,
       "keyword": "Placeholder",
       "context": "const isPlaceholderRunId = !runId || runId === \"undefined\" || runId === \"null\" || /^<.*>$/.test(runId);",
       "classification": "unknown",
@@ -33258,7 +34938,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 282,
+      "line": 280,
       "keyword": "fallback",
       "context": "const fallbackWithoutRun =",
       "classification": "unknown",
@@ -33266,7 +34946,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 283,
+      "line": 281,
       "keyword": "Placeholder",
       "context": "isPlaceholderRunId &&",
       "classification": "unknown",
@@ -33274,7 +34954,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 284,
+      "line": 282,
       "keyword": "fallback",
       "context": "(uiState?.dslCompletion?.source === \"fallback_safe_default\" ||",
       "classification": "unknown",
@@ -33282,7 +34962,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 285,
+      "line": 283,
       "keyword": "fallback",
       "context": "uiState?.readiness?.source === \"fallback_safe_default\" ||",
       "classification": "unknown",
@@ -33290,7 +34970,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 286,
+      "line": 284,
       "keyword": "mock",
       "context": "uiState?.dslCompletion?.source === \"mock\");",
       "classification": "unknown",
@@ -33298,7 +34978,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 288,
+      "line": 286,
       "keyword": "Placeholder",
       "context": "(isPlaceholderRunId || runState?.artifactStatus === \"idle\" || runState?.status === \"idle\") &&",
       "classification": "unknown",
@@ -33306,7 +34986,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 290,
+      "line": 288,
       "keyword": "fallback",
       "context": "(notStartedUi || noRequirementSignal || fallbackWithoutRun)",
       "classification": "unknown",
@@ -33314,7 +34994,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 302,
+      "line": 300,
       "keyword": "fallback",
       "context": "function getGlobalNumber(name, fallback = 0) {",
       "classification": "unknown",
@@ -33322,7 +35002,7 @@
     },
     {
       "file": "src/components/DSLStatusConsole.jsx",
-      "line": 304,
+      "line": 302,
       "keyword": "fallback",
       "context": "return Number.isFinite(value) && value > 0 ? value : fallback;",
       "classification": "unknown",
@@ -33338,7 +35018,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 220,
+      "line": 235,
       "keyword": "conduit-realworld-example-app",
       "context": "const createdRequirement = await createRequirement(activeProject?.id ?? \"conduit-realworld-example-app\", {",
       "classification": "unknown",
@@ -33346,7 +35026,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 243,
+      "line": 258,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: activeProject?.id ?? \"conduit-realworld-example-app\",",
       "classification": "unknown",
@@ -33354,7 +35034,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 431,
+      "line": 449,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: activeProject?.id ?? loadedRequirement.projectId ?? \"conduit-realworld-example-app\",",
       "classification": "unknown",
@@ -33362,7 +35042,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 538,
+      "line": 556,
       "keyword": "fallback",
       "context": "uiState: job.uiState || fallbackUiState()",
       "classification": "unknown",
@@ -33370,7 +35050,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 555,
+      "line": 573,
       "keyword": "fallback",
       "context": "uiState: latestJob.uiState || fallbackUiState()",
       "classification": "unknown",
@@ -33378,7 +35058,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 665,
+      "line": 683,
       "keyword": "conduit-realworld-example-app",
       "context": "<span>{activeProject?.name ?? \"conduit-realworld-example-app\"}</span>",
       "classification": "unknown",
@@ -33386,7 +35066,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 855,
+      "line": 874,
       "keyword": "fallback",
       "context": "if ([\"fallback\", \"fallback_guardrail\", \"slow_response\"].includes(sourceMode)) return \"fallback\";",
       "classification": "unknown",
@@ -33394,7 +35074,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 855,
+      "line": 874,
       "keyword": "fallback",
       "context": "if ([\"fallback\", \"fallback_guardrail\", \"slow_response\"].includes(sourceMode)) return \"fallback\";",
       "classification": "unknown",
@@ -33402,7 +35082,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 855,
+      "line": 874,
       "keyword": "fallback",
       "context": "if ([\"fallback\", \"fallback_guardrail\", \"slow_response\"].includes(sourceMode)) return \"fallback\";",
       "classification": "unknown",
@@ -33410,7 +35090,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 893,
+      "line": 912,
       "keyword": "mock",
       "context": "return [\"model_generated\", \"model_generated_real\", \"mock\", \"fallback\", \"fallback_guardrail\", \"slow_response\"].includes(source);",
       "classification": "unknown",
@@ -33418,7 +35098,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 893,
+      "line": 912,
       "keyword": "fallback",
       "context": "return [\"model_generated\", \"model_generated_real\", \"mock\", \"fallback\", \"fallback_guardrail\", \"slow_response\"].includes(source);",
       "classification": "unknown",
@@ -33426,7 +35106,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 893,
+      "line": 912,
       "keyword": "fallback",
       "context": "return [\"model_generated\", \"model_generated_real\", \"mock\", \"fallback\", \"fallback_guardrail\", \"slow_response\"].includes(source);",
       "classification": "unknown",
@@ -33434,7 +35114,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 1029,
+      "line": 1048,
       "keyword": "conduit-realworld-example-app",
       "context": "projectId: projectId || \"conduit-realworld-example-app\",",
       "classification": "unknown",
@@ -33442,7 +35122,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 1057,
+      "line": 1076,
       "keyword": "mock",
       "context": "mockLlmUsed: job.mockLlmUsed ?? null,",
       "classification": "unknown",
@@ -33450,7 +35130,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 1057,
+      "line": 1076,
       "keyword": "mock",
       "context": "mockLlmUsed: job.mockLlmUsed ?? null,",
       "classification": "unknown",
@@ -33458,7 +35138,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 1148,
+      "line": 1169,
       "keyword": "fallback",
       "context": "function getGlobalNumber(name, fallback = 0) {",
       "classification": "unknown",
@@ -33466,7 +35146,7 @@
     },
     {
       "file": "src/components/DSLWorkbench.jsx",
-      "line": 1150,
+      "line": 1171,
       "keyword": "fallback",
       "context": "return Number.isFinite(value) && value > 0 ? value : fallback;",
       "classification": "unknown",
@@ -33618,7 +35298,7 @@
     },
     {
       "file": "src/components/frontendPersistence.test.jsx",
-      "line": 188,
+      "line": 189,
       "keyword": "Mock",
       "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
       "classification": "test_fixture",
@@ -33626,7 +35306,7 @@
     },
     {
       "file": "src/components/frontendPersistence.test.jsx",
-      "line": 206,
+      "line": 220,
       "keyword": "Mock",
       "context": "vi.stubGlobal(\"fetch\", fetchMock);",
       "classification": "test_fixture",
@@ -33634,7 +35314,47 @@
     },
     {
       "file": "src/components/frontendPersistence.test.jsx",
-      "line": 215,
+      "line": 236,
+      "keyword": "Mock",
+      "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(\"/api/agent/runs/RUN-rollback-ui/rollback/file\", expect.objectContaining({",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/components/frontendPersistence.test.jsx",
+      "line": 246,
+      "keyword": "Mock",
+      "context": "const fetchMock = vi.fn(async (url) => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/components/frontendPersistence.test.jsx",
+      "line": 261,
+      "keyword": "Mock",
+      "context": "vi.stubGlobal(\"fetch\", fetchMock);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/components/frontendPersistence.test.jsx",
+      "line": 277,
+      "keyword": "Mock",
+      "context": "const fetchMock = vi.fn(async (url, options = {}) => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/components/frontendPersistence.test.jsx",
+      "line": 295,
+      "keyword": "Mock",
+      "context": "vi.stubGlobal(\"fetch\", fetchMock);",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/components/frontendPersistence.test.jsx",
+      "line": 304,
       "keyword": "Mock",
       "context": "await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(\"/api/requirements/req-1/pr-draft\", expect.objectContaining({",
       "classification": "test_fixture",
@@ -33642,7 +35362,7 @@
     },
     {
       "file": "src/components/frontendPersistence.test.jsx",
-      "line": 219,
+      "line": 308,
       "keyword": "Mock",
       "context": "const patchBody = JSON.parse(fetchMock.mock.calls.find(([url, options]) =>",
       "classification": "test_fixture",
@@ -33650,7 +35370,7 @@
     },
     {
       "file": "src/components/frontendPersistence.test.jsx",
-      "line": 219,
+      "line": 308,
       "keyword": "mock",
       "context": "const patchBody = JSON.parse(fetchMock.mock.calls.find(([url, options]) =>",
       "classification": "test_fixture",
@@ -33658,7 +35378,7 @@
     },
     {
       "file": "src/components/frontendPersistence.test.jsx",
-      "line": 225,
+      "line": 314,
       "keyword": "fallback",
       "context": "it(\"shows an empty PR state instead of fallback PR draft when no draft exists\", async () => {",
       "classification": "test_fixture",
@@ -33698,6 +35418,22 @@
     },
     {
       "file": "src/components/RequirementReportModal.jsx",
+      "line": 40,
+      "keyword": "mock",
+      "context": "<button type=\"button\" onClick={() => onToast(\"已导出 JSON（mock）\")}><Code2 size={16} />导出 JSON</button>",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/components/RequirementReportModal.jsx",
+      "line": 41,
+      "keyword": "mock",
+      "context": "<button type=\"button\" onClick={() => onToast(\"已导出 Markdown（mock）\")}><FileDown size={16} />导出 Markdown</button>",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/components/RequirementReportModal.jsx",
       "line": 60,
       "keyword": "fallback",
       "context": "<span><small>来源</small><strong>{summary.source || \"fallback\"}</strong></span>",
@@ -33706,7 +35442,7 @@
     },
     {
       "file": "src/components/ReviewCheckWorkbench.jsx",
-      "line": 406,
+      "line": 603,
       "keyword": "fallback",
       "context": "function buildTests(items, fallbackReview) {",
       "classification": "safe_fallback",
@@ -33714,7 +35450,7 @@
     },
     {
       "file": "src/components/ReviewCheckWorkbench.jsx",
-      "line": 407,
+      "line": 604,
       "keyword": "fallback",
       "context": "if (items.length === 0) return fallbackReview?.tests || [];",
       "classification": "safe_fallback",
@@ -33722,7 +35458,7 @@
     },
     {
       "file": "src/components/ReviewCheckWorkbench.jsx",
-      "line": 411,
+      "line": 608,
       "keyword": "fallback",
       "context": "function buildConfirmations(items, fallbackReview) {",
       "classification": "safe_fallback",
@@ -33730,7 +35466,7 @@
     },
     {
       "file": "src/components/ReviewCheckWorkbench.jsx",
-      "line": 412,
+      "line": 609,
       "keyword": "fallback",
       "context": "if (items.length === 0) return fallbackReview?.manualConfirmations || [\"请先生成 Agent real-run 审计结果。\"];",
       "classification": "safe_fallback",
@@ -33738,7 +35474,7 @@
     },
     {
       "file": "src/components/ReviewCheckWorkbench.jsx",
-      "line": 438,
+      "line": 635,
       "keyword": "fallback",
       "context": "function normalizePreviewResult(result, fallbackPath) {",
       "classification": "safe_fallback",
@@ -33746,7 +35482,7 @@
     },
     {
       "file": "src/components/ReviewCheckWorkbench.jsx",
-      "line": 444,
+      "line": 641,
       "keyword": "fallback",
       "context": "projectRoot: result?.projectRoot || fallbackPath || \"\",",
       "classification": "safe_fallback",
@@ -33754,11 +35490,387 @@
     },
     {
       "file": "src/components/ReviewCheckWorkbench.jsx",
-      "line": 445,
+      "line": 642,
       "keyword": "fallback",
       "context": "requestedProjectRoot: result?.requestedProjectRoot || result?.projectRoot || fallbackPath || \"\",",
       "classification": "safe_fallback",
       "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/components/RiskBlockerChat.jsx",
+      "line": 73,
+      "keyword": "placeholder",
+      "context": "placeholder=\"输入答案，Enter 发送，Shift+Enter 换行\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/components/RiskBlockerChat.jsx",
+      "line": 120,
+      "keyword": "fallback",
+      "context": "function normalizeQuestion(item, fallbackId, order = 99) {",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/components/RiskBlockerChat.jsx",
+      "line": 125,
+      "keyword": "fallback",
+      "context": "id: String(item.id || item.questionId || fallbackId),",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/components/RiskBlockerChat.jsx",
+      "line": 126,
+      "keyword": "fallback",
+      "context": "questionId: String(item.questionId || item.id || fallbackId),",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/components/WorkspaceShell.jsx",
+      "line": 39,
+      "keyword": "mock",
+      "context": "if (!routeRequirementId && /^(pending|mock)-/.test(String(activeProject.id))) return () => {",
+      "classification": "production_mock",
+      "action": "replace"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 38,
+      "keyword": "mock",
+      "context": "changeSummary: \"Added envelope-aware API client with mock fallback.\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 38,
+      "keyword": "fallback",
+      "context": "changeSummary: \"Added envelope-aware API client with mock fallback.\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 40,
+      "keyword": "mock",
+      "context": "requirementPoint: \"API client and mock fallback\",",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 40,
+      "keyword": "fallback",
+      "context": "requirementPoint: \"API client and mock fallback\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 41,
+      "keyword": "Fallback",
+      "context": "risk: \"Fallback should not hide real validation errors.\",",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 92,
+      "keyword": "Mock",
+      "context": "export const prDraftMockCases = {",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 98,
+      "keyword": "Fallback",
+      "context": "{ id: \"review-resolved\", filePath: \"src/api/prDraftClient.js\", status: \"resolved\", required: false, message: \"Fallback behavior documented.\" }",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 135,
+      "keyword": "Mock",
+      "context": "export function getMockPrDraftContext(requirementId = \"req-pr-draft-center\") {",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 145,
+      "keyword": "Mock",
+      "context": "return clone({ ...prDraftMockCases[key], mockCase: key });",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 145,
+      "keyword": "mock",
+      "context": "return clone({ ...prDraftMockCases[key], mockCase: key });",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 148,
+      "keyword": "Mock",
+      "context": "export function regenerateMockPrDraft(requirementId, runId) {",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 149,
+      "keyword": "Mock",
+      "context": "const context = getMockPrDraftContext(String(requirementId).includes(\"ready\") ? requirementId : \"req-ready\");",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 152,
+      "keyword": "mock",
+      "context": "id: `mock-regenerated-${Date.now()}`,",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 177,
+      "keyword": "mock",
+      "context": "\"Provides mock fallback data so the page remains usable without backend availability.\"",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 177,
+      "keyword": "fallback",
+      "context": "\"Provides mock fallback data so the page remains usable without backend availability.\"",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/mocks/prDraftMock.js",
+      "line": 190,
+      "keyword": "fallback",
+      "context": "{ id: \"review-resolved\", filePath: \"src/api/prDraftClient.js\", status: \"resolved\", required: false, message: \"Envelope parsing and fallback are covered.\" }",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 133,
+      "keyword": "mock",
+      "context": "await patchPrDraft(draft.id || \"mock-pr-draft\", { status: \"copied\", copiedAt });",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 149,
+      "keyword": "Mock",
+      "context": "<PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} />",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 149,
+      "keyword": "Fallback",
+      "context": "<PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} />",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 149,
+      "keyword": "Mock",
+      "context": "<PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} />",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 149,
+      "keyword": "Fallback",
+      "context": "<PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} />",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 187,
+      "keyword": "Mock",
+      "context": "function PrDraftHeader({ context, draft, readiness, usedMockFallback }) {",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 187,
+      "keyword": "Fallback",
+      "context": "function PrDraftHeader({ context, draft, readiness, usedMockFallback }) {",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 196,
+      "keyword": "Mock",
+      "context": "{usedMockFallback ? <span className=\"pr-fallback-badge\">mock fallback</span> : null}",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 196,
+      "keyword": "Fallback",
+      "context": "{usedMockFallback ? <span className=\"pr-fallback-badge\">mock fallback</span> : null}",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 196,
+      "keyword": "fallback",
+      "context": "{usedMockFallback ? <span className=\"pr-fallback-badge\">mock fallback</span> : null}",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 196,
+      "keyword": "mock",
+      "context": "{usedMockFallback ? <span className=\"pr-fallback-badge\">mock fallback</span> : null}",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 196,
+      "keyword": "fallback",
+      "context": "{usedMockFallback ? <span className=\"pr-fallback-badge\">mock fallback</span> : null}",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 260,
+      "keyword": "placeholder",
+      "context": "<input id=\"pr-title\" aria-label=\"PR 标题\" value={draft.title} onChange={(event) => onDraftChange({ title: event.target.value })} placeholder=\"PR title\" />",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 505,
+      "keyword": "Mock",
+      "context": "usedMockFallback: false",
+      "classification": "unknown",
+      "action": "needs_review"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.jsx",
+      "line": 505,
+      "keyword": "Fallback",
+      "context": "usedMockFallback: false",
+      "classification": "safe_fallback",
+      "action": "keep_as_safe_fallback"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 11,
+      "keyword": "mock",
+      "context": "it(\"renders the PR Draft Center page with mock fallback\", async () => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 11,
+      "keyword": "fallback",
+      "context": "it(\"renders the PR Draft Center page with mock fallback\", async () => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 20,
+      "keyword": "mock",
+      "context": "expect(screen.getByText(\"mock fallback\")).toBeInTheDocument();",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 20,
+      "keyword": "fallback",
+      "context": "expect(screen.getByText(\"mock fallback\")).toBeInTheDocument();",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 59,
+      "keyword": "mock",
+      "context": "expect(writeText.mock.calls[0][0]).toContain(\"## Summary\");",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 60,
+      "keyword": "mock",
+      "context": "expect(writeText.mock.calls[0][0]).toContain(\"## Changed Files\");",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 122,
+      "keyword": "fallback",
+      "context": "it(\"API envelope error displays ErrorState when not eligible for fallback\", async () => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 136,
+      "keyword": "mock",
+      "context": "it(\"mock fallback is usable\", async () => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 136,
+      "keyword": "fallback",
+      "context": "it(\"mock fallback is usable\", async () => {",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 144,
+      "keyword": "mock",
+      "context": "expect(screen.getByText(\"mock fallback\")).toBeInTheDocument();",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
+    },
+    {
+      "file": "src/pages/PrDraftCenter.test.jsx",
+      "line": 144,
+      "keyword": "fallback",
+      "context": "expect(screen.getByText(\"mock fallback\")).toBeInTheDocument();",
+      "classification": "test_fixture",
+      "action": "keep_as_fixture"
     }
   ]
 }
