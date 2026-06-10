@@ -1,11 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
-import { spawn } from "node:child_process";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { persistAgentDryRun, withPersistence } from "./persistence/workbenchPersistenceAdapter.js";
-import { buildAgentStageEvents, createAgent2DryRun, mapAgent2ResultToWorkbench } from "./agent2Adapter.js";
+import { buildAgentStageEvents, createAgent2DryRun, mapAgent2ResultToWorkbench, runRealAgent2 } from "./agent2Adapter.js";
 import { readDoubaoArkConfig } from "./doubaoArkClient.js";
-import { selectWorkspaceAdapter } from "./workspaceAdapter.js";
+import { getChangedFilesFromSnapshot } from "./workspaceAdapter.js";
 
 const agentRoot = path.resolve("agent(1)", "agent");
 const pythonCoreRoot = path.join(agentRoot, "agent_core");
@@ -120,48 +119,41 @@ export async function startAgentRun(request = {}, config = {}) {
   const now = new Date().toISOString();
 
   if (!dryRun) {
-    const targetRepoPath = request.targetRepoPath || request.localPath || process.env.TARGET_REPO_PATH || "";
-    if (!targetRepoPath) {
-      return errorResult("agent_target_repo_missing", "Real agent execution requires selected project localPath/targetRepoPath.");
-    }
-    const targetStat = await fs.stat(targetRepoPath).catch(() => null);
-    if (!targetStat?.isDirectory?.()) {
-      return errorResult("agent_target_repo_invalid", "Real agent execution targetRepoPath must be an existing directory.", {
-        targetRepoPath
-      });
-    }
-    if (selectedAgentProvider(request, config) !== "agent2") {
-      request = { ...request, agentProvider: "agent2" };
-    }
-    let workspace;
-    try {
-      const adapter = config.workspaceAdapter || await selectWorkspaceAdapter({
-        sourceRepoPath: targetRepoPath,
-        runsRoot: config.runsRoot || path.resolve("runs"),
-        adapterType: config.workspaceAdapterType
-      });
-      workspace = await adapter.createRunWorkspace({
-        runId,
-        sourceRepoPath: targetRepoPath
-      });
-    } catch (error) {
-      return errorResult(error.code || "workspace_create_failed", "Could not create isolated run workspace.", {
-        reason: String(error.message || error),
-        sourceRepoPath: targetRepoPath
-      });
-    }
-
+    const validation = await validateRealAgentRequest(request, config);
+    if (!validation.ok) return errorResult(validation.code, validation.message, validation.details);
+    const workspace = await createDirectTargetBaseline({
+      runId,
+      repoPath: validation.repoPath,
+      runsRoot: config.runsRoot || path.resolve("runs")
+    });
     const result = await runAgent2RealExecution(request, {
       runId,
       outputDir,
       relativeOutputDir: relativeOutputDir(outputDir),
-      targetRepoPath: workspace.workspacePath,
-      sourceRepoPath: targetRepoPath,
+      targetRepoPath: validation.repoPath,
+      sourceRepoPath: validation.repoPath,
       workspace,
+      safety: validation.safety,
       now
     }, config);
-    if (!result.ok) return result;
-    await attachWorkspaceChanges(result.data, workspace, config);
+    if (!result.ok) {
+      const failedRun = await createFailedRealAgentRun(request, {
+        runId,
+        outputDir,
+        relativeOutputDir: relativeOutputDir(outputDir),
+        targetRepoPath: validation.repoPath,
+        now,
+        workspace,
+        safety: validation.safety,
+        code: result.error?.code || "agent2_real_run_failed",
+        message: result.error?.message || "Agent(2) real execution failed.",
+        details: result.error?.details || {}
+      });
+      agentRuns.set(runId, failedRun);
+      persistAgentDryRun(failedRun, config);
+      return { ok: true, data: failedRun, error: null };
+    }
+    await attachDirectTargetChanges(result.data, workspace);
     agentRuns.set(runId, result.data);
     persistAgentDryRun(result.data, config);
     return result;
@@ -254,6 +246,78 @@ export async function startAgentRun(request = {}, config = {}) {
   return { ok: true, data: run, error: null };
 }
 
+async function validateRealAgentRequest(request = {}, config = {}) {
+  if (request.dryRun !== false) {
+    return blockedGate("agent_real_run_requires_dry_run_false", "Real Agent execution requires dryRun=false.");
+  }
+  if (request.realRunConfirm !== true) {
+    return blockedGate("agent_real_run_confirmation_missing", "Real Agent execution requires realRunConfirm=true.");
+  }
+  if (selectedAgentProvider(request, config) !== "agent2") {
+    return blockedGate("agent_real_run_provider_invalid", "Real Agent execution requires agentProvider=agent2.");
+  }
+  const requestedPath = request.repoPath || request.targetRepoPath || request.localPath || process.env.TARGET_REPO_PATH || "";
+  if (!requestedPath) {
+    return blockedGate("agent_target_repo_missing", "Real agent execution requires selected project localPath/targetRepoPath.");
+  }
+  const repoPath = path.resolve(requestedPath);
+  const repoStat = await fs.stat(repoPath).catch(() => null);
+  if (!repoStat?.isDirectory?.()) {
+    return blockedGate("agent_target_repo_invalid", "Real agent execution target repo must be an existing directory.", { repoPath });
+  }
+  const workbenchRoot = path.resolve(config.workbenchRoot || process.cwd());
+  if (isSameOrInside(repoPath, workbenchRoot)) {
+    return blockedGate("agent_target_repo_is_workbench", "Real agent execution cannot target the Workbench repository itself.", {
+      repoPath,
+      workbenchRoot
+    });
+  }
+  const repoPathCheck = validateRepoPathSegments(repoPath);
+  if (!repoPathCheck.ok) {
+    return blockedGate(repoPathCheck.code, repoPathCheck.message, { repoPath, segment: repoPathCheck.segment });
+  }
+  return {
+    ok: true,
+    repoPath,
+    safety: {
+      dryRunFalse: true,
+      realRunConfirm: true,
+      agentProvider: "agent2",
+      repoPathValidated: true,
+      workbenchSelfWriteBlocked: true,
+      forbiddenTargetSegmentsBlocked: true,
+      requestedRepoPath: requestedPath,
+      repoPath
+    }
+  };
+}
+
+function blockedGate(code, message, details = {}) {
+  return { ok: false, code, message, details };
+}
+
+async function createDirectTargetBaseline({ runId, repoPath, runsRoot }) {
+  const runRoot = path.join(path.resolve(runsRoot), "workspaces", safeSegment(runId));
+  const baselinePath = path.join(runRoot, "baseline");
+  assertInside(path.resolve(runsRoot), runRoot);
+  await fs.rm(runRoot, { recursive: true, force: true });
+  await fs.mkdir(baselinePath, { recursive: true });
+  await fs.cp(repoPath, baselinePath, {
+    recursive: true,
+    filter: (source) => !shouldExcludeBaselinePath(source, repoPath)
+  });
+  return {
+    runId,
+    adapterType: "direct_target",
+    sourceRepoPath: repoPath,
+    workspacePath: repoPath,
+    baselinePath,
+    baselineSnapshotId: `snapshot-${runId}-baseline`,
+    directTargetRepoWrite: true,
+    createdAt: new Date().toISOString()
+  };
+}
+
 async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
   const agent2Root = path.resolve("agent(2)", "agent");
   const mainModuleCwd = agent2Root;
@@ -304,9 +368,12 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
     spawnImpl: config.spawnImpl,
     timeoutMs: Number(config.agentRealRunTimeoutMs || process.env.AGENT_REAL_RUN_TIMEOUT_MS || 180_000)
   };
-  const childResult = typeof config.agent2Runner === "function"
-    ? await config.agent2Runner({ command: pythonCommand, args: ["-m", "agent_core.main"], ...childOptions })
-    : await spawnWithInput(pythonCommand, ["-m", "agent_core.main"], childOptions);
+  const childResult = await runRealAgent2({
+    command: pythonCommand,
+    args: ["-m", "agent_core.main"],
+    ...childOptions,
+    agent2Runner: config.agent2Runner
+  });
   await fs.writeFile(rawOutputPath, childResult.stdout || "", "utf8");
   await fs.writeFile(stderrPath, childResult.stderr || "", "utf8");
 
@@ -340,6 +407,8 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
     });
   }
 
+  const writeValidation = validateAgent2WriteReport(agent2Result, targetRepoPath);
+
   const run = mapAgent2ResultToWorkbench(agent2Result, {
     ...request,
     runId: options.runId,
@@ -349,10 +418,58 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
     dryRun: false,
     realExecution: true,
     targetRepoPath,
+    safety: options.safety,
     requirementDsl: inputDsl
   });
   run.startedAt = new Date(startedAt).toISOString();
   run.finishedAt = new Date().toISOString();
+  run.changedFiles = writeValidation.changedFiles;
+  run.safety = {
+    ...(options.safety || {}),
+    stdoutJsonParsed: true,
+    changedFilesValidated: writeValidation.ok,
+    forbiddenPathCheck: writeValidation.ok,
+    noChanges: writeValidation.noChanges,
+    changedFileCount: writeValidation.changedFiles.length
+  };
+  run.realWritePerformed = writeValidation.ok && !writeValidation.noChanges && run.realWritePerformed === true;
+  if (!writeValidation.ok) {
+    run.status = "failed";
+    run.realWritePerformed = false;
+    run.errorSummary = writeValidation.message;
+    run.latestReturn = `Agent(2) real execution failed safety validation: ${writeValidation.message}`;
+  } else if (writeValidation.noChanges) {
+    run.status = "no_changes";
+    run.realWritePerformed = false;
+    run.latestReturn = "Agent(2) real execution completed but reported no changed files.";
+  }
+  run.stageEvents = buildAgentStageEvents({
+    ...run,
+    status: run.status === "failed" ? "failed" : run.status,
+    errorSummary: run.errorSummary || ""
+  });
+  run.activityTimeline = run.stageEvents;
+  run.plan = {
+    ...(run.plan || {}),
+    changedFiles: run.changedFiles,
+    stageEvents: run.stageEvents,
+    activityTimeline: run.stageEvents
+  };
+  if (run.artifacts?.["agent_activity_timeline.json"]) {
+    run.artifacts["agent_activity_timeline.json"].json = {
+      runId: options.runId,
+      stageEvents: run.stageEvents,
+      dryRun: false,
+      realWritePerformed: run.realWritePerformed
+    };
+  }
+  if (run.artifacts?.["agent2_result_preview.json"]?.json?.safety) {
+    run.artifacts["agent2_result_preview.json"].json.safety = {
+      ...run.artifacts["agent2_result_preview.json"].json.safety,
+      ...run.safety,
+      realWritePerformed: run.realWritePerformed
+    };
+  }
   run.agentProcess = {
     command: pythonCommand,
     args: ["-m", "agent_core.main"],
@@ -365,7 +482,19 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
   };
   run.workspace = {
     ...(options.workspace || {}),
-    baselineSnapshotId: `snapshot-${options.runId}-baseline`
+    sourceRepoPath,
+    workspacePath: targetRepoPath,
+    baselinePath: options.workspace?.baselinePath || "",
+    baselineSnapshotId: options.workspace?.baselineSnapshotId || `snapshot-${options.runId}-baseline`,
+    adapterType: options.workspace?.adapterType || "direct_target",
+    directTargetRepoWrite: true,
+    changedFiles: writeValidation.changedFiles.map((filePath) => ({
+      id: `real-${filePath.replace(/[^A-Za-z0-9_.-]/g, "_")}`,
+      filePath,
+      status: "changed",
+      changeType: "modified",
+      changeSummary: `Agent(2) reported real write for ${filePath}`
+    }))
   };
   run.sourceRepoPath = sourceRepoPath;
   run.targetRepoPath = targetRepoPath;
@@ -376,11 +505,13 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
     targetRepoPath,
     workspacePath: targetRepoPath,
     baselineSnapshotId: run.workspace.baselineSnapshotId,
+    safety: run.safety,
     executionBoundary: {
       ...(run.context?.executionBoundary || {}),
       sourceRepoPath,
-      isolatedWorkspacePath: targetRepoPath,
-      originalRepoWriteBlocked: true
+      targetRepoPath,
+      directTargetRepoWrite: true,
+      workbenchSelfWriteBlocked: true
     }
   };
   run.artifacts = {
@@ -394,39 +525,290 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
   return { ok: true, data: run, error: null };
 }
 
-async function attachWorkspaceChanges(run, workspace, config = {}) {
+async function attachDirectTargetChanges(run, workspace) {
   if (!workspace?.workspacePath || !workspace?.baselinePath) return;
-  try {
-    const adapter = config.workspaceAdapter || await selectWorkspaceAdapter({
-      sourceRepoPath: workspace.sourceRepoPath,
-      runsRoot: config.runsRoot || path.resolve("runs"),
-      adapterType: workspace.adapterType || config.workspaceAdapterType || "copy"
-    });
-    const changes = await adapter.getChangedFiles({
-      workspacePath: workspace.workspacePath,
-      baselinePath: workspace.baselinePath
-    });
-    run.workspace = {
-      ...(run.workspace || workspace),
-      ...workspace,
-      baselineSnapshotId: run.workspace?.baselineSnapshotId || `snapshot-${run.runId}-baseline`,
-      changedFiles: changes
-    };
-    if (Array.isArray(run.review?.changedFiles)) {
-      const summaryByFile = new Map(run.review.changedFiles.map((file) => [file.file || file.filePath, file]));
-      run.workspace.changedFiles = changes.map((change) => ({
-        ...change,
-        changeSummary: summaryByFile.get(change.filePath)?.changeSummary || summaryByFile.get(change.filePath)?.summary || `${change.changeType} ${change.filePath}`
-      }));
-    }
-  } catch (error) {
-    run.workspace = {
-      ...(run.workspace || workspace),
-      ...workspace,
-      baselineSnapshotId: run.workspace?.baselineSnapshotId || `snapshot-${run.runId}-baseline`,
-      changeScanError: String(error.message || error)
+  const changes = await getChangedFilesFromSnapshot({
+    workspacePath: workspace.workspacePath,
+    baselinePath: workspace.baselinePath
+  });
+  const reported = new Set((run.changedFiles || []).map((file) => String(file).replaceAll("\\", "/")));
+  const filteredChanges = changes.filter((change) => !forbiddenWritePath(change.filePath));
+  run.workspace = {
+    ...(run.workspace || {}),
+    ...workspace,
+    changedFiles: filteredChanges.map((change) => ({
+      ...change,
+      changeSummary: reported.has(change.filePath)
+        ? `Agent(2) reported real write for ${change.filePath}`
+        : `${change.changeType} ${change.filePath}`
+    }))
+  };
+  run.changedFiles = filteredChanges.map((change) => change.filePath);
+  run.realWritePerformed = run.status !== "failed" && filteredChanges.length > 0;
+  if (!filteredChanges.length && run.status !== "failed") {
+    run.status = "no_changes";
+    run.realWritePerformed = false;
+    run.latestReturn = "Agent(2) real execution completed but target repo diff is empty.";
+  }
+  run.safety = {
+    ...(run.safety || {}),
+    targetRepoDiffScanned: true,
+    changedFileCount: run.changedFiles.length
+  };
+  run.plan = {
+    ...(run.plan || {}),
+    changedFiles: run.changedFiles
+  };
+  run.stageEvents = buildAgentStageEvents(run);
+  run.activityTimeline = run.stageEvents;
+  run.plan.stageEvents = run.stageEvents;
+  run.plan.activityTimeline = run.stageEvents;
+  if (run.artifacts?.["agent_activity_timeline.json"]) {
+    run.artifacts["agent_activity_timeline.json"].json = {
+      runId: run.runId,
+      stageEvents: run.stageEvents,
+      dryRun: false,
+      realWritePerformed: run.realWritePerformed
     };
   }
+  if (run.artifacts?.["agent2_result_preview.json"]?.json?.safety) {
+    run.artifacts["agent2_result_preview.json"].json.safety = {
+      ...run.artifacts["agent2_result_preview.json"].json.safety,
+      ...run.safety,
+      realWritePerformed: run.realWritePerformed
+    };
+  }
+  await writeWorkbenchArtifacts(run.outputDir, run.artifacts);
+}
+
+async function createFailedRealAgentRun(request = {}, options = {}) {
+  const context = {
+    runId: options.runId,
+    projectId: request.projectId || "conduit-realworld-example-app",
+    requirementId: request.requirementId || `req-agent-${options.runId}`,
+    taskTitle: request.taskTitle || "Agent(2) real execution",
+    source: "agent2_real_execution",
+    agentProvider: "agent2",
+    requirementDsl: request.requirementDsl || {},
+    targetRepoPath: options.targetRepoPath,
+    safety: options.safety || {},
+    workspacePath: options.workspace?.workspacePath || options.targetRepoPath,
+    executionBoundary: {
+      dryRunDefault: false,
+      realWriteDefault: true,
+      runtimeStarted: true,
+      workbenchSelfWriteBlocked: true,
+      directTargetRepoWrite: true
+    }
+  };
+  const run = {
+    runId: options.runId,
+    status: "failed",
+    startedAt: options.now,
+    finishedAt: new Date().toISOString(),
+    dryRun: false,
+    realWritePerformed: false,
+    outputDir: options.outputDir,
+    relativeOutputDir: options.relativeOutputDir,
+    targetRepoPath: options.targetRepoPath,
+    sourceRepoPath: options.targetRepoPath,
+    workspace: options.workspace || null,
+    changedFiles: [],
+    errorSummary: options.message,
+    latestReturn: options.message,
+    safety: {
+      ...(options.safety || {}),
+      stdoutJsonParsed: false,
+      changedFilesValidated: false,
+      changedFileCount: 0
+    },
+    context,
+    plan: {
+      mode: "agent2_real_execution",
+      taskName: context.taskTitle,
+      executable: false,
+      dryRun: false,
+      summary: options.message,
+      changedFiles: [],
+      steps: []
+    },
+    review: {
+      status: "blocked",
+      summary: options.message,
+      changedFiles: [],
+      reviewItems: [{ severity: "high", message: options.message }],
+      tests: [],
+      manualConfirmations: ["Fix Agent(2) runtime failure and rerun."]
+    },
+    prDraft: {
+      title: context.taskTitle,
+      summary: [options.message],
+      body: "",
+      changedFiles: [],
+      tests: [],
+      risks: ["Agent(2) real execution failed."],
+      checklist: ["Review Agent(2) stderr/stdout artifacts before retry."],
+      sourceRun: options.runId
+    },
+    executionResult: {
+      executed: false,
+      mode: "failed",
+      files: [],
+      summary: options.message,
+      code: options.code,
+      details: options.details || {}
+    }
+  };
+  run.stageEvents = buildAgentStageEvents(run);
+  run.activityTimeline = run.stageEvents;
+  run.plan.stageEvents = run.stageEvents;
+  run.plan.activityTimeline = run.stageEvents;
+  run.artifacts = {
+    "agent2_real_error.json": {
+      exists: true,
+      path: path.join(options.outputDir, "agent2_real_error.json"),
+      json: {
+        code: options.code,
+        message: options.message,
+        details: options.details || {},
+        safety: run.safety
+      }
+    },
+    "agent_activity_timeline.json": {
+      exists: true,
+      path: path.join(options.outputDir, "agent_activity_timeline.json"),
+      json: {
+        runId: options.runId,
+        stageEvents: run.stageEvents,
+        dryRun: false,
+        realWritePerformed: false
+      }
+    }
+  };
+  await writeWorkbenchArtifacts(options.outputDir, run.artifacts);
+  return run;
+}
+
+function validateAgent2WriteReport(agent2Result = {}, repoPath = "") {
+  const executionResult = agent2Result.execution_result && typeof agent2Result.execution_result === "object"
+    ? agent2Result.execution_result
+    : {};
+  const writtenFiles = (Array.isArray(executionResult.files) ? executionResult.files : [])
+    .filter((file) => file?.real_write === true || file?.applied === true || file?.status === "applied" || Number(file?.bytes_written || 0) > 0);
+  if (!writtenFiles.length) {
+    return {
+      ok: true,
+      noChanges: true,
+      changedFiles: [],
+      message: "Agent(2) completed without reporting changed files."
+    };
+  }
+  const changedFiles = [];
+  for (const file of writtenFiles) {
+    const filePath = file.file || file.path || file.filePath || file.relative_path;
+    const check = validateWritePath(filePath, repoPath);
+    if (!check.ok) return { ...check, noChanges: false, changedFiles };
+    changedFiles.push(check.relativePath);
+  }
+  return {
+    ok: true,
+    noChanges: false,
+    changedFiles: [...new Set(changedFiles)],
+    message: "Agent(2) reported changed files inside the target repo."
+  };
+}
+
+function validateWritePath(value, repoPath) {
+  if (!value) {
+    return { ok: false, code: "agent2_changed_file_missing", message: "Agent(2) reported a changed file without a path." };
+  }
+  const raw = String(value).replaceAll("\\", "/");
+  if (raw.includes("\0")) {
+    return { ok: false, code: "agent2_changed_file_invalid", message: `Changed file path contains invalid characters: ${value}` };
+  }
+  const resolvedRepo = path.resolve(repoPath);
+  const resolvedPath = path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(resolvedRepo, raw);
+  if (!isSameOrInside(resolvedPath, resolvedRepo) || resolvedPath === resolvedRepo) {
+    return { ok: false, code: "agent2_changed_file_outside_repo", message: `Changed file escapes target repo: ${value}` };
+  }
+  const relativePath = path.relative(resolvedRepo, resolvedPath).replaceAll("\\", "/");
+  const forbidden = forbiddenWritePath(relativePath);
+  if (forbidden) {
+    return { ok: false, code: "agent2_forbidden_write_path", message: `Changed file is forbidden: ${relativePath}`, relativePath };
+  }
+  return { ok: true, relativePath };
+}
+
+function validateRepoPathSegments(repoPath) {
+  const parts = path.resolve(repoPath).split(/[\\/]+/).filter(Boolean).map((part) => part.toLowerCase());
+  const blocked = parts.find((part) => ["node_modules", "dist", "runs"].includes(part));
+  if (blocked) {
+    return {
+      ok: false,
+      code: "agent_target_repo_forbidden_segment",
+      message: `Real agent target repo cannot include ${blocked}.`,
+      segment: blocked
+    };
+  }
+  if (parts.at(-1) === ".git") {
+    return {
+      ok: false,
+      code: "agent_target_repo_git_dir",
+      message: "Real agent target repo cannot be a .git directory.",
+      segment: ".git"
+    };
+  }
+  return { ok: true };
+}
+
+function forbiddenWritePath(relativePath) {
+  const normalized = String(relativePath || "").replaceAll("\\", "/").replace(/^\/+/, "");
+  const lower = normalized.toLowerCase();
+  const parts = lower.split("/").filter(Boolean);
+  if (!normalized || normalized.includes("..") || path.isAbsolute(normalized)) return true;
+  if (parts.some((part) => ["node_modules", "dist", "runs", ".git"].includes(part))) return true;
+  const basename = parts.at(-1) || "";
+  if (basename === ".env") return true;
+  if (basename === "api_config.local.json") return true;
+  if (basename.endsWith(".local.json")) return true;
+  if (basename.endsWith(".db") || basename.includes(".db-")) return true;
+  if (basename.endsWith(".sqlite") || /\.sqlite-/i.test(basename)) return true;
+  if (parts.length >= 2 && parts[0] === "data" && (basename.endsWith(".sqlite") || /\.sqlite-/i.test(basename))) return true;
+  return false;
+}
+
+function shouldExcludeBaselinePath(source, repoPath) {
+  const relative = path.relative(repoPath, source).replaceAll("\\", "/");
+  if (!relative) return false;
+  const parts = relative.toLowerCase().split("/").filter(Boolean);
+  if (parts.some((part) => [".git", "node_modules", "dist", "runs"].includes(part))) return true;
+  const basename = parts.at(-1) || "";
+  return basename.endsWith(".pyc") ||
+    basename === ".env" ||
+    basename === "api_config.local.json" ||
+    basename.endsWith(".local.json") ||
+    basename.endsWith(".db") ||
+    basename.endsWith(".sqlite") ||
+    /\.sqlite-/i.test(basename);
+}
+
+function assertInside(parentPath, childPath) {
+  if (!isSameOrInside(childPath, parentPath) || path.resolve(childPath) === path.resolve(parentPath)) {
+    throw Object.assign(new Error("computed path escapes expected root"), {
+      code: "unsafe_computed_path",
+      details: { parentPath, childPath }
+    });
+  }
+}
+
+function isSameOrInside(childPath, parentPath) {
+  const child = path.resolve(childPath);
+  const parent = path.resolve(parentPath);
+  return child === parent || child.startsWith(`${parent}${path.sep}`);
+}
+
+function safeSegment(value) {
+  return String(value || "run").replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 80);
 }
 
 function buildAgent2RequirementDsl(request = {}, targetRepoPath = "") {
@@ -475,46 +857,6 @@ async function attachDoubaoEnv(env, config = {}) {
   env.DOUBAO_API_KEY = doubaoConfig.apiKey;
   env.DOUBAO_ENDPOINT = doubaoConfig.model || doubaoConfig.endpointId;
   env.DOUBAO_BASE_URL = doubaoConfig.baseURL;
-}
-
-function spawnWithInput(command, args, options = {}) {
-  return new Promise((resolve) => {
-    const spawnImpl = options.spawnImpl || spawn;
-    const child = spawnImpl(command, args, {
-      cwd: options.cwd,
-      env: options.env,
-      windowsHide: true,
-      stdio: ["pipe", "pipe", "pipe"]
-    });
-    let stdout = "";
-    let stderr = "";
-    let settled = false;
-    const timer = options.timeoutMs > 0 ? setTimeout(() => {
-      if (settled) return;
-      child.kill();
-      settled = true;
-      resolve({ exitCode: null, stdout, stderr, timedOut: true });
-    }, options.timeoutMs) : null;
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk.toString("utf8");
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk.toString("utf8");
-    });
-    child.on("error", (error) => {
-      if (settled) return;
-      settled = true;
-      if (timer) clearTimeout(timer);
-      resolve({ exitCode: null, stdout, stderr: `${stderr}\n${String(error.message || error)}`, timedOut: false });
-    });
-    child.on("close", (exitCode) => {
-      if (settled) return;
-      settled = true;
-      if (timer) clearTimeout(timer);
-      resolve({ exitCode, stdout, stderr, timedOut: false });
-    });
-    child.stdin.end(options.input || "");
-  });
 }
 
 function parseJsonFromStdout(stdout = "") {
@@ -567,7 +909,8 @@ export function getAgentArtifacts(runId, config = {}) {
       stageEvents: coalesceStageEvents(run.stageEvents, run.activityTimeline),
       activityTimeline: coalesceStageEvents(run.activityTimeline, run.stageEvents),
       review: run.review,
-      prDraft: run.prDraft
+      prDraft: run.prDraft,
+      changedFiles: run.changedFiles || run.review?.changedFiles?.map((item) => item.file || item.filePath).filter(Boolean) || []
     },
     error: null
   };
@@ -604,6 +947,7 @@ function readPersistedAgentArtifacts(runId, config = {}) {
         }])),
         review: reviewFromItems(reviewItems, run),
         prDraft: prDraft ? prDraftForWorkbench(prDraft) : null,
+        changedFiles: run.planJson?.changedFiles || reviewItems.map((item) => item.filePath).filter(Boolean),
         stageEvents: coalesceStageEvents(run.planJson?.stageEvents, run.planJson?.activityTimeline),
         activityTimeline: coalesceStageEvents(run.planJson?.activityTimeline, run.planJson?.stageEvents),
         activity
@@ -625,6 +969,7 @@ function mergeAgentRun(memoryRun, persistedRun) {
     latestReturn: persistedRun.resultSummary || memoryRun?.latestReturn || "",
     context: memoryRun?.context || persistedRun.contextSnapshot || {},
     plan,
+    changedFiles: memoryRun?.changedFiles || plan.changedFiles || [],
     stageEvents,
     activityTimeline: coalesceStageEvents(memoryRun?.activityTimeline, stageEvents),
     progress: memoryRun?.progress || []

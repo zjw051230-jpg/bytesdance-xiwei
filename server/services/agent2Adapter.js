@@ -1,4 +1,5 @@
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { redactSecrets } from "./redactionService.js";
 
 const agent2Root = path.resolve("agent(2)", "agent");
@@ -13,6 +14,21 @@ const blockedModes = [
 export function createAgent2DryRun(request = {}, options = {}) {
   const result = request.agent2Result || buildFixtureAgent2Result(request);
   return mapAgent2ResultToWorkbench(result, { ...request, ...options, dryRun: true, realExecution: false });
+}
+
+export async function runRealAgent2(options = {}) {
+  const command = options.command || "python";
+  const args = Array.isArray(options.args) ? options.args : ["-m", "agent_core.main"];
+  const childOptions = {
+    cwd: options.cwd,
+    env: options.env,
+    input: options.input,
+    spawnImpl: options.spawnImpl,
+    timeoutMs: options.timeoutMs
+  };
+  return typeof options.agent2Runner === "function"
+    ? options.agent2Runner({ command, args, ...childOptions })
+    : spawnWithInput(command, args, childOptions);
 }
 
 export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {}) {
@@ -119,6 +135,7 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
     plan,
     review,
     prDraft,
+    changedFiles: review.changedFiles.map((item) => item.file),
     executionResult,
     reviewResult: objectOrEmpty(normalizedAgent2Result.review_result),
     artifacts: Object.fromEntries(Object.entries(artifactJson).map(([name, json]) => [name, {
@@ -382,6 +399,46 @@ function toStringList(value) {
   return [];
 }
 
+function spawnWithInput(command, args, options = {}) {
+  return new Promise((resolve) => {
+    const spawnImpl = options.spawnImpl || spawn;
+    const child = spawnImpl(command, args, {
+      cwd: options.cwd,
+      env: options.env,
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const timer = options.timeoutMs > 0 ? setTimeout(() => {
+      if (settled) return;
+      child.kill();
+      settled = true;
+      resolve({ exitCode: null, stdout, stderr, timedOut: true });
+    }, options.timeoutMs) : null;
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString("utf8");
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString("utf8");
+    });
+    child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      resolve({ exitCode: null, stdout, stderr: `${stderr}\n${String(error.message || error)}`, timedOut: false });
+    });
+    child.on("close", (exitCode) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      resolve({ exitCode, stdout, stderr, timedOut: false });
+    });
+    child.stdin.end(options.input || "");
+  });
+}
+
 export const agentStageDefinitions = [
   ["requirement", "RequirementAgent", "读取 RequirementDSL / 设计输入"],
   ["readiness", "ReadinessAgent", "检查 dry-run 执行条件"],
@@ -407,10 +464,12 @@ export function buildAgentStageEvents(run = {}) {
   const hasPrDraft = hasObject(run.prDraft) && (run.prDraft.title || run.prDraft.body || toStringList(run.prDraft.summary).length || toStringList(run.prDraft.checklist).length);
   const hasSummary = Boolean(run.latestReturn || run.resultSummary || run.executionResult?.summary);
   const dryRunSafe = run.dryRun !== false && run.realWritePerformed !== true;
+  const realRunConfirmed = run.dryRun === false && run.safety?.realRunConfirm === true && run.safety?.repoPathValidated === true;
+  const readinessComplete = dryRunSafe || realRunConfirmed;
 
   const statusByKey = {
     requirement: hasContext ? "completed" : "skipped",
-    readiness: dryRunSafe ? "completed" : "blocked",
+    readiness: readinessComplete ? "completed" : "blocked",
     context: hasContext ? "completed" : "skipped",
     planner: hasPlan ? "completed" : "skipped",
     locator: hasTargets ? "completed" : "skipped",
@@ -422,7 +481,7 @@ export function buildAgentStageEvents(run = {}) {
   };
   const summaryByKey = {
     requirement: run.context?.requirementDsl?.title || run.context?.taskTitle || "Requirement input was read.",
-    readiness: dryRunSafe ? "dryRun=true and realWritePerformed=false." : "Run boundary is not dry-run safe.",
+    readiness: realRunConfirmed ? "dryRun=false, realRunConfirm=true, and repoPath validation passed." : dryRunSafe ? "dryRun=true and realWritePerformed=false." : "Run boundary is not safe.",
     context: hasContext ? "Agent context snapshot is available." : "No context snapshot was produced.",
     planner: hasPlan ? `${run.plan.steps?.length || 0} plan step(s) available.` : "No plan output was produced.",
     locator: hasTargets ? `${(run.plan?.targetFiles || run.review?.changedFiles || []).length} file target(s) available.` : "No located files were produced.",

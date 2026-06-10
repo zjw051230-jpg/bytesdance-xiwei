@@ -1,6 +1,7 @@
 // @vitest-environment node
 import fs from "node:fs/promises";
 import path from "node:path";
+import os from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
 import { createAppServer } from "./index.js";
 import { openWorkbenchDatabase } from "./db/connection.js";
@@ -337,7 +338,7 @@ describe("persistent workbench database", () => {
 
   it("persists agent run read APIs after backend restart", async () => {
     const dbName = "agent-run-api";
-    const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+    const targetRepoPath = await createTargetRepo(dbName);
     await fs.mkdir(targetRepoPath, { recursive: true });
     const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() });
     const { response: startRun, payload: runPayload } = await requestJson(baseUrl, "/api/agent/run", {
@@ -346,6 +347,7 @@ describe("persistent workbench database", () => {
         projectId: "api-agent-project",
         taskTitle: "Persistent agent run",
         dryRun: false,
+        realRunConfirm: true,
         agentProvider: "agent2",
         targetRepoPath
       })
@@ -413,9 +415,9 @@ describe("persistent workbench database", () => {
     expect(activity.data.some((item) => item.message === "Activity API persisted")).toBe(true);
   });
 
-  it("creates baseline snapshots and rolls back files without modifying the original repo", async () => {
+  it("creates baseline snapshots and rolls back files after a direct target repo write", async () => {
     const dbName = "rollback-file-api";
-    const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+    const targetRepoPath = await createTargetRepo(dbName);
     await fs.mkdir(path.join(targetRepoPath, "src"), { recursive: true });
     await fs.writeFile(path.join(targetRepoPath, "src", "App.jsx"), "baseline app\n", "utf8");
     const agent2Runner = async ({ env }) => {
@@ -429,6 +431,7 @@ describe("persistent workbench database", () => {
         projectId: `${dbName}-project`,
         taskTitle: "Rollback file test",
         dryRun: false,
+        realRunConfirm: true,
         agentProvider: "agent2",
         targetRepoPath
       })
@@ -436,7 +439,7 @@ describe("persistent workbench database", () => {
     expect(startRun.status).toBe(200);
     expectOkEnvelope(startRun, runPayload);
     expect(runPayload.data.workspace.baselineSnapshotId).toBeTruthy();
-    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("baseline app\n");
+    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("changed app\n");
 
     const runId = runPayload.data.runId;
     const changes = await requestJson(baseUrl, `/api/agent/runs/${runId}/changes`);
@@ -468,7 +471,7 @@ describe("persistent workbench database", () => {
 
   it("resets the full run workspace to baseline and leaves PR readiness data stale", async () => {
     const dbName = "rollback-reset-api";
-    const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+    const targetRepoPath = await createTargetRepo(dbName);
     await fs.mkdir(path.join(targetRepoPath, "src"), { recursive: true });
     await fs.writeFile(path.join(targetRepoPath, "src", "App.jsx"), "baseline app\n", "utf8");
     await fs.writeFile(path.join(targetRepoPath, "src", "Theme.css"), "baseline css\n", "utf8");
@@ -484,6 +487,7 @@ describe("persistent workbench database", () => {
         projectId: `${dbName}-project`,
         taskTitle: "Rollback reset test",
         dryRun: false,
+        realRunConfirm: true,
         agentProvider: "agent2",
         targetRepoPath
       })
@@ -575,11 +579,15 @@ async function createRequirementFixture(dbName) {
 }
 
 function createFakeAgent2Runner() {
-  return async () => ({
-    exitCode: 0,
-    timedOut: false,
-    stderr: "",
-    stdout: JSON.stringify({
+  return async ({ env }) => {
+    const targetFile = path.join(env.AGENT_REPO_ROOT, "src", "App.jsx");
+    await fs.mkdir(path.dirname(targetFile), { recursive: true });
+    await fs.writeFile(targetFile, "changed app\n", "utf8");
+    return {
+      exitCode: 0,
+      timedOut: false,
+      stderr: "",
+      stdout: JSON.stringify({
       task_id: "persistence_real_agent",
       task_name: "Persistent agent run",
       status: "success",
@@ -616,8 +624,9 @@ function createFakeAgent2Runner() {
         test_confirmed: false,
         repo_mode: "real"
       }
-    })
-  });
+      })
+    };
+  };
 }
 
 function fakeAgent2Stdout({ file = "src/App.jsx" } = {}) {
@@ -666,7 +675,7 @@ function fakeAgent2Stdout({ file = "src/App.jsx" } = {}) {
 }
 
 async function createAgentRunFixture(dbName) {
-  const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+  const targetRepoPath = await createTargetRepo(dbName);
   await fs.mkdir(targetRepoPath, { recursive: true });
   const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() });
   const { payload: runPayload } = await requestJson(baseUrl, "/api/agent/run", {
@@ -675,6 +684,7 @@ async function createAgentRunFixture(dbName) {
       projectId: `${dbName}-project`,
       taskTitle: `${dbName} task`,
       dryRun: false,
+      realRunConfirm: true,
       agentProvider: "agent2",
       targetRepoPath
     })
@@ -682,6 +692,10 @@ async function createAgentRunFixture(dbName) {
   const runId = runPayload.data.runId;
   const requirementId = `req-agent-${runId}`;
   return { baseUrl, runId, requirementId };
+}
+
+async function createTargetRepo(name) {
+  return fs.mkdtemp(path.join(os.tmpdir(), `${name}-target-`));
 }
 
 async function createDirectPersistenceFixture(dbName) {

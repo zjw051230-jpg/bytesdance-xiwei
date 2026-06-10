@@ -18,6 +18,7 @@ export function normalizeAgentWorkflow(run = {}, fallback = {}) {
     plan: run.plan || run.planJson || fallback.plan || null,
     dryRun: run.dryRun ?? fallback.dryRun ?? true,
     realWritePerformed: run.realWritePerformed ?? fallback.realWritePerformed ?? false,
+    changedFiles: run.changedFiles || run.review?.changedFiles || fallback.changedFiles || [],
     stageEvents,
     activityTimeline: stageEvents
   };

@@ -2,6 +2,7 @@
 import path from "node:path";
 import fs from "node:fs/promises";
 import http from "node:http";
+import os from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
 import { createAppServer } from "./index.js";
 import { redactSecrets } from "./services/redactionService.js";
@@ -1462,13 +1463,17 @@ describe("DSL backend API", () => {
   }, 15000);
 
   it("creates real agent artifacts through Agent(2) and records realWritePerformed", async () => {
-    const targetRepoPath = path.join(testRunsRoot, "server-real-target");
+    const targetRepoPath = await fs.mkdtemp(path.join(os.tmpdir(), "server-agent2-target-"));
     await fs.mkdir(targetRepoPath, { recursive: true });
-    const agent2Runner = async () => ({
-      exitCode: 0,
-      timedOut: false,
-      stderr: "",
-      stdout: JSON.stringify({
+    const agent2Runner = async ({ env }) => {
+      const targetFile = path.join(env.AGENT_REPO_ROOT, "src", "App.jsx");
+      await fs.mkdir(path.dirname(targetFile), { recursive: true });
+      await fs.writeFile(targetFile, "changed app\n", "utf8");
+      return {
+        exitCode: 0,
+        timedOut: false,
+        stderr: "",
+        stdout: JSON.stringify({
         task_id: "server_real_task",
         task_name: "Agent integration test",
         status: "success",
@@ -1505,8 +1510,9 @@ describe("DSL backend API", () => {
           test_confirmed: false,
           repo_mode: "real"
         }
-      })
-    });
+        })
+      };
+    };
     const baseUrl = await startTestServer({ runnerMode: "mock", agent2Runner });
 
     const response = await fetch(`${baseUrl}/api/agent/run`, {
@@ -1516,6 +1522,7 @@ describe("DSL backend API", () => {
         projectId: "conduit-realworld-example-app",
         taskTitle: "Agent integration test",
         dryRun: false,
+        realRunConfirm: true,
         agentProvider: "agent2",
         targetRepoPath
       })
@@ -1527,6 +1534,7 @@ describe("DSL backend API", () => {
     expect(payload.data.runId).toMatch(/^RUN-/);
     expect(payload.data.dryRun).toBe(false);
     expect(payload.data.realWritePerformed).toBe(true);
+    expect(payload.data.targetRepoPath).toBe(targetRepoPath);
     expect(payload.data.plan.mode).toBe("agent2_real_execution");
     expect(payload.data.review.status).toBe("approved");
     expect(payload.data.prDraft.title).toBeTruthy();
@@ -1547,7 +1555,9 @@ describe("DSL backend API", () => {
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         projectId: "conduit-realworld-example-app",
-        dryRun: false
+        dryRun: false,
+        realRunConfirm: true,
+        agentProvider: "agent2"
       })
     });
     const payload = await response.json();

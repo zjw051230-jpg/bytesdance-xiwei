@@ -186,6 +186,90 @@ export default function DesignPlanningWorkbench({
     }
   };
 
+  const handleRealAgentRun = async () => {
+    setPlanError("");
+    const targetRepoPath = resolveProjectLocalPath(activeProject);
+    if (!targetRepoPath) {
+      const message = "缺少项目路径，暂时不能开始真实 Agent 执行。";
+      setPlanError(message);
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        status: "blocked",
+        latestReturn: message,
+        error: message
+      }));
+      return;
+    }
+    const confirmed = window.confirm("本操作会让 Agent 在目标业务仓库中真实修改文件。确认继续？");
+    if (!confirmed) return;
+    setIsAgentRunStarting(true);
+    onAgentWorkflowChange?.((current) => ({
+      ...current,
+      status: "running",
+      latestReturn: "正在执行真实 Agent(2) 流程，目标业务仓库可能被修改。",
+      error: null
+    }));
+    try {
+      const run = await startAgentRun({
+        projectId: activeProject?.id,
+        requirementId: activeRequirement?.id,
+        requirementDsl: buildAgentRequirementDsl(activeRequirement, designPlan, planningTasks),
+        taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
+        dryRun: false,
+        realRunConfirm: true,
+        agentProvider: "agent2",
+        targetRepoPath,
+        repoPath: targetRepoPath
+      });
+      const runFromApi = await getAgentRun(run.runId).catch(() => run);
+      const artifactsFromApi = await getAgentArtifacts(run.runId).catch(() => ({ artifacts: run.artifacts || {} }));
+      const artifacts = artifactsFromApi.artifacts || runFromApi.artifacts || run.artifacts || {};
+      const stageEvents = coalesceStageEvents(
+        runFromApi.stageEvents,
+        runFromApi.activityTimeline,
+        artifactsFromApi.stageEvents,
+        artifactsFromApi.activityTimeline,
+        run.stageEvents,
+        run.activityTimeline
+      );
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        status: runFromApi.status || run.status || "completed",
+        runId: runFromApi.runId || run.runId,
+        latestReturn: runFromApi.latestReturn || runFromApi.resultSummary || run.latestReturn,
+        context: runFromApi.context || runFromApi.contextSnapshot || run.context,
+        plan: runFromApi.plan || runFromApi.planJson || run.plan,
+        review: runFromApi.review || artifactsFromApi.review || run.review,
+        prDraft: runFromApi.prDraft || artifactsFromApi.prDraft || run.prDraft,
+        changedFiles: runFromApi.changedFiles || run.changedFiles || runFromApi.review?.changedFiles || run.review?.changedFiles || [],
+        artifacts,
+        outputDir: runFromApi.outputDir || run.outputDir,
+        relativeOutputDir: runFromApi.relativeOutputDir || run.relativeOutputDir,
+        dryRun: runFromApi.dryRun ?? run.dryRun ?? false,
+        realWritePerformed: runFromApi.realWritePerformed ?? run.realWritePerformed ?? false,
+        executionResult: runFromApi.executionResult || run.executionResult || extractExecutionResultFromArtifacts(artifacts),
+        reviewResult: runFromApi.reviewResult || run.reviewResult || null,
+        agentProcess: runFromApi.agentProcess || run.agentProcess || null,
+        stageEvents,
+        activityTimeline: stageEvents,
+        artifactError: artifactsFromApi.error || null,
+        error: runFromApi.status === "failed" ? runFromApi.errorSummary || runFromApi.latestReturn || "Agent real-run failed." : null
+      }));
+      onToast?.(`真实 Agent 执行完成：${runFromApi.runId || run.runId}`);
+    } catch (error) {
+      const message = error.message || "Agent API request failed";
+      setPlanError(`真实 Agent 执行失败：${message}`);
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        status: "blocked",
+        latestReturn: "真实 Agent 执行失败。",
+        error: message
+      }));
+    } finally {
+      setIsAgentRunStarting(false);
+    }
+  };
+
   const visibleError = requirementError || planError;
 
   return (
@@ -226,6 +310,7 @@ export default function DesignPlanningWorkbench({
           hasTargetRepoPath={hasTargetRepoPath}
           onContextPreview={handleContextPreview}
           onPlanPreview={handlePlanPreview}
+          onRealRun={handleRealAgentRun}
           onOpenReview={onOpenReview}
           onOpenPr={onOpenPr}
         />
@@ -454,7 +539,7 @@ function ExecutionFeedbackPanel({ tasks }) {
   );
 }
 
-function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTargetRepoPath = false, onContextPreview, onPlanPreview, onOpenReview, onOpenPr }) {
+function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTargetRepoPath = false, onContextPreview, onPlanPreview, onRealRun, onOpenReview, onOpenPr }) {
   const stageEvents = coalesceStageEvents(agentWorkflow.stageEvents, agentWorkflow.activityTimeline);
   const artifacts = Object.keys(agentWorkflow.artifacts || {});
   const statusInfo = resolveAgentPanelStatus(agentWorkflow, isStarting, hasTargetRepoPath);
@@ -462,6 +547,7 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
   const latestSummary = latestAgentSummary(agentWorkflow, latestStage);
   const visibleArtifacts = buildAgentArtifactTags(agentWorkflow, artifacts);
   const dryRunValue = agentWorkflow.runId ? String(agentWorkflow.dryRun !== false) : "等待生成";
+  const realWriteValue = agentWorkflow.realWritePerformed === true ? "true" : "false";
   const targetPath = agentWorkflow.context?.targetRepoPath || agentWorkflow.context?.localPath || "";
   return (
     <section className="planning-card agent-execution-panel" aria-label="Agent dry-run 预览控制台">
@@ -485,9 +571,9 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
           <span>安全边界</span>
           <ul>
             <li>dryRun：{dryRunValue}</li>
-            <li>realWritePerformed: false</li>
-            <li>不会直接修改业务仓库</li>
-            <li>{targetPath && targetPath !== "not_set" ? "项目路径仅用于生成预览上下文" : "缺少项目路径时会阻止生成计划"}</li>
+            <li>realWritePerformed: {realWriteValue}</li>
+            <li>真实执行必须二次确认</li>
+            <li>{targetPath && targetPath !== "not_set" ? "项目路径通过后才允许真实执行" : "缺少项目路径时会阻止生成计划"}</li>
           </ul>
         </section>
       </div>
@@ -515,6 +601,9 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
         <button type="button" onClick={onPlanPreview} disabled={isStarting || !hasTargetRepoPath}>
           {isStarting ? <ClipboardList size={15} /> : <Play size={15} />}
           {isStarting ? "正在生成 dry-run 计划" : hasTargetRepoPath ? "生成 Agent dry-run 计划" : "先绑定项目路径"}
+        </button>
+        <button type="button" onClick={onRealRun} disabled={isStarting || !hasTargetRepoPath}>
+          <AlertTriangle size={15} />开始真实 Agent 执行
         </button>
         <button type="button" onClick={onOpenReview}><FileText size={15} />打开审阅页面</button>
         <button type="button" onClick={onOpenPr}><ClipboardList size={15} />打开 PR 页面</button>

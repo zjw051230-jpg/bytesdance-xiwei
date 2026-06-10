@@ -1,0 +1,44 @@
+{
+  "task": "Real Agent Flow Enablement",
+  "status": "committed_not_pushed",
+  "realRun": {
+    "enabled": true,
+    "requiresDryRunFalse": true,
+    "requiresRealRunConfirm": true,
+    "requiresAgent2": true,
+    "workbenchSelfWriteBlocked": true,
+    "repoPathValidated": true,
+    "realWritePerformedCanBeTrue": true
+  },
+  "mapping": {
+    "changedFilesMapped": true,
+    "artifactsMapped": true,
+    "reviewMapped": true,
+    "prDraftMapped": true,
+    "stageEventsMapped": true
+  },
+  "tests": {
+    "fullTestsSkipped": true,
+    "staticCheck": "git diff --check passed",
+    "smokeRun": "not executed; F:\\ds\\conduit-realworld-example-app does not exist",
+    "targeted": [
+      "npx vitest run server/agent2Route.test.js server/agent2Adapter.test.js",
+      "npx vitest run server/server.test.js -t \"creates real agent artifacts|blocks real agent execution\"",
+      "npx vitest run server/persistence.test.js -t \"persists agent run read APIs|persists review item update APIs|persists PR draft save/read APIs|creates baseline snapshots|resets the full run workspace\""
+    ]
+  },
+  "safety": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "dbCommitted": false,
+    "runsCommitted": false,
+    "distCommitted": false,
+    "nodeModulesCommitted": false,
+    "workbenchRepoWrite": false
+  },
+  "git": {
+    "commit": "8b956a4",
+    "pushed": false,
+    "branch": "ZJWNB"
+  }
+}

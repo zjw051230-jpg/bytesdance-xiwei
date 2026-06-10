@@ -1,6 +1,7 @@
 // @vitest-environment node
 import path from "node:path";
 import fs from "node:fs/promises";
+import os from "node:os";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createAppServer } from "./index.js";
 
@@ -44,13 +45,17 @@ afterEach(async () => {
 
 describe("Agent(2) route integration", () => {
   it("routes real Agent(2) requests through the runner and keeps the JSON envelope intact", async () => {
-    const targetRepoPath = path.join(testRunsRoot, "target-repo");
+    const targetRepoPath = await fs.mkdtemp(path.join(os.tmpdir(), "agent2-route-target-"));
     await fs.mkdir(targetRepoPath, { recursive: true });
-    const agent2Runner = vi.fn(async ({ env, input }) => ({
-      exitCode: 0,
-      timedOut: false,
-      stderr: "",
-      stdout: JSON.stringify({
+    const agent2Runner = vi.fn(async ({ env, input }) => {
+      const targetFile = path.join(env.AGENT_REPO_ROOT, "frontend", "src", "routes", "Article", "Article.jsx");
+      await fs.mkdir(path.dirname(targetFile), { recursive: true });
+      await fs.writeFile(targetFile, "export default function Article() { return 'stats'; }\n", "utf8");
+      return {
+        exitCode: 0,
+        timedOut: false,
+        stderr: "",
+        stdout: JSON.stringify({
         task_id: "demo_task",
         task_name: "Add article word count and reading time",
         status: "success",
@@ -104,9 +109,10 @@ describe("Agent(2) route integration", () => {
           test_confirmed: false,
           repo_mode: "real"
         },
-        input_echo: JSON.parse(input)
-      })
-    }));
+          input_echo: JSON.parse(input)
+        })
+      };
+    });
     const baseUrl = await startTestServer({ agent2Runner });
 
     const response = await fetch(`${baseUrl}/api/agent/run`, {
@@ -120,6 +126,7 @@ describe("Agent(2) route integration", () => {
           user_story: "把 Conduit Home 页面改成黑红配色主题"
         },
         dryRun: false,
+        realRunConfirm: true,
         agentProvider: "agent2",
         targetRepoPath
       })
@@ -130,10 +137,9 @@ describe("Agent(2) route integration", () => {
     expect(payload.ok).toBe(true);
     expect(payload.error).toBeNull();
     expect(agent2Runner).toHaveBeenCalledOnce();
-    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).not.toBe(targetRepoPath);
-    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toContain(path.join("workspaces", payload.data.runId, "workspace"));
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toBe(targetRepoPath);
     expect(payload.data.sourceRepoPath).toBe(targetRepoPath);
-    expect(payload.data.targetRepoPath).toBe(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT);
+    expect(payload.data.targetRepoPath).toBe(targetRepoPath);
     expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe("1");
     expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_PLANNER).toBe("1");
     expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_CODER).toBe("1");
@@ -141,6 +147,7 @@ describe("Agent(2) route integration", () => {
     expect(agent2Runner.mock.calls[0][0].env.AGENT_STATE_DIR).toContain("agent2_state");
     const agentInput = JSON.parse(agent2Runner.mock.calls[0][0].input);
     expect(agentInput.skill_hint).toBe("conduit-theme");
+    expect(agentInput.target_repo).toBe(targetRepoPath);
     expect(agentInput.target_modules).toContain("frontend/src/index.css");
     expect(payload.data.plan.mode).toBe("agent2_real_execution");
     expect(payload.data.realWritePerformed).toBe(true);
@@ -155,5 +162,34 @@ describe("Agent(2) route integration", () => {
     expect(artifactsPayload.data.review.changedFiles[0].file).toBe("frontend/src/routes/Article/Article.jsx");
     expect(artifactsPayload.data.prDraft.title).toBe("Add article word count and reading time");
     expect(JSON.stringify(artifactsPayload)).not.toMatch(/api_key|Authorization|Bearer|sk-/i);
+  });
+
+  it("blocks real Agent(2) requests without explicit realRunConfirm", async () => {
+    const targetRepoPath = await fs.mkdtemp(path.join(os.tmpdir(), "agent2-route-target-"));
+    const agent2Runner = vi.fn(async () => ({
+      exitCode: 0,
+      timedOut: false,
+      stderr: "",
+      stdout: "{}"
+    }));
+    const baseUrl = await startTestServer({ agent2Runner });
+
+    const response = await fetch(`${baseUrl}/api/agent/run`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        taskTitle: "Agent2 integration test",
+        dryRun: false,
+        agentProvider: "agent2",
+        targetRepoPath
+      })
+    });
+    const payload = await response.json();
+
+    expect(response.status).toBe(403);
+    expect(payload.ok).toBe(false);
+    expect(payload.error.code).toBe("agent_real_run_confirmation_missing");
+    expect(agent2Runner).not.toHaveBeenCalled();
   });
 });
