@@ -7,6 +7,7 @@ import { extractJsonObject, requireFields } from "../../e2e/runner/json-utils.mj
 import { chatCompletion as defaultChatCompletion } from "../../e2e/runner/llm-client.mjs";
 import { assertNoSecretsInText, redactObject } from "../../e2e/runner/secret-scan.mjs";
 import { readRunArtifacts } from "./artifactService.js";
+import { evaluateDslCore } from "./dslCore/index.js";
 import { redactSecrets, redactString } from "./redactionService.js";
 import { relativeOutputDir } from "./runStore.js";
 
@@ -189,26 +190,35 @@ async function writeDslArtifacts({
     }
   };
   const risks = normalizeRisks(requirementDsl.risks);
+  const dslCore = evaluateDslCore({ pmText, dsl: finalDsl });
+  const coreRisks = dslCore.riskActivation.activated_risk_factors.length
+    ? dslCore.riskActivation.activated_risk_factors
+    : risks;
   const scoring = {
-    module_status: "standalone",
-    dsl_completion_score: estimateCompletion(requirementDsl, readiness),
-    ready_for_agent: Boolean(requirementDsl.ready_for_agent && readiness.ready && readiness.safe_to_write),
+    ...dslCore.scoring,
+    module_status: "standalone_dsl_core",
+    dsl_completion_score: dslCore.scoring.rawScore,
+    ready_for_agent: Boolean(dslCore.scoring.ready_for_agent && readiness.ready && readiness.safe_to_write),
     can_handoff_to_agent: false,
-    handoff_decision: finalDsl.handoff_decision,
-    covered_items: normalizeStringList(requirementDsl.acceptance_criteria).slice(0, 6),
-    pending_items: risks.slice(0, 6).map((risk) => risk.reason),
+    handoff_decision: dslCore.scoring.handoff_decision || finalDsl.handoff_decision,
+    covered_items: dslCore.scoring.covered_items?.slice(0, 6) || normalizeStringList(requirementDsl.acceptance_criteria).slice(0, 6),
+    pending_items: dslCore.scoring.pending_items?.slice(0, 6) || risks.slice(0, 6).map((risk) => risk.reason),
     source: "standalone_artifact_runner"
   };
   const evpi = {
-    module_status: "standalone",
+    ...dslCore.evpi,
+    module_status: "standalone_dsl_core",
     clarification_gate: {
+      ...dslCore.evpi.clarification_gate,
       should_ask: !scoring.ready_for_agent,
       ready_for_agent: false,
       can_handoff_to_agent: false,
       handoff_decision: finalDsl.handoff_decision,
-      coverage_source_type: "standalone_artifact_runner"
+      coverage_source_type: dslCore.gapVector.coverage_source_type || "standalone_artifact_runner"
     },
-    ranked_questions: buildClarificationQuestions(requirementDsl, readiness)
+    ranked_questions: dslCore.evpi.ranked_questions?.length
+      ? dslCore.evpi.ranked_questions
+      : buildClarificationQuestions(requirementDsl, readiness)
   };
   const artifactJson = {
     "00_input.json": {
@@ -225,8 +235,18 @@ async function writeDslArtifacts({
     },
     "05_dsl_draft.json": finalDsl,
     "06_risk_activation.json": {
-      module_status: "standalone",
-      activated_risk_factors: risks
+      module_status: "standalone_dsl_core",
+      dictionary_version: dslCore.riskActivation.dictionary_version,
+      activated_risk_factors: coreRisks
+    },
+    "07_router_schema_activation.json": {
+      module_status: "standalone_dsl_core",
+      router: dslCore.router,
+      schema_activation: dslCore.schemaActivation
+    },
+    "08_gap_vector.json": {
+      module_status: "standalone_dsl_core",
+      ...dslCore.gapVector
     },
     "09_scoring.json": scoring,
     "10_evpi_clarification.json": evpi,

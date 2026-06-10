@@ -1,0 +1,41 @@
+{
+  "task": "DSL Core Module Audit / Restore",
+  "status": "committed_not_pushed",
+  "modules": {
+    "projectSkeleton": "present",
+    "dslSchemaV0": "restored",
+    "riskFactorDictionary": "restored",
+    "requirementTypeRouter": "restored",
+    "schemaActivationLayer": "restored",
+    "gapVectorRiskRetrieval": "restored",
+    "dslScoringEngine": "restored",
+    "evpiLiteClarificationGate": "restored"
+  },
+  "standalone": {
+    "runtimeDependsOnDslV2": false,
+    "runtimeDependsOnPmDslRunner": false
+  },
+  "tests": {
+    "npmTest": "passed: 11 files / 124 tests",
+    "testServer": "passed: 5 files / 77 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verify": "passed",
+    "checkStandalone": "passed",
+    "standaloneArtifacts": "passed",
+    "dslCoreSmoke": "passed"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "main"
+  }
+}

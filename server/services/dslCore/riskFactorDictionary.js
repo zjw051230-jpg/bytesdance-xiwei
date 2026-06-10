@@ -1,0 +1,131 @@
+export const RISK_DICTIONARY_VERSION = "dsl_core_v0";
+
+export const riskFactors = [
+  {
+    factor_id: "test_oracle_unclear",
+    category: "testing",
+    severity: "high",
+    trigger_tags: ["验收", "测试", "判断", "标准", "test", "acceptance", "oracle"],
+    related_dsl_fields: ["evaluation_atoms.acceptance_case", "test_oracle_detail.expected_result"],
+    default_coverage_fields: ["evaluation_atoms.acceptance_case", "test_oracle_detail.expected_result"],
+    default_clarification_question: "验收时你希望用哪些用户可见结果判断这个需求完成？"
+  },
+  {
+    factor_id: "error_code_mapping",
+    category: "api_contract",
+    severity: "medium",
+    trigger_tags: ["错误码", "error_code", "状态码", "失败原因"],
+    related_dsl_fields: ["change_atoms.error_state_mapping", "evaluation_atoms.negative_case"],
+    default_coverage_fields: ["change_atoms.error_state_mapping", "evaluation_atoms.negative_case"],
+    default_clarification_question: "不同失败原因需要映射成哪些用户可理解的提示？"
+  },
+  {
+    factor_id: "idempotency_contract_missing",
+    category: "api_contract",
+    severity: "high",
+    trigger_tags: ["支付", "重试", "重复提交", "幂等", "idempotency", "retry"],
+    related_dsl_fields: ["decision_policy.idempotency", "evaluation_atoms.negative_case"],
+    default_coverage_fields: ["decision_policy.idempotency", "evaluation_atoms.negative_case"],
+    default_clarification_question: "重复提交或重试时，系统应该如何避免重复生效？"
+  },
+  {
+    factor_id: "acceptance_case_missing",
+    category: "testing",
+    severity: "high",
+    trigger_tags: ["完成", "验收", "done", "acceptance", "标准"],
+    related_dsl_fields: ["evaluation_atoms.acceptance_case"],
+    default_coverage_fields: ["evaluation_atoms.acceptance_case"],
+    default_clarification_question: "验收时至少要覆盖哪几个成功和失败用例？"
+  },
+  {
+    factor_id: "copy_policy_missing",
+    category: "ui_ux",
+    severity: "medium",
+    trigger_tags: ["提示", "文案", "copy", "toast", "message", "样式", "主题"],
+    related_dsl_fields: ["change_atoms.ui_copy", "evaluation_atoms.acceptance_case"],
+    default_coverage_fields: ["change_atoms.ui_copy", "evaluation_atoms.acceptance_case"],
+    default_clarification_question: "你希望用户看到的提示文案大致表达什么？"
+  },
+  {
+    factor_id: "agent_completion_criteria_missing",
+    category: "agent_execution",
+    severity: "high",
+    trigger_tags: ["agent", "执行", "自动", "交付", "完成标准"],
+    related_dsl_fields: ["execution_atoms.completion_criteria", "readiness_gates.ready_for_agent"],
+    default_coverage_fields: ["execution_atoms.completion_criteria", "readiness_gates.ready_for_agent"],
+    default_clarification_question: "进入后续执行前，哪些完成条件必须由人工确认？"
+  },
+  {
+    factor_id: "error_state_missing",
+    category: "ui_ux",
+    severity: "high",
+    trigger_tags: ["失败", "错误", "异常", "锁定", "不存在", "网络异常"],
+    related_dsl_fields: ["evaluation_atoms.negative_case", "change_atoms.error_state_mapping"],
+    default_coverage_fields: ["evaluation_atoms.negative_case", "change_atoms.error_state_mapping"],
+    default_clarification_question: "失败或异常场景要覆盖哪些情况？"
+  },
+  {
+    factor_id: "scope_boundary_missing",
+    category: "boundary_control",
+    severity: "high",
+    trigger_tags: ["范围", "只", "不做", "不包含", "scope", "out of scope"],
+    related_dsl_fields: ["scope_atoms.in_scope", "scope_atoms.out_of_scope"],
+    default_coverage_fields: ["scope_atoms.in_scope", "scope_atoms.out_of_scope"],
+    default_clarification_question: "这次明确不做哪些范围，避免需求被放大？"
+  },
+  {
+    factor_id: "permission_boundary_missing",
+    category: "security_privacy",
+    severity: "medium",
+    trigger_tags: ["权限", "账号", "安全", "隐私", "permission", "auth", "role"],
+    related_dsl_fields: ["boundary_atoms.permission_policy", "decision_policy.security_privacy_checked"],
+    default_coverage_fields: ["boundary_atoms.permission_policy", "decision_policy.security_privacy_checked"],
+    default_clarification_question: "这个需求是否涉及账号、权限或安全边界？"
+  }
+];
+
+export function activateRiskFactors({ text = "", dsl = {}, factors = riskFactors } = {}) {
+  const haystack = normalize(`${text}\n${JSON.stringify(dsl)}`);
+  const activated = [];
+  for (const factor of factors) {
+    const matched = factor.trigger_tags.filter((tag) => normalize(tag) && haystack.includes(normalize(tag)));
+    const implicitLoginError = factor.factor_id === "test_oracle_unclear" && /登录|login|失败|错误/.test(haystack);
+    if (matched.length === 0 && !implicitLoginError) continue;
+    activated.push({
+      ...factor,
+      matched_tags: matched,
+      activation_score: Math.min(1, 0.45 + matched.length * 0.18 + (implicitLoginError ? 0.2 : 0)),
+      source: "risk_factor_dictionary"
+    });
+  }
+  return {
+    dictionary_version: RISK_DICTIONARY_VERSION,
+    activated_risk_factors: sortFactors(uniqueById(activated))
+  };
+}
+
+export function getRiskFactorById(factorId) {
+  return riskFactors.find((factor) => factor.factor_id === factorId) || null;
+}
+
+function sortFactors(factors) {
+  const severityRank = { critical: 4, high: 3, medium: 2, low: 1 };
+  return [...factors].sort((a, b) => {
+    const severity = (severityRank[b.severity] || 0) - (severityRank[a.severity] || 0);
+    if (severity) return severity;
+    return String(a.factor_id).localeCompare(String(b.factor_id));
+  });
+}
+
+function uniqueById(factors) {
+  const seen = new Set();
+  return factors.filter((factor) => {
+    if (seen.has(factor.factor_id)) return false;
+    seen.add(factor.factor_id);
+    return true;
+  });
+}
+
+function normalize(text) {
+  return String(text || "").toLowerCase().replace(/\s+/g, "");
+}

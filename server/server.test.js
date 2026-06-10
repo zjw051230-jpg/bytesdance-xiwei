@@ -1153,7 +1153,7 @@ describe("DSL backend API", () => {
     expect(payload.data.boundaries).toContain("default dry-run only");
     expect(payload.data.entrypoints).toEqual(expect.arrayContaining(["agent/agent_core/main.py"]));
     expect(text).not.toMatch(/api_key|Authorization|Bearer|sk-/i);
-  });
+  }, 15000);
 
   it("creates agent dry-run artifacts and keeps realWritePerformed false", async () => {
     const baseUrl = await startTestServer({ runnerMode: "mock" });

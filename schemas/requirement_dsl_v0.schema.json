@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Standalone RequirementDSL v0",
+  "type": "object",
+  "required": [
+    "title",
+    "summary",
+    "requirements",
+    "acceptance_criteria",
+    "risks",
+    "ready_for_agent",
+    "handoff_decision"
+  ],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "summary": { "type": "string", "minLength": 1 },
+    "requirements": { "type": "array", "items": { "type": "string" } },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "ready_for_agent": { "type": "boolean" },
+    "handoff_decision": { "type": "string", "enum": ["clarify_first", "ready_for_agent", "ready"] },
+    "scope": { "type": "object" },
+    "execution_atoms": { "type": "object" },
+    "source": { "type": "object" }
+  }
+}

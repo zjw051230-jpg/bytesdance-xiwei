@@ -5,6 +5,7 @@ import { redactSecrets, redactString } from "./redactionService.js";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { createChatCompletionWithLocalConfig, readOpenAiCompatibleConfig } from "./openAiCompatibleClient.js";
 import { createDoubaoChatCompletionWithLocalConfig, readDoubaoArkConfig } from "./doubaoArkClient.js";
+import { evaluateDslCore } from "./dslCore/index.js";
 import {
   buildInputGateReply,
   detectInputIntent,
@@ -135,6 +136,7 @@ export async function runSkillTurn(requestBody = {}, config = {}) {
 
   parsed = repairOverPassIfNeeded(parsed, input, skillNames);
   parsed = enforceSafetyAndRedaction(parsed, skillNames);
+  parsed = applyDslCoreEvaluation(parsed, input);
   parsed = enforceClarificationQuestionPolicy(parsed, input);
   parsed.source = {
     ...(parsed.source || {}),
@@ -931,6 +933,87 @@ function enforceClarificationQuestionPolicy(payload, input) {
   };
 }
 
+function applyDslCoreEvaluation(payload, input) {
+  const dsl = payloadToRequirementDsl(payload);
+  const core = evaluateDslCore({ pmText: latestPmText(input.pmMessages), dsl });
+  const evpiQuestions = (core.evpi.ranked_questions || []).map((question) => ({
+    question: question.question,
+    reason: question.reason || "EVPI-lite clarification gate",
+    suggested_default: "",
+    target_fields: arrayOfStrings(question.target_fields),
+    risk_factors: arrayOfStrings(question.factor_ids),
+    priority: question.priority || "p1"
+  }));
+  const existingQuestions = Array.isArray(payload.clarification?.questions) ? payload.clarification.questions : [];
+  const activeRisks = core.riskActivation.activated_risk_factors || [];
+
+  return {
+    ...payload,
+    dsl_core: core,
+    clarification: {
+      ...(payload.clarification || {}),
+      should_ask: core.evpi.clarification_gate.should_ask || payload.clarification?.should_ask !== false,
+      questions: existingQuestions.length < 2
+        ? dedupeQuestions([...existingQuestions, ...evpiQuestions]).slice(0, 2)
+        : existingQuestions
+    },
+    risk_boundary: {
+      ...(payload.risk_boundary || {}),
+      ready_for_agent: false,
+      can_handoff_to_agent: false,
+      handoff_decision: "clarify_first",
+      reasons: uniqueStrings([
+        ...arrayOfStrings(payload.risk_boundary?.reasons),
+        ...arrayOfStrings(core.scoring.blocking_reasons),
+        "standalone DSL core requires PM clarification before Agent handoff"
+      ]).slice(0, 8)
+    },
+    human_report_patch: {
+      ...(payload.human_report_patch || {}),
+      risks: uniqueStrings([
+        ...arrayOfStrings(payload.human_report_patch?.risks),
+        ...activeRisks.map((factor) => `${factor.factor_id}: ${factor.default_clarification_question}`)
+      ]).slice(0, 8),
+      pending_confirmations: uniqueStrings([
+        ...arrayOfStrings(payload.human_report_patch?.pending_confirmations),
+        ...evpiQuestions.map((item) => item.question)
+      ]).slice(0, 8)
+    },
+    source: {
+      ...(payload.source || {}),
+      dslCore: "standalone_dsl_core_v0"
+    }
+  };
+}
+
+function payloadToRequirementDsl(payload) {
+  const summary = payload.current_dsl_summary || {};
+  return {
+    title: String(summary.title || payload.dsl_patch?.title || "RequirementDSL draft"),
+    summary: String(summary.goal || payload.human_report_patch?.summary || summary.title || "PM clarification draft"),
+    requirements: arrayOfStrings(summary.scope || payload.human_report_patch?.in_scope),
+    acceptance_criteria: arrayOfStrings(summary.acceptance_criteria),
+    risks: arrayOfStrings(payload.human_report_patch?.risks || summary.unknowns),
+    ready_for_agent: Boolean(payload.risk_boundary?.ready_for_agent),
+    handoff_decision: String(payload.risk_boundary?.handoff_decision || "clarify_first"),
+    scope: {
+      in_scope: arrayOfStrings(summary.scope || payload.human_report_patch?.in_scope),
+      out_of_scope: arrayOfStrings(summary.out_of_scope || payload.human_report_patch?.out_of_scope)
+    }
+  };
+}
+
+function dedupeQuestions(questions) {
+  const seen = new Set();
+  return questions.filter((question) => {
+    const text = String(question?.question || question?.text || "").trim();
+    const key = normalizeQuestionKey(text);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function normalizeClarificationQuestionList(questions = [], input = {}) {
   const existing = (Array.isArray(questions) ? questions : [])
     .map((question, index) => normalizeQuestionItem(question, index))
@@ -1174,11 +1257,14 @@ function slowResponseSkillPayload(input, skillNames, error) {
 function skillPayloadToUiState(payload) {
   const summary = payload.current_dsl_summary || {};
   const report = payload.human_report_patch || {};
+  const rawScore = Number(payload.dsl_core?.scoring?.rawScore ?? 78);
+  const displayScore = Math.min(94, Math.max(86, Math.round(rawScore)));
+  const coreRisks = payload.dsl_core?.riskActivation?.activated_risk_factors || [];
   return {
     dslCompletion: {
-      rawScore: 78,
-      displayScore: 86,
-      value: 86,
+      rawScore,
+      displayScore,
+      value: displayScore,
       source: "skill_orchestrated_model",
       displayNote: "demo display score clamp: rawScore is preserved"
     },
@@ -1188,12 +1274,12 @@ function skillPayloadToUiState(payload) {
       handoff_decision: "clarify_first",
       source: "skill_safety_boundary"
     },
-    risks: (report.risks?.length ? report.risks : ["验收标准仍需人工确认"]).slice(0, 4).map((risk, index) => ({
+    risks: (coreRisks.length ? coreRisks.map((risk) => risk.factor_id) : (report.risks?.length ? report.risks : ["验收标准仍需人工确认"])).slice(0, 4).map((risk, index) => ({
       priority: index === 0 ? "P0" : "P1",
-      key: index === 0 ? "test_oracle_unclear" : `skill_risk_${index + 1}`,
-      description: risk,
+      key: coreRisks[index]?.factor_id || (index === 0 ? "test_oracle_unclear" : `skill_risk_${index + 1}`),
+      description: coreRisks[index]?.default_clarification_question || risk,
       impact: "中高影响",
-      category: "skill_boundary"
+      category: coreRisks[index]?.category || "skill_boundary"
     })),
     recommendedQuestion: {
       title: "Skill 生成澄清建议",
