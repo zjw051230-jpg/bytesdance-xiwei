@@ -32,7 +32,7 @@ const humanStatusLabels = {
   blocked: "阻塞"
 };
 
-const emptyReviewSummary = "暂无 Agent dry-run 审计结果。请先在设计规划页生成 dry-run。";
+const emptyReviewSummary = "暂无 Agent real-run 审计结果。请先在设计规划页生成 real-run。";
 
 export default function ReviewCheckWorkbench({
   activeProject,
@@ -122,7 +122,7 @@ export default function ReviewCheckWorkbench({
     summary: reviewItems.length > 0
       ? (agentWorkflow.review?.summary || `${reviewItems.length} 个 review item 来自持久化 API。`)
       : normalizedWorkflowItems.length > 0
-        ? workflowReview?.summary || `${normalizedWorkflowItems.length} 个 review item 来自 Agent dry-run。`
+        ? workflowReview?.summary || `${normalizedWorkflowItems.length} 个 review item 来自 Agent real-run。`
         : loadingReview
           ? "正在读取持久化 review items..."
           : emptyReviewSummary,
@@ -249,7 +249,7 @@ export default function ReviewCheckWorkbench({
       <aside className="audit-side-panel" aria-label="审计说明">
         <header className="audit-side-heading">
           <div>
-            <span>Agent dry-run audit</span>
+            <span>Agent real-run audit</span>
             <h1>审计页面</h1>
             <p>{reviewForAudit.summary}</p>
           </div>
@@ -409,7 +409,7 @@ function buildTests(items, fallbackReview) {
 }
 
 function buildConfirmations(items, fallbackReview) {
-  if (items.length === 0) return fallbackReview?.manualConfirmations || ["请先生成 Agent dry-run 审计结果。"];
+  if (items.length === 0) return fallbackReview?.manualConfirmations || ["请先生成 Agent real-run 审计结果。"];
   return items.map((item) => `${item.filePath || item.file}: ${humanStatusLabels[item.humanStatus || "pending"]}`);
 }
 
@@ -423,7 +423,7 @@ function buildAuditModel(review, previewUrl) {
     previewUrl: previewUrl || "",
     previewTitle: DEFAULT_PREVIEW_TITLE,
     selectedFile: changedFiles[0]?.file || "",
-    visibleChanges: hasChangedFiles ? changedFiles.map((file) => file.changeSummary || file.requirementPoint || file.file) : ["暂无用户可见变更，等待 Agent dry-run 输出。"],
+    visibleChanges: hasChangedFiles ? changedFiles.map((file) => file.changeSummary || file.requirementPoint || file.file) : ["暂无用户可见变更，等待 Agent real-run 输出。"],
     acceptanceMappings: changedFiles.map((file, index) => ({
       label: `验收点 ${index + 1}`,
       value: file.why || file.requirementPoint || "Mapped to RequirementDSL acceptance criteria."

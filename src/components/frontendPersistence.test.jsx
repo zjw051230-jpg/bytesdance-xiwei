@@ -149,7 +149,7 @@ describe("frontend persistence wiring", () => {
 
     expect(screen.queryByText("src/components/LoginForm.jsx")).not.toBeInTheDocument();
     expect(screen.queryByText("src/components/ErrorMessage.jsx")).not.toBeInTheDocument();
-    expect(screen.getByText(/暂无 Agent dry-run 审计结果/)).toBeInTheDocument();
+    expect(screen.getByText(/暂无 Agent real-run 审计结果/)).toBeInTheDocument();
     expect(screen.getByText("暂无变更文件")).toBeInTheDocument();
   });
 

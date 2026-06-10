@@ -29,6 +29,8 @@ export default function DesignPlanningWorkbench({
   const [planningTasks, setPlanningTasks] = useState([]);
   const [planError, setPlanError] = useState("");
   const [isLoadingPlan, setIsLoadingPlan] = useState(false);
+  const [isAgentRunStarting, setIsAgentRunStarting] = useState(false);
+  const hasTargetRepoPath = Boolean(resolveProjectLocalPath(activeProject));
 
   useEffect(() => {
     let active = true;
@@ -77,49 +79,98 @@ export default function DesignPlanningWorkbench({
   };
 
   const handleContextPreview = async () => {
-    const readiness = await checkAgentReadiness({ projectId: activeProject?.id, requirementId: activeRequirement?.id });
-    onAgentWorkflowChange?.((current) => ({
-      ...current,
-      status: "ready",
-      readiness,
-      context: {
-        projectId: activeProject?.id,
-        projectName: activeProject?.name,
-        requirementId: activeRequirement?.id,
-        boundary: "dry-run preview only",
-        agent1EntryPoints: readiness.entrypoints
-      },
-      latestReturn: "Agent input context preview is ready."
-    }));
-    onToast?.("Agent context preview ready");
+    setPlanError("");
+    const targetRepoPath = resolveProjectLocalPath(activeProject);
+    try {
+      const readiness = await checkAgentReadiness({ projectId: activeProject?.id, requirementId: activeRequirement?.id, targetRepoPath });
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        status: "ready",
+        readiness,
+        context: {
+          projectId: activeProject?.id,
+          projectName: activeProject?.name,
+          requirementId: activeRequirement?.id,
+          boundary: targetRepoPath ? "real Agent(2) execution target selected" : "real execution blocked: missing project localPath",
+          targetRepoPath: targetRepoPath || "not_set",
+          agent1EntryPoints: readiness.entrypoints
+        },
+        latestReturn: "Agent input context preview is ready.",
+        error: null
+      }));
+      onToast?.("Agent context preview ready");
+    } catch (error) {
+      const message = error.message || "Agent API request failed";
+      setPlanError(`Real Agent execution failed: ${message}`);
+      onAgentWorkflowChange?.((current) => ({ ...current, status: "blocked", error: message }));
+    }
   };
 
   const handlePlanPreview = async () => {
-    onAgentWorkflowChange?.((current) => ({ ...current, status: "running", latestReturn: "Generating dry-run plan..." }));
-    const run = await startAgentRun({
-      projectId: activeProject?.id,
-      requirementId: activeRequirement?.id,
-      requirementDsl: activeRequirement?.dslJson || {},
-      taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
-      dryRun: true
-    });
-    const runFromApi = await getAgentRun(run.runId).catch(() => run);
-    const artifactsFromApi = await getAgentArtifacts(run.runId).catch(() => ({ artifacts: run.artifacts || {} }));
-    const artifacts = artifactsFromApi.artifacts || runFromApi.artifacts || run.artifacts || {};
+    setPlanError("");
+    const targetRepoPath = resolveProjectLocalPath(activeProject);
+    if (!targetRepoPath) {
+      const message = "Real execution requires the selected project to have localPath/targetRepoPath.";
+      setPlanError(message);
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        status: "blocked",
+        latestReturn: message,
+        error: message
+      }));
+      return;
+    }
+    setIsAgentRunStarting(true);
     onAgentWorkflowChange?.((current) => ({
       ...current,
-      status: runFromApi.status || "completed",
-      runId: runFromApi.runId || run.runId,
-      latestReturn: runFromApi.latestReturn || runFromApi.resultSummary || run.latestReturn,
-      context: runFromApi.context || runFromApi.contextSnapshot || run.context,
-      plan: runFromApi.plan || runFromApi.planJson || run.plan,
-      review: runFromApi.review || run.review,
-      prDraft: runFromApi.prDraft || run.prDraft,
-      artifacts,
-      artifactError: artifactsFromApi.error || null,
+      status: "running",
+      latestReturn: "Real Agent(2) execution is running against the target repository.",
       error: null
     }));
-    onToast?.("Agent dry-run plan generated");
+    try {
+      const run = await startAgentRun({
+        projectId: activeProject?.id,
+        requirementId: activeRequirement?.id,
+        requirementDsl: activeRequirement?.dslJson || {},
+        taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
+        dryRun: false,
+        agentProvider: "agent2",
+        targetRepoPath
+      });
+      const runFromApi = await getAgentRun(run.runId).catch(() => run);
+      const artifactsFromApi = await getAgentArtifacts(run.runId).catch(() => ({ artifacts: run.artifacts || {} }));
+      const artifacts = artifactsFromApi.artifacts || runFromApi.artifacts || run.artifacts || {};
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        status: runFromApi.status || "completed",
+        runId: runFromApi.runId || run.runId,
+        latestReturn: runFromApi.latestReturn || runFromApi.resultSummary || run.latestReturn,
+        context: runFromApi.context || runFromApi.contextSnapshot || run.context,
+        plan: runFromApi.plan || runFromApi.planJson || run.plan,
+        review: runFromApi.review || run.review,
+        prDraft: runFromApi.prDraft || run.prDraft,
+        artifacts,
+        outputDir: runFromApi.outputDir || run.outputDir,
+        relativeOutputDir: runFromApi.relativeOutputDir || run.relativeOutputDir,
+        dryRun: runFromApi.dryRun ?? run.dryRun ?? false,
+        realWritePerformed: runFromApi.realWritePerformed ?? run.realWritePerformed ?? false,
+        agentProcess: runFromApi.agentProcess || run.agentProcess || null,
+        artifactError: artifactsFromApi.error || null,
+        error: null
+      }));
+      onToast?.(`Real Agent execution completed: ${runFromApi.runId || run.runId}`);
+    } catch (error) {
+      const message = error.message || "Agent API request failed";
+      setPlanError(`真实 Agent 执行失败: ${message}`);
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        status: "blocked",
+        latestReturn: "Real Agent execution failed.",
+        error: message
+      }));
+    } finally {
+      setIsAgentRunStarting(false);
+    }
   };
 
   const visibleError = requirementError || planError;
@@ -130,7 +181,7 @@ export default function DesignPlanningWorkbench({
         <header className="planning-page-heading">
           <div>
             <h1>设计规划</h1>
-            <p>把 RequirementDSL 后半段编排成可审阅的 Agent dry-run 流程。</p>
+            <p>把 RequirementDSL 后半段编排成可审阅的 Agent real-run 流程。</p>
           </div>
           <span>{activeProject?.name ?? "Codex Workbench"}</span>
         </header>
@@ -147,6 +198,8 @@ export default function DesignPlanningWorkbench({
         <ExecutionFeedbackPanel tasks={planningTasks} />
         <AgentExecutionPanel
           agentWorkflow={agentWorkflow}
+          isStarting={isAgentRunStarting}
+          hasTargetRepoPath={hasTargetRepoPath}
           onContextPreview={handleContextPreview}
           onPlanPreview={handlePlanPreview}
           onOpenReview={onOpenReview}
@@ -159,6 +212,13 @@ export default function DesignPlanningWorkbench({
       {toast ? <div className="selection-toast dsl-toast" role="status">{toast}</div> : null}
     </main>
   );
+}
+
+function resolveProjectLocalPath(project = {}) {
+  const candidates = [project.localPath, project.path, project.projectRoot, project.railSubtitle]
+    .map((value) => typeof value === "string" ? value.trim() : "")
+    .filter(Boolean);
+  return candidates.find((value) => /^[A-Za-z]:\\|^\\\\|^\//.test(value)) || "";
 }
 
 function RequirementSummary({ requirement, plan, tasks, loading }) {
@@ -274,9 +334,14 @@ function ExecutionFeedbackPanel({ tasks }) {
   );
 }
 
-function AgentExecutionPanel({ agentWorkflow = {}, onContextPreview, onPlanPreview, onOpenReview, onOpenPr }) {
+function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTargetRepoPath = false, onContextPreview, onPlanPreview, onOpenReview, onOpenPr }) {
   const planSteps = agentWorkflow.plan?.steps || [];
   const artifactCount = Object.keys(agentWorkflow.artifacts || {}).length;
+  const writeState = agentWorkflow.realWritePerformed
+    ? "Real write performed on target repository"
+    : agentWorkflow.runId
+      ? "Agent ran for real; its review/validation may have blocked file writes"
+      : "Real execution has not started";
   return (
     <section className="planning-card agent-execution-panel" aria-label="Agent execution entry">
       <div className="planning-card-header">
@@ -284,21 +349,23 @@ function AgentExecutionPanel({ agentWorkflow = {}, onContextPreview, onPlanPrevi
         <span className={`agent-status ${agentWorkflow.status}`}>{agentWorkflow.status || "idle"}</span>
       </div>
       <div className="agent-entry-grid">
-        <article><strong>当前任务可执行性</strong><p>{agentWorkflow.readiness?.canRunDryRun ? "Ready for dry-run preview" : "Awaiting readiness check"}</p></article>
-        <article><strong>执行边界</strong><p>Default dry-run. Real writes are blocked until explicit future confirmation.</p></article>
-        <article><strong>最新 Agent 回返</strong><p>{agentWorkflow.latestReturn || "No agent dry-run has been started."}</p></article>
+        <article><strong>当前任务可执行性</strong><p>{hasTargetRepoPath ? "Ready for real Agent(2) execution" : "Bind project localPath first"}</p></article>
+        <article><strong>Execution boundary</strong><p>Real execution starts Agent(2) with the selected project localPath as the target repository.</p></article>
+        <article><strong>最新 Agent 回返</strong><p>{agentWorkflow.latestReturn || "No real agent run has been started."}</p></article>
       </div>
       <div className="agent-action-row">
         <button type="button" onClick={onContextPreview}><Eye size={15} />查看 Agent 输入 Context</button>
-        <button type="button" onClick={onPlanPreview}><ClipboardList size={15} />仅生成执行计划</button>
-        <button type="button" onClick={onPlanPreview}><Play size={15} />开始执行当前任务</button>
+        <button type="button" onClick={onPlanPreview} disabled={isStarting || !hasTargetRepoPath}>
+          {isStarting ? <ClipboardList size={15} /> : <Play size={15} />}
+          {isStarting ? "Real Agent running" : hasTargetRepoPath ? "Start real Agent write" : "Bind project localPath first"}
+        </button>
         <button type="button" onClick={onOpenReview}>打开审计页面</button>
         <button type="button" onClick={onOpenPr}>打开 PR 页面</button>
       </div>
       <div className="agent-entry-grid">
         <article><strong>Run 状态</strong><p>{agentWorkflow.runId || "尚未生成 run"}</p></article>
         <article><strong>Artifacts</strong><p>{artifactCount ? `${artifactCount} 个 API artifact` : "暂无 API artifacts"}</p></article>
-        <article><strong>真实写文件</strong><p>{agentWorkflow.realWritePerformed ? "blocked violation" : "dry-run only"}</p></article>
+        <article><strong>真实写文件</strong><p>{writeState}</p></article>
       </div>
       {agentWorkflow.context ? (
         <pre className="agent-context-preview" data-testid="agent-context-preview">{JSON.stringify(agentWorkflow.context, null, 2)}</pre>
@@ -420,7 +487,7 @@ function buildMilestones(plan, tasks) {
     },
     {
       name: "待审阅",
-      description: "Agent dry-run 审阅入口保持人工确认。",
+      description: "Agent real-run 审阅入口保持人工确认。",
       date: "-",
       status: hasReview ? "active" : allDone ? "completed" : "pending",
       label: hasReview ? "待审阅" : "等待任务"

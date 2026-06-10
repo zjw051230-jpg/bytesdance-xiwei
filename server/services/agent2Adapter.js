@@ -12,13 +12,16 @@ const blockedModes = [
 
 export function createAgent2DryRun(request = {}, options = {}) {
   const result = request.agent2Result || buildFixtureAgent2Result(request);
-  return mapAgent2ResultToWorkbench(result, { ...request, ...options });
+  return mapAgent2ResultToWorkbench(result, { ...request, ...options, dryRun: true, realExecution: false });
 }
 
 export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {}) {
   const now = contextInput.now || new Date().toISOString();
   const runId = contextInput.runId || agent2Result.run_id || agent2Result.task_id || "RUN-agent2-preview";
-  const taskTitle = contextInput.taskTitle || agent2Result.task_name || "Agent(2) dry-run preview";
+  const realExecution = contextInput.realExecution === true || contextInput.dryRun === false;
+  const executionResult = objectOrEmpty(agent2Result.execution_result);
+  const realWritePerformed = realExecution && executionWritesFiles(executionResult);
+  const taskTitle = contextInput.taskTitle || agent2Result.task_name || (realExecution ? "Agent(2) real execution" : "Agent(2) dry-run preview");
   const requirementId = contextInput.requirementId || agent2Result.requirement_id || `req-agent-${runId}`;
   const context = buildContext(agent2Result, contextInput, runId, requirementId, taskTitle);
   const plan = buildPlan(agent2Result, taskTitle);
@@ -34,8 +37,8 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
       agent2Root,
       result: redactSecrets(agent2Result),
       safety: {
-        dryRun: true,
-        realWritePerformed: false,
+        dryRun: !realExecution,
+        realWritePerformed,
         upstreamExecutionReported: Boolean(agent2Result.execution_result?.executed),
         blockedModes,
         repoApplyEnabled: Boolean(agent2Result.safety_gates?.repo_apply_enabled),
@@ -51,15 +54,17 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
     status: "completed",
     startedAt: now,
     finishedAt: now,
-    dryRun: true,
-    realWritePerformed: false,
+    dryRun: !realExecution,
+    realWritePerformed,
     outputDir: contextInput.outputDir || "",
     relativeOutputDir: contextInput.relativeOutputDir || "",
-    latestReturn: `Agent(2) dry-run adapter generated a Workbench preview for ${taskTitle}; no runtime execution or repo writes performed.`,
+    latestReturn: realExecution
+      ? `Agent(2) real execution finished for ${taskTitle}; realWritePerformed=${realWritePerformed}.`
+      : `Agent(2) dry-run adapter generated a Workbench preview for ${taskTitle}; no runtime execution or repo writes performed.`,
     progress: [
       { step: "readiness", status: "completed" },
-      { step: "agent2_contract_mapping", status: "completed" },
-      { step: "plan_preview", status: "completed" },
+      { step: realExecution ? "agent2_runtime" : "agent2_contract_mapping", status: "completed" },
+      { step: realExecution ? "real_patch_execution" : "plan_preview", status: executionResult.executed ? "completed" : "blocked" },
       { step: "review_check", status: review.status },
       { step: "pr_draft", status: "prepared" }
     ],
@@ -76,69 +81,80 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
 }
 
 function buildContext(agent2Result, contextInput, runId, requirementId, taskTitle) {
+  const realExecution = contextInput.realExecution === true || contextInput.dryRun === false;
   return {
     runId,
     projectId: contextInput.projectId || "conduit-realworld-example-app",
     requirementId,
     taskTitle,
-    source: "agent2_dry_run_adapter",
+    source: realExecution ? "agent2_real_execution" : "agent2_dry_run_adapter",
     agentProvider: "agent2",
     requirementDsl: contextInput.requirementDsl || {
       id: requirementId,
       title: taskTitle,
-      ready_for_agent: false,
-      handoff_decision: "dry_run_preview"
+      ready_for_agent: realExecution,
+      handoff_decision: realExecution ? "agent_real_execution" : "dry_run_preview"
     },
     targetRepoPath: contextInput.targetRepoPath || process.env.TARGET_REPO_PATH || "not_set",
     executionBoundary: {
-      dryRunDefault: true,
-      realWriteDefault: false,
+      dryRunDefault: !realExecution,
+      realWriteDefault: realExecution,
       agent2SourcePath: agent2Root,
-      runtimeStarted: false,
-      pythonSpawned: false,
+      runtimeStarted: realExecution,
+      pythonSpawned: realExecution,
       serviceStarted: false,
-      blockedModes,
+      blockedModes: realExecution ? [] : blockedModes,
       safetyGates: redactSecrets(agent2Result.safety_gates || {})
     }
   };
 }
 
 function buildPlan(agent2Result, taskTitle) {
+  const execution = objectOrEmpty(agent2Result.execution_result);
+  const realExecution = execution.mode === "real_repo_apply" || executionWritesFiles(execution);
   const patchPlan = objectOrEmpty(agent2Result.patch_plan);
   const locatedFiles = fileList(agent2Result);
   const steps = normalizeSteps(agent2Result.selected_actions);
   return {
-    mode: "agent2_dry_run_adapter",
+    mode: realExecution ? "agent2_real_execution" : "agent2_dry_run_adapter",
     taskName: taskTitle,
     executable: true,
-    dryRun: true,
+    dryRun: !realExecution,
     agent2Status: agent2Result.status || agent2Result.raw_status || "preview",
-    summary: patchPlan.summary || agent2Result.summary?.plan_summary || "Agent(2) dry-run contract mapped to Workbench plan.",
+    summary: patchPlan.summary || agent2Result.summary?.plan_summary || (realExecution ? "Agent(2) real execution mapped to Workbench plan." : "Agent(2) preview contract mapped to Workbench plan."),
     steps,
     targetFiles: filesFromPatchPlan(patchPlan).length ? filesFromPatchPlan(patchPlan) : locatedFiles,
-    safeguards: [
-      "Agent(2) runtime was not started by Workbench.",
-      "Python Agent(2) process was not spawned.",
-      "No AGENT_REPO_CONFIRM=YES or AGENT_TEST_CONFIRM=YES path is exposed.",
-      "No target repository writes are performed by this adapter."
-    ]
+    safeguards: realExecution
+      ? [
+          "Agent(2) runtime was started by Workbench.",
+          "AGENT_REPO_MODE=real, AGENT_REPO_APPLY=1, and AGENT_REPO_CONFIRM=YES were set for this run.",
+          "Target repository writes are reported through execution_result.files.",
+          "Secrets are redacted before Workbench persistence."
+        ]
+      : [
+          "Agent(2) runtime was not started by Workbench.",
+          "Python Agent(2) process was not spawned.",
+          "No AGENT_REPO_CONFIRM=YES or AGENT_TEST_CONFIRM=YES path is exposed.",
+          "No target repository writes are performed by this adapter."
+        ]
   };
 }
 
 function buildReview(agent2Result, plan, context) {
   const review = objectOrEmpty(agent2Result.review_result);
   const patchPlan = objectOrEmpty(agent2Result.patch_plan);
+  const realExecution = context.executionBoundary?.realWriteDefault === true;
   const files = prChangedFiles(agent2Result.pr_draft).length
     ? prChangedFiles(agent2Result.pr_draft)
     : patchesAsChangedFiles(patchPlan, context);
   return {
     status: review.approved ? "approved" : "needs_review",
-    summary: review.summary || agent2Result.execution_result?.summary || "Agent(2) dry-run preview needs human review before any real write.",
+    summary: review.summary || agent2Result.execution_result?.summary || (realExecution ? "Agent(2) real execution finished and needs human review." : "Agent(2) preview needs human review before any real write."),
     changedFiles: files.map((file) => ({
       file: file.file,
       changeSummary: file.changeSummary || file.operation || "Agent(2) planned change",
       why: file.why || file.reason || "Mapped from Agent(2) patch plan and RequirementDSL.",
-      risk: file.risk || file.risk_level || review.risk_level || "dry-run review required",
+      risk: file.risk || file.risk_level || review.risk_level || (realExecution ? "real execution review required" : "preview review required"),
       requirementPoint: file.requirementPoint || context.requirementDsl.title || context.taskTitle
     })),
     reviewItems: (review.issues || []).map((issue) => ({
@@ -146,16 +162,23 @@ function buildReview(agent2Result, plan, context) {
       message: String(issue)
     })),
     tests: normalizeTests(agent2Result),
-    manualConfirmations: [
-      ...toStringList(agent2Result.pr_draft?.manual_checklist),
-      "Confirm target repo is clean before any future real write.",
-      "Confirm Agent(2) safety gates remain dry-run only."
-    ]
+    manualConfirmations: realExecution
+      ? [
+          ...toStringList(agent2Result.pr_draft?.manual_checklist),
+          "Confirm target repo diff matches the requirement.",
+          "Confirm no secrets or local config files were modified."
+        ]
+      : [
+          ...toStringList(agent2Result.pr_draft?.manual_checklist),
+          "Confirm target repo is clean before any future real write.",
+          "Confirm Agent(2) safety gates remain preview only."
+        ]
   };
 }
 
 function buildPrDraft(agent2Result, review, context) {
   const draft = objectOrEmpty(agent2Result.pr_draft);
+  const realExecution = context.executionBoundary?.realWriteDefault === true;
   const changedFiles = review.changedFiles.map((item) => item.file);
   return {
     title: draft.title || context.taskTitle,
@@ -164,12 +187,19 @@ function buildPrDraft(agent2Result, review, context) {
     changedFiles,
     tests: normalizeTests(agent2Result),
     risks: review.changedFiles.map((item) => item.risk),
-    checklist: [
-      ...toStringList(draft.manual_checklist),
-      "Dry-run artifacts reviewed",
-      "No Agent(2) real write executed",
-      "No API keys or local configs committed"
-    ],
+    checklist: realExecution
+      ? [
+          ...toStringList(draft.manual_checklist),
+          "Real Agent(2) run reviewed",
+          "Target repository diff checked",
+          "No API keys or local configs committed"
+        ]
+      : [
+          ...toStringList(draft.manual_checklist),
+          "Preview artifacts reviewed",
+          "No Agent(2) real write executed",
+          "No API keys or local configs committed"
+        ],
     sourceRun: context.runId
   };
 }
@@ -228,12 +258,13 @@ function filesFromPatchPlan(patchPlan) {
 
 function patchesAsChangedFiles(patchPlan, context) {
   const patches = Array.isArray(patchPlan.patches) ? patchPlan.patches : [];
+  const realExecution = context.executionBoundary?.realWriteDefault === true;
   if (!patches.length) {
     return (context.requirementDsl.targetFiles || []).map((file) => ({
       file,
       changeSummary: "Candidate file from RequirementDSL",
       why: "Provided by Workbench request",
-      risk: "dry-run review required"
+      risk: realExecution ? "real execution review required" : "preview review required"
     }));
   }
   return patches.map((patch) => ({
@@ -264,6 +295,16 @@ function normalizeTests(agent2Result) {
   ];
   return [...new Set(commands.length ? commands : ["npm test", "npm run build"])]
     .map((command) => ({ command, status: "planned" }));
+}
+
+function executionWritesFiles(executionResult = {}) {
+  const files = Array.isArray(executionResult.files) ? executionResult.files : [];
+  return executionResult.executed === true && files.some((file) =>
+    file?.real_write === true ||
+    file?.applied === true ||
+    file?.status === "applied" ||
+    Number(file?.bytes_written || 0) > 0
+  );
 }
 
 function toStringList(value) {

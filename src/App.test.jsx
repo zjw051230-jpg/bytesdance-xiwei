@@ -44,6 +44,18 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByTestId("monitor-console-view")).not.toBeInTheDocument();
   });
 
+  it("returns from the workbench to the monitor console", () => {
+    render(<App />);
+
+    fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
+    expect(screen.getByTestId("workspace-project-picker")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "返回监控台" }));
+
+    expect(screen.getByTestId("monitor-console-view")).toBeInTheDocument();
+    expect(screen.queryByTestId("workspace-project-picker")).not.toBeInTheDocument();
+  });
+
   it("switches between the DSL page, design planning page, and placeholder pages from top tabs", async () => {
     render(<App />);
 
@@ -78,35 +90,36 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText("PR 摘要")).toBeInTheDocument();
   });
 
-  it("runs the agent dry-run workflow from design planning into review and PR pages", async () => {
+  it("runs the real agent workflow from design planning into review and PR pages", async () => {
     const readiness = {
       status: "ready",
-      canRunDryRun: true,
-      canRealWrite: false,
+      canRunDryRun: false,
+      canRealWrite: true,
       entrypoints: ["agent/agent_core/main.py"],
-      boundaries: ["default dry-run only"]
+      boundaries: ["real Agent(2) execution"]
     };
     const run = {
       runId: "RUN-agent-ui",
       status: "completed",
-      dryRun: true,
-      realWritePerformed: false,
-      latestReturn: "Dry-run plan generated; no target repo writes performed.",
+      dryRun: false,
+      realWritePerformed: true,
+      latestReturn: "Agent(2) real execution finished; realWritePerformed=true.",
       context: {
         projectId: "conduit-realworld-example-app",
-        boundary: "dry-run preview only",
+        boundary: "real Agent(2) execution target selected",
+        targetRepoPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app",
         agent1EntryPoints: ["agent/agent_core/main.py"]
       },
       plan: {
-        mode: "agent1_preview_adapter",
+        mode: "agent2_real_execution",
         steps: [
           { name: "Analyze RequirementDSL", owner: "planner_agent", output: "implementation intent" },
-          { name: "Generate patch preview", owner: "coder_agent", output: "diff preview only" }
+          { name: "Generate patch", owner: "coder_agent", output: "real repository patch" }
         ]
       },
       review: {
         status: "needs_review",
-        summary: "Agent dry-run prepared a human-reviewable patch plan.",
+        summary: "Agent real execution prepared review items.",
         changedFiles: [
           {
             file: "src/components/LoginForm.jsx",
@@ -125,7 +138,7 @@ describe("monitor console and workspace picker", () => {
         changedFiles: ["src/components/LoginForm.jsx"],
         tests: [{ command: "npm test", status: "planned" }],
         risks: ["Copy must match backend error codes."],
-        checklist: ["Dry-run artifacts reviewed", "No API keys or local configs committed"]
+        checklist: ["Real Agent run reviewed", "No API keys or local configs committed"]
       },
       artifacts: {
         "agent_context.json": { exists: true }
@@ -133,7 +146,20 @@ describe("monitor console and workspace picker", () => {
     };
     const fetchMock = vi.fn(async (url) => {
       const target = String(url);
-      const data = target.endsWith("/readiness") ? readiness : run;
+      const data = target === "/api/projects"
+        ? [{
+            id: "conduit-realworld-example-app",
+            name: "conduit-realworld-example-app",
+            localPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app",
+            railSubtitle: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app",
+            status: "current",
+            icon: "code"
+          }]
+        : target.includes("/requirements")
+          ? []
+          : target.endsWith("/readiness")
+            ? readiness
+            : run;
       return {
         ok: true,
         status: 200,
@@ -144,21 +170,22 @@ describe("monitor console and workspace picker", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     render(<App />);
+    await waitFor(() => expect(fetchMock.mock.calls.some(([url]) => String(url) === "/api/projects")).toBe(true));
 
     fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
     fireEvent.click(document.querySelectorAll(".workspace-top-tab")[1]);
 
     expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument();
     expect(screen.getByText("Agent Execution Orchestrator")).toBeInTheDocument();
-    expect(screen.getByText("Awaiting readiness check")).toBeInTheDocument();
+    expect(screen.getByText("Ready for real Agent(2) execution")).toBeInTheDocument();
 
     fireEvent.click(document.querySelectorAll(".agent-action-row button")[0]);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
       "/api/agent/readiness",
       expect.objectContaining({ method: "POST" })
     ));
-    expect(screen.getByTestId("agent-context-preview")).toHaveTextContent("dry-run preview only");
-    expect(screen.getByText("Ready for dry-run preview")).toBeInTheDocument();
+    expect(screen.getByTestId("agent-context-preview")).toHaveTextContent("real Agent(2) execution target selected");
+    expect(screen.getByText("Ready for real Agent(2) execution")).toBeInTheDocument();
 
     fireEvent.click(document.querySelectorAll(".agent-action-row button")[1]);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
@@ -166,17 +193,18 @@ describe("monitor console and workspace picker", () => {
       expect.objectContaining({ method: "POST" })
     ));
     await waitFor(() => expect(screen.getByText("Analyze RequirementDSL")).toBeInTheDocument());
-    expect(screen.getByText("Dry-run plan generated; no target repo writes performed.")).toBeInTheDocument();
-    expect(screen.getByText("diff preview only")).toBeInTheDocument();
+    expect(screen.getByText("Agent(2) real execution finished; realWritePerformed=true.")).toBeInTheDocument();
+    expect(screen.getByText("real repository patch")).toBeInTheDocument();
     const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body);
-    expect(runBody.dryRun).toBe(true);
+    expect(runBody.dryRun).toBe(false);
+    expect(runBody.agentProvider).toBe("agent2");
+    expect(runBody.targetRepoPath).toBe("C:\\Users\\www30\\Desktop\\conduit-realworld-example-app");
 
-    fireEvent.click(document.querySelectorAll(".agent-action-row button")[3]);
+    fireEvent.click(document.querySelectorAll(".agent-action-row button")[2]);
     expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();
     expect(screen.getAllByText("src/components/LoginForm.jsx").length).toBeGreaterThan(0);
-    expect(screen.getByText("Agent dry-run prepared a human-reviewable patch plan.")).toBeInTheDocument();
+    expect(screen.getByText("Agent real execution prepared review items.")).toBeInTheDocument();
     expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByText("该项目未绑定本地路径。")).toBeInTheDocument());
     fireEvent.click(screen.getByRole("button", { name: /src\/components\/LoginForm\.jsx/ }));
 
     fireEvent.click(document.querySelector(".audit-pr-button"));
@@ -215,6 +243,53 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "收起项目切换栏" }));
     expect(screen.getByTestId("project-rail")).toHaveAttribute("data-state", "collapsed");
+  });
+
+  it("creates and deletes projects from the project rail actions", async () => {
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const target = String(url);
+      const method = options.method || "GET";
+      if (target === "/api/projects" && method === "GET") {
+        return jsonOk([
+          { id: "project-a", name: "Project A", description: "Alpha", status: "current" },
+          { id: "project-b", name: "Project B", description: "Beta", status: "current" }
+        ]);
+      }
+      if (target === "/api/projects" && method === "POST") {
+        const body = JSON.parse(options.body);
+        return jsonOk({ id: "project-c", ...body });
+      }
+      if (target === "/api/projects/project-c" && method === "DELETE") {
+        return jsonOk({ id: "project-c", name: "Rail Created" });
+      }
+      return jsonOk({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("confirm", vi.fn(() => true));
+
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("button", { name: "工作台" }));
+    await waitFor(() => expect(screen.getByRole("button", { name: "Project A" })).toBeInTheDocument());
+    fireEvent.click(screen.getByRole("button", { name: "展开项目切换栏" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "新增工程" }));
+    fireEvent.change(screen.getByLabelText("项目名称"), { target: { value: "Rail Created" } });
+    fireEvent.change(screen.getByLabelText("本地路径"), { target: { value: "C:\\Projects\\RailCreated" } });
+    fireEvent.click(screen.getByRole("button", { name: "创建" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/projects", expect.objectContaining({
+      method: "POST"
+    })));
+    expect(screen.getByRole("button", { name: "切换到 Rail Created" })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "删除工程" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/projects/project-c", expect.objectContaining({
+      method: "DELETE"
+    })));
+    expect(screen.queryByRole("button", { name: "切换到 Rail Created" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "切换到 Project A" })).toHaveAttribute("aria-pressed", "true");
   });
 
   it("syncs project rail selection when the picker card changes", () => {
@@ -1631,6 +1706,16 @@ function runnerJobForTurn(skillTurn) {
     relativeOutputDir: `runs\\${runId}`,
     fullArtifacts: {},
     uiState: skillTurn?.uiState || {}
+  };
+}
+
+function jsonOk(data, status = 200) {
+  return {
+    ok: true,
+    status,
+    statusText: status === 201 ? "Created" : "OK",
+    json: async () => ({ ok: true, data, error: null }),
+    text: async () => JSON.stringify({ ok: true, data, error: null })
   };
 }
 

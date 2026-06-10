@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   createProject,
+  deleteProject,
   getDesignPlan,
   listProjects,
   updatePlanningTask,
@@ -31,6 +32,17 @@ describe("persistence client", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/projects", expect.objectContaining({
       method: "POST",
       body: JSON.stringify({ name: "New Project" })
+    }));
+  });
+
+  it("deletes projects through DELETE /api/projects/:id", async () => {
+    const fetchMock = vi.fn(async () => ok({ id: "project-old", name: "Old Project" }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(deleteProject("project-old")).resolves.toMatchObject({ id: "project-old" });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/projects/project-old", expect.objectContaining({
+      method: "DELETE"
     }));
   });
 

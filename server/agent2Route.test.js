@@ -1,14 +1,23 @@
 // @vitest-environment node
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import fs from "node:fs/promises";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createAppServer } from "./index.js";
 
 const testRunsRoot = path.resolve("runs", "test-agent2-route");
 const listeners = [];
 
 async function startTestServer(options = {}) {
+  const apiConfigPath = path.join(testRunsRoot, "configs", "api_config.local.json");
+  await fs.mkdir(path.dirname(apiConfigPath), { recursive: true });
+  await fs.writeFile(apiConfigPath, JSON.stringify({
+    provider: "doubao_ark",
+    api_key: "db-test-fixture-secret",
+    model: "ep-test-fixture"
+  }, null, 2), "utf8");
   const server = createAppServer({
     runsRoot: testRunsRoot,
+    apiConfigPath,
     runnerMode: "mock",
     skillModelMode: "mock",
     ...options
@@ -34,8 +43,71 @@ afterEach(async () => {
 });
 
 describe("Agent(2) route integration", () => {
-  it("routes agent2 dry-run requests through the agent2 adapter and keeps the JSON envelope intact", async () => {
-    const baseUrl = await startTestServer();
+  it("routes real Agent(2) requests through the runner and keeps the JSON envelope intact", async () => {
+    const targetRepoPath = path.join(testRunsRoot, "target-repo");
+    await fs.mkdir(targetRepoPath, { recursive: true });
+    const agent2Runner = vi.fn(async ({ env, input }) => ({
+      exitCode: 0,
+      timedOut: false,
+      stderr: "",
+      stdout: JSON.stringify({
+        task_id: "demo_task",
+        task_name: "Add article word count and reading time",
+        status: "success",
+        selected_actions: [
+          { selected_action: "plan_task", selected_tool: "make_plan", reason: "Analyze RequirementDSL" },
+          { selected_action: "locate_files", selected_tool: "locate_files", reason: "Locate Files" },
+          { selected_action: "execute_patch", selected_tool: "execute_patch", reason: "Apply Patch" },
+          { selected_action: "review_patch", selected_tool: "review_patch", reason: "Review Patch" }
+        ],
+        located_files: {
+          files: [
+            { relative_path: "frontend/src/routes/Article/Article.jsx", reason: "Matched article detail page" }
+          ]
+        },
+        patch_plan: {
+          summary: "Prepare a low-risk frontend patch for article stats display.",
+          patches: [
+            {
+              file: "frontend/src/routes/Article/Article.jsx",
+              operation: "replace",
+              changes: ["Add word count calculation", "Add reading time calculation"],
+              reason: "Article detail page needs word count and reading time display",
+              risk_level: "low"
+            }
+          ]
+        },
+        review_result: {
+          approved: true,
+          risk_level: "low",
+          summary: "Patch was applied and reviewed."
+        },
+        execution_result: {
+          executed: true,
+          mode: "real_repo_apply",
+          summary: "Applied one file.",
+          files: [
+            { file: "frontend/src/routes/Article/Article.jsx", status: "applied", real_write: true, bytes_written: 42 }
+          ]
+        },
+        pr_draft: {
+          title: "Add article word count and reading time",
+          summary: "Prepare a low-risk frontend patch for article stats display.",
+          changed_files: [{ file: "frontend/src/routes/Article/Article.jsx", operation: "replace", risk_level: "low" }],
+          test_commands: ["npm run lint", "npm test"],
+          manual_checklist: ["Review generated real patch."]
+        },
+        safety_gates: {
+          repo_apply_enabled: true,
+          repo_confirmed: true,
+          test_run_enabled: false,
+          test_confirmed: false,
+          repo_mode: "real"
+        },
+        input_echo: JSON.parse(input)
+      })
+    }));
+    const baseUrl = await startTestServer({ agent2Runner });
 
     const response = await fetch(`${baseUrl}/api/agent/run`, {
       method: "POST",
@@ -43,54 +115,9 @@ describe("Agent(2) route integration", () => {
       body: JSON.stringify({
         projectId: "conduit-realworld-example-app",
         taskTitle: "Agent2 integration test",
-        dryRun: true,
+        dryRun: false,
         agentProvider: "agent2",
-        agent2Result: {
-          task_id: "demo_task",
-          task_name: "Add article word count and reading time",
-          status: "success",
-          selected_actions: [
-            { selected_action: "plan_task", selected_tool: "make_plan", reason: "Analyze RequirementDSL" },
-            { selected_action: "locate_files", selected_tool: "locate_files", reason: "Locate Files" },
-            { selected_action: "review_patch", selected_tool: "review_patch", reason: "Review Patch" }
-          ],
-          located_files: {
-            files: [
-              { relative_path: "frontend/src/routes/Article/Article.jsx", reason: "Matched article detail page" }
-            ]
-          },
-          patch_plan: {
-            summary: "Prepare a low-risk frontend patch for article stats display.",
-            patches: [
-              {
-                file: "frontend/src/routes/Article/Article.jsx",
-                operation: "replace",
-                changes: ["Add word count calculation", "Add reading time calculation"],
-                reason: "Article detail page needs word count and reading time display",
-                risk_level: "low"
-              }
-            ]
-          },
-          review_result: {
-            approved: false,
-            risk_level: "high",
-            summary: "Patch plan has review issues that should be resolved before execution."
-          },
-          pr_draft: {
-            title: "Add article word count and reading time",
-            summary: "Prepare a low-risk frontend patch for article stats display.",
-            changed_files: [{ file: "frontend/src/routes/Article/Article.jsx", operation: "replace", risk_level: "low" }],
-            test_commands: ["npm run lint", "npm test"],
-            manual_checklist: ["Review generated patch preview before any real write."]
-          },
-          safety_gates: {
-            repo_apply_enabled: false,
-            repo_confirmed: false,
-            test_run_enabled: false,
-            test_confirmed: false,
-            repo_mode: "mock"
-          }
-        }
+        targetRepoPath
       })
     });
     const payload = await response.json();
@@ -98,11 +125,14 @@ describe("Agent(2) route integration", () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(payload.error).toBeNull();
-    expect(payload.data.plan.mode).toBe("agent2_dry_run_adapter");
-    expect(payload.data.realWritePerformed).toBe(false);
+    expect(agent2Runner).toHaveBeenCalledOnce();
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toBe(targetRepoPath);
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe("1");
+    expect(payload.data.plan.mode).toBe("agent2_real_execution");
+    expect(payload.data.realWritePerformed).toBe(true);
     expect(payload.data.review.changedFiles[0].file).toBe("frontend/src/routes/Article/Article.jsx");
     expect(payload.data.prDraft.title).toBe("Add article word count and reading time");
-    expect(payload.data.artifacts["agent2_result_preview.json"].json.safety.realWritePerformed).toBe(false);
+    expect(payload.data.artifacts["agent2_result_preview.json"].json.safety.realWritePerformed).toBe(true);
 
     const artifactsResponse = await fetch(`${baseUrl}/api/agent/runs/${payload.data.runId}/artifacts`);
     const artifactsPayload = await artifactsResponse.json();

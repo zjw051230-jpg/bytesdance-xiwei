@@ -65,6 +65,7 @@ function routeRequest({ method, url, body, service }) {
   let match = path.match(/^\/api\/projects\/([^/]+)$/);
   if (match && method === "GET") return getOr404(service.projects.get(match[1]), "project_not_found");
   if (match && method === "PATCH") return getOr404(service.projects.update(match[1], body), "project_not_found");
+  if (match && method === "DELETE") return getOr404(service.projects.delete(match[1]), "project_not_found");
 
   match = path.match(/^\/api\/projects\/([^/]+)\/requirements$/);
   if (match && method === "GET") {

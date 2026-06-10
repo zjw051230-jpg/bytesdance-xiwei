@@ -759,6 +759,34 @@ code {
   box-shadow: 0 6px 18px rgba(10, 132, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
+.workspace-nav-cluster {
+  justify-self: center;
+  width: min(820px, 100%);
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.workspace-monitor-return {
+  height: 38px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: 0;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.workspace-monitor-return:hover {
+  border-color: rgba(100, 210, 255, 0.22);
+  color: #f5f8ff;
+  background: rgba(255, 255, 255, 0.07);
+}
+
 .workspace-top-tabs {
   justify-self: center;
   width: min(704px, 100%);
@@ -2037,7 +2065,7 @@ dt,
 
 .project-rail.expanded {
   display: grid;
-  grid-template-rows: 70px minmax(0, 1fr) 154px;
+  grid-template-rows: 70px auto minmax(0, 1fr) 154px;
   gap: 10px;
   padding: 14px 12px;
 }
@@ -2139,6 +2167,54 @@ dt,
 .rail-codex-mark span:last-child {
   right: 0;
   border-left-color: rgba(100, 210, 255, 0.9);
+}
+
+.rail-actions {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.rail-action-button {
+  min-width: 0;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 9px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: 11px;
+  color: rgba(226, 232, 240, 0.76);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease, opacity 150ms ease;
+}
+
+.rail-action-button:hover:not(:disabled) {
+  border-color: rgba(100, 210, 255, 0.28);
+  color: #eff8ff;
+  background: rgba(255, 255, 255, 0.065);
+}
+
+.rail-action-button.danger:hover:not(:disabled) {
+  border-color: rgba(248, 113, 113, 0.34);
+  color: #fecaca;
+  background: rgba(248, 113, 113, 0.08);
+}
+
+.rail-action-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.rail-action-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .rail-projects {
@@ -4888,6 +4964,12 @@ dt,
     height: 40px;
   }
 
+  .workspace-nav-cluster {
+    width: min(720px, 100%);
+    grid-template-columns: 84px minmax(0, 1fr);
+    gap: 8px;
+  }
+
   .workspace-top-tab {
     height: 32px;
     font-size: 13px;
@@ -5456,6 +5538,18 @@ dt,
   .workspace-top-tabs {
     width: 100%;
     min-width: 0;
+  }
+
+  .workspace-nav-cluster {
+    width: 100%;
+    grid-template-columns: 58px minmax(0, 1fr);
+    gap: 5px;
+  }
+
+  .workspace-monitor-return {
+    height: 36px;
+    padding-inline: 4px;
+    font-size: 12px;
   }
 
   .workspace-top-tab {

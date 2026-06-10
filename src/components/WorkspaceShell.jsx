@@ -13,6 +13,7 @@ export default function WorkspaceShell({
   activeProjectId,
   onProjectSelect,
   onProjectCreate,
+  onProjectDelete,
   workspacePage,
   onWorkspacePageChange,
   toast,
@@ -82,6 +83,8 @@ export default function WorkspaceShell({
         activeProjectId={activeProjectId}
         onToggle={() => setRailExpanded((current) => !current)}
         onProjectSelect={(project) => onProjectSelect(project, "rail")}
+        onProjectCreate={onProjectCreate}
+        onProjectDelete={onProjectDelete}
       />
       <div className="workspace-content">
         {workspacePage === "picker" ? (

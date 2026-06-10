@@ -54,6 +54,13 @@ export function createProjectRepository(database) {
         id
       );
       return this.getById(id);
+    },
+
+    delete(id) {
+      const existing = this.getById(id);
+      if (!existing) return null;
+      database.prepare("DELETE FROM projects WHERE id = ?").run(id);
+      return existing;
     }
   };
 }

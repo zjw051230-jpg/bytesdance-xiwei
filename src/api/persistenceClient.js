@@ -20,6 +20,12 @@ export async function updateProject(projectId, payload) {
   });
 }
 
+export async function deleteProject(projectId) {
+  return requestJson(`/api/projects/${encodeURIComponent(projectId)}`, {
+    method: "DELETE"
+  });
+}
+
 export async function listRequirements(projectId) {
   return requestJson(`/api/projects/${encodeURIComponent(projectId)}/requirements`);
 }

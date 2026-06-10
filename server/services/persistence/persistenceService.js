@@ -69,6 +69,12 @@ function projectRepository(database) {
       );
       return this.get(id);
     },
+    delete(id) {
+      const existing = this.get(id);
+      if (!existing) return null;
+      database.prepare("DELETE FROM projects WHERE id = ?").run(id);
+      return existing;
+    },
     touchLastOpened(id) {
       database.prepare("UPDATE projects SET last_opened_at = ?, updated_at = ? WHERE id = ?").run(timestamp(), timestamp(), id);
       return this.get(id);

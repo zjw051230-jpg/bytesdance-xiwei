@@ -26,11 +26,20 @@ async function openService(name) {
   };
 }
 
-async function startServer(name) {
+async function startServer(name, options = {}) {
+  const apiConfigPath = path.join(testRoot, "configs", `${name}.api_config.local.json`);
+  await fs.mkdir(path.dirname(apiConfigPath), { recursive: true });
+  await fs.writeFile(apiConfigPath, JSON.stringify({
+    provider: "doubao_ark",
+    api_key: "db-test-fixture-secret",
+    model: "ep-test-fixture"
+  }, null, 2), "utf8");
   const server = createAppServer({
     workbenchDbPath: await dbPath(name),
+    apiConfigPath,
     runnerMode: "mock",
-    skillModelMode: "mock"
+    skillModelMode: "mock",
+    ...options
   });
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   listeners.push(server);
@@ -201,6 +210,26 @@ describe("persistent workbench database", () => {
     expect(projects.data.some((project) => project.id === projectPayload.data.id)).toBe(true);
   });
 
+  it("deletes projects through the persistence API", async () => {
+    const baseUrl = await startServer("delete-project-api");
+    const { payload: projectPayload } = await requestJson(baseUrl, "/api/projects", {
+      method: "POST",
+      body: JSON.stringify({ name: "Delete Me" })
+    });
+    const { response: deleteProject, payload: deletedProject } = await requestJson(baseUrl, `/api/projects/${projectPayload.data.id}`, {
+      method: "DELETE"
+    });
+    expect(deleteProject.status).toBe(200);
+    expectOkEnvelope(deleteProject, deletedProject);
+    expect(deletedProject.data.id).toBe(projectPayload.data.id);
+
+    await stopServers();
+    const restartedUrl = await startServer("delete-project-api");
+    const { response: getProject, payload: missingProject } = await requestJson(restartedUrl, `/api/projects/${projectPayload.data.id}`);
+    expect(getProject.status).toBe(404);
+    expect(missingProject.error.code).toBe("project_not_found");
+  });
+
   it("persists requirement create/read APIs", async () => {
     const baseUrl = await startServer("requirement-api");
     const { payload: projectPayload } = await requestJson(baseUrl, "/api/projects", {
@@ -294,10 +323,18 @@ describe("persistent workbench database", () => {
 
   it("persists agent run read APIs after backend restart", async () => {
     const dbName = "agent-run-api";
-    const baseUrl = await startServer(dbName);
+    const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+    await fs.mkdir(targetRepoPath, { recursive: true });
+    const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() });
     const { response: startRun, payload: runPayload } = await requestJson(baseUrl, "/api/agent/run", {
       method: "POST",
-      body: JSON.stringify({ projectId: "api-agent-project", taskTitle: "Persistent agent run", dryRun: true })
+      body: JSON.stringify({
+        projectId: "api-agent-project",
+        taskTitle: "Persistent agent run",
+        dryRun: false,
+        agentProvider: "agent2",
+        targetRepoPath
+      })
     });
     expect(startRun.status).toBe(200);
     expectOkEnvelope(startRun, runPayload);
@@ -313,7 +350,7 @@ describe("persistent workbench database", () => {
     const { response: getArtifacts, payload: artifacts } = await requestJson(restartedUrl, `/api/agent/runs/${runPayload.data.runId}/artifacts`);
     expect(getArtifacts.status).toBe(200);
     expectOkEnvelope(getArtifacts, artifacts);
-    expect(artifacts.data.artifactList.some((artifact) => artifact.name === "agent_context.json")).toBe(true);
+    expect(artifacts.data.artifactList.some((artifact) => artifact.name === "agent2_real_request.json")).toBe(true);
   });
 
   it("persists review item update APIs", async () => {
@@ -415,11 +452,65 @@ async function createRequirementFixture(dbName) {
   return { baseUrl, projectId: projectPayload.data.id, requirementId: requirementPayload.data.id };
 }
 
+function createFakeAgent2Runner() {
+  return async () => ({
+    exitCode: 0,
+    timedOut: false,
+    stderr: "",
+    stdout: JSON.stringify({
+      task_id: "persistence_real_agent",
+      task_name: "Persistent agent run",
+      status: "success",
+      selected_actions: [
+        { selected_action: "plan_task", selected_tool: "make_plan", reason: "Analyze RequirementDSL" },
+        { selected_action: "execute_patch", selected_tool: "execute_patch", reason: "Apply Patch" }
+      ],
+      patch_plan: {
+        summary: "Persist a real Agent(2) run.",
+        patches: [{ file: "src/App.jsx", operation: "replace", changes: ["Update UI"], risk_level: "low" }]
+      },
+      review_result: {
+        approved: true,
+        risk_level: "low",
+        summary: "Real patch approved."
+      },
+      execution_result: {
+        executed: true,
+        mode: "real_repo_apply",
+        summary: "Applied patch.",
+        files: [{ file: "src/App.jsx", status: "applied", real_write: true, bytes_written: 12 }]
+      },
+      pr_draft: {
+        title: "Persistent agent run",
+        summary: "Persist a real Agent(2) run.",
+        changed_files: [{ file: "src/App.jsx", operation: "replace", risk_level: "low" }],
+        test_commands: ["npm test"],
+        manual_checklist: ["Review real patch."]
+      },
+      safety_gates: {
+        repo_apply_enabled: true,
+        repo_confirmed: true,
+        test_run_enabled: false,
+        test_confirmed: false,
+        repo_mode: "real"
+      }
+    })
+  });
+}
+
 async function createAgentRunFixture(dbName) {
-  const baseUrl = await startServer(dbName);
+  const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+  await fs.mkdir(targetRepoPath, { recursive: true });
+  const baseUrl = await startServer(dbName, { agent2Runner: createFakeAgent2Runner() });
   const { payload: runPayload } = await requestJson(baseUrl, "/api/agent/run", {
     method: "POST",
-    body: JSON.stringify({ projectId: `${dbName}-project`, taskTitle: `${dbName} task`, dryRun: true })
+    body: JSON.stringify({
+      projectId: `${dbName}-project`,
+      taskTitle: `${dbName} task`,
+      dryRun: false,
+      agentProvider: "agent2",
+      targetRepoPath
+    })
   });
   const runId = runPayload.data.runId;
   const requirementId = `req-agent-${runId}`;

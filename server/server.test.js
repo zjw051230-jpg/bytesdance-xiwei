@@ -1331,7 +1331,7 @@ describe("DSL backend API", () => {
     expect(artifactsPayload.data.artifacts["error.json"].json.error.code).toBe("standalone_artifact_failed");
   });
 
-  it("serves agent readiness from agent(1) inventory without enabling real writes", async () => {
+  it("serves agent readiness from agent inventory for real writes", async () => {
     const baseUrl = await startTestServer({ runnerMode: "mock" });
 
     const response = await fetch(`${baseUrl}/api/agent/readiness`, {
@@ -1348,15 +1348,60 @@ describe("DSL backend API", () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(payload.data.status).toBe("ready");
-    expect(payload.data.canRunDryRun).toBe(true);
-    expect(payload.data.canRealWrite).toBe(false);
-    expect(payload.data.boundaries).toContain("default dry-run only");
+    expect(payload.data.canRunDryRun).toBe(false);
+    expect(payload.data.canRealWrite).toBe(true);
+    expect(payload.data.boundaries).toContain("dry-run agent execution is disabled for the Workbench start action");
     expect(payload.data.entrypoints).toEqual(expect.arrayContaining(["agent/agent_core/main.py"]));
     expect(text).not.toMatch(/api_key|Authorization|Bearer|sk-/i);
   }, 15000);
 
-  it("creates agent dry-run artifacts and keeps realWritePerformed false", async () => {
-    const baseUrl = await startTestServer({ runnerMode: "mock" });
+  it("creates real agent artifacts through Agent(2) and records realWritePerformed", async () => {
+    const targetRepoPath = path.join(testRunsRoot, "server-real-target");
+    await fs.mkdir(targetRepoPath, { recursive: true });
+    const agent2Runner = async () => ({
+      exitCode: 0,
+      timedOut: false,
+      stderr: "",
+      stdout: JSON.stringify({
+        task_id: "server_real_task",
+        task_name: "Agent integration test",
+        status: "success",
+        selected_actions: [
+          { selected_action: "plan_task", selected_tool: "make_plan", reason: "Analyze RequirementDSL" },
+          { selected_action: "execute_patch", selected_tool: "execute_patch", reason: "Apply Patch" }
+        ],
+        patch_plan: {
+          summary: "Apply a real test patch.",
+          patches: [{ file: "src/App.jsx", operation: "replace", changes: ["Update UI"], risk_level: "low" }]
+        },
+        review_result: {
+          approved: true,
+          risk_level: "low",
+          summary: "Real patch approved."
+        },
+        execution_result: {
+          executed: true,
+          mode: "real_repo_apply",
+          summary: "Applied patch.",
+          files: [{ file: "src/App.jsx", status: "applied", real_write: true, bytes_written: 12 }]
+        },
+        pr_draft: {
+          title: "Agent integration test",
+          summary: "Apply a real test patch.",
+          changed_files: [{ file: "src/App.jsx", operation: "replace", risk_level: "low" }],
+          test_commands: ["npm test"],
+          manual_checklist: ["Review real patch."]
+        },
+        safety_gates: {
+          repo_apply_enabled: true,
+          repo_confirmed: true,
+          test_run_enabled: false,
+          test_confirmed: false,
+          repo_mode: "real"
+        }
+      })
+    });
+    const baseUrl = await startTestServer({ runnerMode: "mock", agent2Runner });
 
     const response = await fetch(`${baseUrl}/api/agent/run`, {
       method: "POST",
@@ -1364,7 +1409,9 @@ describe("DSL backend API", () => {
       body: JSON.stringify({
         projectId: "conduit-realworld-example-app",
         taskTitle: "Agent integration test",
-        dryRun: true
+        dryRun: false,
+        agentProvider: "agent2",
+        targetRepoPath
       })
     });
     const payload = await response.json();
@@ -1372,21 +1419,21 @@ describe("DSL backend API", () => {
     expect(response.status).toBe(200);
     expect(payload.ok).toBe(true);
     expect(payload.data.runId).toMatch(/^RUN-/);
-    expect(payload.data.dryRun).toBe(true);
-    expect(payload.data.realWritePerformed).toBe(false);
-    expect(payload.data.plan.mode).toBe("agent1_preview_adapter");
-    expect(payload.data.review.status).toBe("needs_review");
+    expect(payload.data.dryRun).toBe(false);
+    expect(payload.data.realWritePerformed).toBe(true);
+    expect(payload.data.plan.mode).toBe("agent2_real_execution");
+    expect(payload.data.review.status).toBe("approved");
     expect(payload.data.prDraft.title).toBeTruthy();
-    expect(payload.data.artifacts["agent_context.json"].exists).toBe(true);
+    expect(payload.data.artifacts["agent2_real_request.json"].exists).toBe(true);
 
     const artifactsResponse = await fetch(`${baseUrl}/api/agent/runs/${payload.data.runId}/artifacts`);
     const artifactsPayload = await artifactsResponse.json();
     expect(artifactsResponse.status).toBe(200);
     expect(artifactsPayload.data.review.changedFiles.length).toBeGreaterThan(0);
-    expect(artifactsPayload.data.prDraft.checklist).toContain("No API keys or local configs committed");
+    expect(JSON.stringify(artifactsPayload)).not.toMatch(/api_key|Authorization|Bearer|sk-/i);
   });
 
-  it("blocks requested agent real writes instead of calling the external writer", async () => {
+  it("blocks real agent execution when target repo path is missing", async () => {
     const baseUrl = await startTestServer({ runnerMode: "mock" });
 
     const response = await fetch(`${baseUrl}/api/agent/run`, {
@@ -1401,7 +1448,7 @@ describe("DSL backend API", () => {
 
     expect(response.status).toBe(403);
     expect(payload.ok).toBe(false);
-    expect(payload.error.code).toBe("agent_real_write_blocked");
+    expect(payload.error.code).toBe("agent_target_repo_missing");
     expect(JSON.stringify(payload)).not.toMatch(/AGENT_REPO_CONFIRM=YES|api_key|Authorization|Bearer|sk-/i);
   });
 

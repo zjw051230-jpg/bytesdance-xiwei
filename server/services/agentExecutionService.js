@@ -1,8 +1,10 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { spawn } from "node:child_process";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { persistAgentDryRun, withPersistence } from "./persistence/workbenchPersistenceAdapter.js";
-import { createAgent2DryRun } from "./agent2Adapter.js";
+import { createAgent2DryRun, mapAgent2ResultToWorkbench } from "./agent2Adapter.js";
+import { readDoubaoArkConfig } from "./doubaoArkClient.js";
 
 const agentRoot = path.resolve("agent(1)", "agent");
 const pythonCoreRoot = path.join(agentRoot, "agent_core");
@@ -95,30 +97,58 @@ export async function getAgentReadiness(request = {}) {
   const inventory = await inspectAgent1();
   return {
     status: "ready",
-    canRunDryRun: true,
-    canRealWrite: false,
+    canRunDryRun: false,
+    canRealWrite: Boolean(request.targetRepoPath || process.env.TARGET_REPO_PATH),
     requiresHumanConfirmationForRealWrite: true,
     agentType: inventory.type,
     entrypoints: inventory.entrypoints,
     protectedTargetRepo: request.targetRepoPath || process.env.TARGET_REPO_PATH || "not_set",
     boundaries: [
-      "default dry-run only",
-      "does not call real agent writer",
-      "does not set AGENT_REPO_CONFIRM",
-      "does not modify F:\\dsl",
-      "does not touch hunter / auto-reply / A3B"
+      "default workbench action starts real Agent(2) only when targetRepoPath is provided",
+      "real execution sets AGENT_REPO_MODE=real, AGENT_REPO_APPLY=1, AGENT_REPO_CONFIRM=YES",
+      "agent review/validation may still block writes",
+      "dry-run agent execution is disabled for the Workbench start action",
+      "target repo path is provided by the selected project localPath"
     ]
   };
 }
 
 export async function startAgentRun(request = {}, config = {}) {
-  const dryRun = request.dryRun !== false;
-  if (!dryRun) {
-    return errorResult("agent_real_write_blocked", "Real agent writes require an explicit future confirmation path.");
-  }
-
+  const dryRun = request.dryRun === true;
   const { runId, outputDir } = await prepareRunDirectory(config.runsRoot || path.resolve("runs"));
   const now = new Date().toISOString();
+
+  if (!dryRun) {
+    const targetRepoPath = request.targetRepoPath || request.localPath || process.env.TARGET_REPO_PATH || "";
+    if (!targetRepoPath) {
+      return errorResult("agent_target_repo_missing", "Real agent execution requires selected project localPath/targetRepoPath.");
+    }
+    const targetStat = await fs.stat(targetRepoPath).catch(() => null);
+    if (!targetStat?.isDirectory?.()) {
+      return errorResult("agent_target_repo_invalid", "Real agent execution targetRepoPath must be an existing directory.", {
+        targetRepoPath
+      });
+    }
+    if (selectedAgentProvider(request, config) !== "agent2") {
+      request = { ...request, agentProvider: "agent2" };
+    }
+    const result = await runAgent2RealExecution(request, {
+      runId,
+      outputDir,
+      relativeOutputDir: relativeOutputDir(outputDir),
+      targetRepoPath,
+      now
+    }, config);
+    if (!result.ok) return result;
+    agentRuns.set(runId, result.data);
+    persistAgentDryRun(result.data, config);
+    return result;
+  }
+
+  if (config.allowDryRun !== true) {
+    return errorResult("agent_dry_run_disabled", "Dry-run agent execution is disabled. Select a project with localPath and start a real Agent(2) run.");
+  }
+
   if (selectedAgentProvider(request, config) === "agent2") {
     const run = createAgent2DryRun(request, {
       runId,
@@ -180,6 +210,212 @@ export async function startAgentRun(request = {}, config = {}) {
   agentRuns.set(runId, run);
   persistAgentDryRun(run, config);
   return { ok: true, data: run, error: null };
+}
+
+async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
+  const agent2Root = path.resolve("agent(2)", "agent");
+  const mainModuleCwd = agent2Root;
+  const targetRepoPath = options.targetRepoPath;
+  const inputDsl = buildAgent2RequirementDsl(request, targetRepoPath);
+  const inputJson = JSON.stringify(inputDsl);
+  const rawOutputPath = path.join(options.outputDir, "agent2_real_stdout.json");
+  const stderrPath = path.join(options.outputDir, "agent2_real_stderr.log");
+  const stderrIndexPath = path.join(options.outputDir, "agent2_real_stderr.json");
+  const requestPath = path.join(options.outputDir, "agent2_real_request.json");
+
+  await fs.mkdir(options.outputDir, { recursive: true });
+  await fs.writeFile(requestPath, JSON.stringify(inputDsl, null, 2), "utf8");
+
+  const env = {
+    ...process.env,
+    AGENT_OUTPUT_JSON: "1",
+    AGENT_REPO_MODE: "real",
+    AGENT_REPO_ROOT: targetRepoPath,
+    AGENT_REPO_APPLY: "1",
+    AGENT_REPO_CONFIRM: "YES",
+    AGENT_PROVIDER: "agent2",
+    PYTHONIOENCODING: "utf-8"
+  };
+  if (request.runTests === true) {
+    env.AGENT_TEST_RUN = "1";
+    env.AGENT_TEST_CONFIRM = "YES";
+  }
+  try {
+    await attachDoubaoEnv(env, config);
+  } catch (error) {
+    return errorResult("doubao_config_missing", "Doubao Ark API config could not be read.", {
+      reason: String(error.message || error)
+    });
+  }
+
+  const pythonCommand = config.pythonCommand || process.env.PYTHON || "python";
+  const startedAt = Date.now();
+  const childOptions = {
+    cwd: mainModuleCwd,
+    env,
+    input: inputJson,
+    spawnImpl: config.spawnImpl,
+    timeoutMs: Number(config.agentRealRunTimeoutMs || process.env.AGENT_REAL_RUN_TIMEOUT_MS || 180_000)
+  };
+  const childResult = typeof config.agent2Runner === "function"
+    ? await config.agent2Runner({ command: pythonCommand, args: ["-m", "agent_core.main"], ...childOptions })
+    : await spawnWithInput(pythonCommand, ["-m", "agent_core.main"], childOptions);
+  await fs.writeFile(rawOutputPath, childResult.stdout || "", "utf8");
+  await fs.writeFile(stderrPath, childResult.stderr || "", "utf8");
+
+  if (childResult.timedOut) {
+    return errorResult("agent2_timeout", "Agent(2) real execution timed out.", {
+      runId: options.runId,
+      stderrPath,
+      rawOutputPath
+    });
+  }
+
+  if (childResult.exitCode !== 0) {
+    return errorResult("agent2_process_failed", "Agent(2) real execution process failed.", {
+      runId: options.runId,
+      exitCode: childResult.exitCode,
+      stderrPath,
+      rawOutputPath
+    });
+  }
+
+  let agent2Result;
+  try {
+    agent2Result = parseJsonFromStdout(childResult.stdout);
+  } catch (error) {
+    return errorResult("agent2_invalid_json", "Agent(2) real execution did not return valid JSON.", {
+      runId: options.runId,
+      exitCode: childResult.exitCode,
+      stderrPath,
+      rawOutputPath,
+      reason: String(error.message || error)
+    });
+  }
+
+  const run = mapAgent2ResultToWorkbench(agent2Result, {
+    ...request,
+    runId: options.runId,
+    outputDir: options.outputDir,
+    relativeOutputDir: options.relativeOutputDir,
+    now: options.now,
+    dryRun: false,
+    realExecution: true,
+    targetRepoPath,
+    requirementDsl: inputDsl
+  });
+  run.startedAt = new Date(startedAt).toISOString();
+  run.finishedAt = new Date().toISOString();
+  run.agentProcess = {
+    command: pythonCommand,
+    args: ["-m", "agent_core.main"],
+    cwd: mainModuleCwd,
+    exitCode: childResult.exitCode,
+    timedOut: childResult.timedOut,
+    stderrPath,
+    rawOutputPath,
+    requestPath
+  };
+  run.artifacts = {
+    ...run.artifacts,
+    "agent2_real_request.json": { exists: true, path: requestPath, json: inputDsl },
+    "agent2_real_stdout.json": { exists: true, path: rawOutputPath, json: agent2Result },
+    "agent2_real_stderr.json": { exists: true, path: stderrIndexPath, json: { path: stderrPath } }
+  };
+
+  await writeWorkbenchArtifacts(options.outputDir, run.artifacts);
+  return { ok: true, data: run, error: null };
+}
+
+function buildAgent2RequirementDsl(request = {}, targetRepoPath = "") {
+  const source = request.requirementDsl && typeof request.requirementDsl === "object" ? request.requirementDsl : {};
+  const taskTitle = request.taskTitle || source.task_name || source.title || source.user_story || "Workbench real agent execution";
+  const targetModules = source.target_modules || source.targetModules || source.targetFiles || source.target_files || ["frontend/src"];
+  const acceptanceCriteria = source.acceptance_criteria || source.acceptanceCriteria || source.acceptance || [taskTitle];
+  const constraints = [
+    ...arrayOfStrings(source.constraints),
+    "Apply real repository changes requested by this Workbench run.",
+    "Do not modify secrets or local configuration files."
+  ];
+  return {
+    requirement_id: request.requirementId || source.requirement_id || source.id || `req-${request.projectId || "workbench"}`,
+    task_name: taskTitle,
+    user_story: source.user_story || source.rawPmInput || source.description || taskTitle,
+    requirement_type: source.requirement_type || source.requirementType || "conduit_l1_frontend",
+    target_repo: targetRepoPath,
+    target_modules: arrayOfStrings(targetModules).length ? arrayOfStrings(targetModules) : ["frontend/src"],
+    acceptance_criteria: arrayOfStrings(acceptanceCriteria).length ? arrayOfStrings(acceptanceCriteria) : [taskTitle],
+    constraints,
+    skill_hint: source.skill_hint || source.skillHint || "",
+    test_commands: arrayOfStrings(source.test_commands || source.testCommands),
+    risk_level: ["low", "medium", "high"].includes(source.risk_level || source.riskLevel) ? (source.risk_level || source.riskLevel) : "low"
+  };
+}
+
+function arrayOfStrings(value) {
+  if (Array.isArray(value)) return value.map((item) => String(item)).filter(Boolean);
+  if (typeof value === "string" && value.trim()) return [value.trim()];
+  return [];
+}
+
+async function attachDoubaoEnv(env, config = {}) {
+  const doubaoConfig = await readDoubaoArkConfig(config);
+  env.AGENT_LLM_PROVIDER = "doubao";
+  env.DOUBAO_API_KEY = doubaoConfig.apiKey;
+  env.DOUBAO_ENDPOINT = doubaoConfig.model || doubaoConfig.endpointId;
+  env.DOUBAO_BASE_URL = doubaoConfig.baseURL;
+}
+
+function spawnWithInput(command, args, options = {}) {
+  return new Promise((resolve) => {
+    const spawnImpl = options.spawnImpl || spawn;
+    const child = spawnImpl(command, args, {
+      cwd: options.cwd,
+      env: options.env,
+      windowsHide: true,
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const timer = options.timeoutMs > 0 ? setTimeout(() => {
+      if (settled) return;
+      child.kill();
+      settled = true;
+      resolve({ exitCode: null, stdout, stderr, timedOut: true });
+    }, options.timeoutMs) : null;
+    child.stdout.on("data", (chunk) => {
+      stdout += chunk.toString("utf8");
+    });
+    child.stderr.on("data", (chunk) => {
+      stderr += chunk.toString("utf8");
+    });
+    child.on("error", (error) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      resolve({ exitCode: null, stdout, stderr: `${stderr}\n${String(error.message || error)}`, timedOut: false });
+    });
+    child.on("close", (exitCode) => {
+      if (settled) return;
+      settled = true;
+      if (timer) clearTimeout(timer);
+      resolve({ exitCode, stdout, stderr, timedOut: false });
+    });
+    child.stdin.end(options.input || "");
+  });
+}
+
+function parseJsonFromStdout(stdout = "") {
+  const text = String(stdout || "").trim();
+  try {
+    return JSON.parse(text);
+  } catch {
+    const start = text.indexOf("{");
+    const end = text.lastIndexOf("}");
+    if (start >= 0 && end > start) return JSON.parse(text.slice(start, end + 1));
+    throw new Error("no JSON object found in stdout");
+  }
 }
 
 export function getAgentRun(runId, config = {}) {

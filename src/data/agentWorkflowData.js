@@ -1,7 +1,7 @@
 export const initialAgentWorkflowState = {
   status: "idle",
   runId: "",
-  latestReturn: "No agent dry-run has been started.",
+  latestReturn: "No real agent run has been started.",
   readiness: null,
   context: null,
   plan: null,

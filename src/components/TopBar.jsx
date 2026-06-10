@@ -9,7 +9,17 @@ export default function TopBar({ mode, onModeChange, activeWorkspacePage, onWork
         <span>Codex Workbench</span>
       </div>
       {mode === "workbench" ? (
-        <WorkspaceTopTabs activePage={activeWorkspacePage} onPageChange={onWorkspacePageChange} />
+        <div className="workspace-nav-cluster">
+          <button
+            className="workspace-monitor-return"
+            type="button"
+            aria-label="返回监控台"
+            onClick={() => onModeChange("monitor")}
+          >
+            监控台
+          </button>
+          <WorkspaceTopTabs activePage={activeWorkspacePage} onPageChange={onWorkspacePageChange} />
+        </div>
       ) : (
         <nav className="mode-tabs" aria-label="全局模式">
           <button

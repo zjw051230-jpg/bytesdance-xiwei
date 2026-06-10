@@ -4,7 +4,7 @@ import Sidebar from "./Sidebar.jsx";
 import TaskInspector from "./TaskInspector.jsx";
 import TopBar from "./TopBar.jsx";
 import WorkspaceShell from "./WorkspaceShell.jsx";
-import { createProject as createPersistedProject, listProjects, updateProject } from "../api/persistenceClient.js";
+import { createProject as createPersistedProject, deleteProject as deletePersistedProject, listProjects, updateProject } from "../api/persistenceClient.js";
 import { fallbackProject, workspaceProjects } from "../data/workspaceProjects.js";
 
 const initialProjects = workspaceProjects.length > 0 ? workspaceProjects : [fallbackProject];
@@ -36,7 +36,11 @@ export default function AppShell() {
       .then((projects) => {
         if (!active || !Array.isArray(projects)) return;
         setProjectList(projects);
-        setActiveProjectId((current) => projects.some((project) => project.id === current) ? current : projects[0]?.id);
+        setActiveProjectId((current) => {
+          const currentProject = projects.find((project) => project.id === current);
+          if (currentProject?.localPath) return currentProject.id;
+          return projects[0]?.id || currentProject?.id;
+        });
         setProjectLoadState({ loading: false, error: "" });
         logDevDuration("workbench:project-load", startedAt);
       })
@@ -90,6 +94,32 @@ export default function AppShell() {
     }
   };
 
+  const removeProjectFromState = (projectId) => {
+    setProjectList((currentProjects) => {
+      const nextProjects = currentProjects.filter((project) => project.id !== projectId);
+      setActiveProjectId((current) => current === projectId ? nextProjects[0]?.id : current);
+      return nextProjects;
+    });
+  };
+
+  const deleteProject = async (project) => {
+    if (!project?.id) return;
+    const isLocalOnlyProject = /^(pending|mock)-/.test(String(project.id));
+    if (isLocalOnlyProject) {
+      removeProjectFromState(project.id);
+      setWorkspaceToast(`已删除 ${project.name}`);
+      return;
+    }
+
+    try {
+      await deletePersistedProject(project.id);
+      removeProjectFromState(project.id);
+      setWorkspaceToast(`已删除 ${project.name}`);
+    } catch (error) {
+      setWorkspaceToast(`工程删除失败：${error.message || "Persistence API request failed"}`);
+    }
+  };
+
   const handleModeChange = (nextMode) => {
     setMode(nextMode);
     if (nextMode === "workbench" && workspacePage !== "picker") {
@@ -125,6 +155,7 @@ export default function AppShell() {
           activeProjectId={activeProjectId}
           onProjectSelect={selectProject}
           onProjectCreate={createProject}
+          onProjectDelete={deleteProject}
           workspacePage={workspacePage}
           onWorkspacePageChange={setWorkspacePage}
           toast={workspaceToast}
