@@ -210,7 +210,7 @@ export default function AppShell() {
       />
       {mode === "monitor" ? (
         <div className="layout monitor-layout" data-testid="monitor-console-view">
-          <MonitorConsole monitor={monitorModel} />
+          <MonitorConsole monitor={monitorModel} onProjectSelect={(project) => selectProject(project, "monitor")} />
         </div>
       ) : (
         <WorkspaceShell

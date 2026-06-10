@@ -3,7 +3,7 @@ import { useMemo, useRef, useState } from "react";
 import { buildMonitorTaskSkillView } from "../adapters/monitorTaskSkills.js";
 import StatusBadge from "./StatusBadge.jsx";
 
-export default function MonitorConsole({ monitor }) {
+export default function MonitorConsole({ monitor, onProjectSelect }) {
   const [detail, setDetail] = useState(null);
   const dialogRef = useRef(null);
   const taskView = useMemo(() => buildMonitorTaskSkillView(monitor || {}), [monitor]);
@@ -36,6 +36,7 @@ export default function MonitorConsole({ monitor }) {
           <p>Overview first. Live workflow details open on demand.</p>
         </div>
         <div className="monitor-hero-actions">
+          <ProjectSwitcher monitor={monitor} onProjectSelect={onProjectSelect} />
           <SourceBadge monitor={monitor} />
           <StatusBadge status={isPolling ? "warn" : "pass"}>{isPolling ? "polling" : "stable"}</StatusBadge>
           <button className="small-button" type="button" disabled={monitor?.loading}>
@@ -123,6 +124,27 @@ export default function MonitorConsole({ monitor }) {
 
       <MonitorDetailDialog dialogRef={dialogRef} detail={detail} onRequestClose={closeDetail} onClosed={() => setDetail(null)} />
     </main>
+  );
+}
+
+function ProjectSwitcher({ monitor, onProjectSelect }) {
+  const projects = Array.isArray(monitor?.projects) ? monitor.projects : [];
+  const activeProjectId = monitor?.activeProjectId || monitor?.project?.owner || "";
+  const handleChange = (event) => {
+    const nextProject = projects.find((project) => project.id === event.target.value);
+    if (nextProject) onProjectSelect?.(nextProject);
+  };
+
+  return (
+    <label className="monitor-project-switcher">
+      <span>Project</span>
+      <select value={activeProjectId} onChange={handleChange} disabled={!projects.length}>
+        {!projects.length ? <option value="">No projects</option> : null}
+        {projects.map((project) => (
+          <option key={project.id} value={project.id}>{project.name || project.id}</option>
+        ))}
+      </select>
+    </label>
   );
 }
 

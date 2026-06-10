@@ -20,6 +20,7 @@ export function buildMonitorConsoleModel({
   return {
     loading: Boolean(loadState.loading),
     error: loadState.error || "",
+    activeProjectId: activeProject?.id || activeProjectId || "",
     project: buildProjectSummary(activeProject),
     projects: buildProjectRows(projects, activeProject?.id, latestRequirement),
     runs: buildRunRows(run, activity),

@@ -7183,6 +7183,38 @@ dt,
   justify-content: flex-end;
 }
 
+.monitor-project-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.monitor-project-switcher span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.monitor-project-switcher select {
+  max-width: min(260px, 28vw);
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.monitor-project-switcher option {
+  background: #0b1220;
+  color: var(--text);
+}
+
 .monitor-status-strip {
   display: flex;
   align-items: center;
@@ -7431,6 +7463,12 @@ dt,
   .monitor-card-foot {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .monitor-project-switcher,
+  .monitor-project-switcher select {
+    width: 100%;
+    max-width: none;
   }
 
   .monitor-overview-grid,
