@@ -18,9 +18,10 @@ const MAX_PM_HISTORY = 6;
 const FAST_PROMPT_MAX_CHARS = 6000;
 const SKILL_SUMMARY_MAX_CHARS = 560;
 const SKILL_MODEL_RESULT_MARKER = "__skillModelResult";
-const INITIAL_MIN_QUESTIONS = 5;
-const INITIAL_MAX_QUESTIONS = 8;
-const REFINEMENT_QUESTIONS = 2;
+const INITIAL_MIN_QUESTIONS = 1;
+const INITIAL_MAX_QUESTIONS = 1;
+const INITIAL_REQUIRED_ANSWERS = 2;
+const REFINEMENT_QUESTIONS = 1;
 
 export async function runSkillTurn(requestBody = {}, config = {}) {
   const rawLatestInput = latestRawPmText(requestBody.pmMessages);
@@ -182,7 +183,7 @@ export function buildSkillPrompt(promptBundle, input) {
     "```",
     "## Skill summaries, not full skill files",
     skillSections,
-    "Return exactly one JSON object. Use clarification.questions as a grouped list with multiple user-answerable questions when clarification is needed. No Markdown outside JSON."
+    "Return exactly one JSON object. Use clarification.questions for one concise user-answerable question when clarification is needed. No Markdown outside JSON."
   ].join("\n\n");
   if (prompt.length <= FAST_PROMPT_MAX_CHARS) return prompt;
   return [
@@ -1087,7 +1088,10 @@ function normalizeClarificationQuestionList(questions = [], input = {}, progress
   const fallback = buildNaturalQuestionBank(input);
   const fallbackStart = Math.min(progress.nextQuestionIndex, Math.max(0, fallback.length - 1));
   const orderedFallback = [...fallback.slice(fallbackStart), ...fallback.slice(0, fallbackStart)];
-  const candidates = dedupeQuestions([...existing, ...orderedFallback])
+  const candidates = dedupeQuestions([
+    ...(shouldPreferCanonicalQuestionSequence(input) ? orderedFallback : existing),
+    ...(shouldPreferCanonicalQuestionSequence(input) ? existing : orderedFallback)
+  ])
     .map((question, index) => normalizeQuestionItem(question, index))
     .filter((question) => !askedKeys.has(normalizeQuestionKey(question.question)));
   const selected = selectQuestionGroup(candidates, targetCount, maxCount);
@@ -1124,7 +1128,17 @@ function normalizeQuestionItem(question, index) {
 
 function buildNaturalQuestionBank(input = {}) {
   const latest = latestPmText(input.pmMessages);
-  const lower = latest.toLowerCase();
+  const conversation = conversationText(input.pmMessages);
+  const lower = `${conversation}\n${latest}`.toLowerCase();
+  if (isViewCountClarification(input)) {
+    return questionBank([
+      ["你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？", ["data_boundary"]],
+      ["浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？", ["data_boundary"]],
+      ["如果浏览量统计失败或接口异常，文章页应该隐藏该数据、显示 0，还是显示加载失败提示？", ["failure_case"]],
+      ["管理员或作者本人访问文章时是否计入浏览量？", ["permission_boundary"]],
+      ["验收时你希望用哪些可见结果判断浏览量统计已经完成？", ["acceptance_criteria"]]
+    ]);
+  }
   if (/login|登录|账号|账户|密码|失败|错误|锁定|找回/.test(lower)) {
     return questionBank([
       ["你希望覆盖哪些登录失败场景，比如密码错误、账号不存在、账号锁定、网络异常？", ["core_scenario", "failure_case"]],
@@ -1203,16 +1217,24 @@ function selectQuestionGroup(candidates, minCount, maxCount) {
 
 function extractAskedQuestionKeys(input = {}) {
   const keys = new Set();
+  for (const text of extractAskedQuestionTexts(input)) {
+    keys.add(normalizeQuestionKey(text));
+  }
+  return keys;
+}
+
+function extractAskedQuestionTexts(input = {}) {
+  const questions = [];
   for (const message of Array.isArray(input.pmMessages) ? input.pmMessages : []) {
     const role = String(message?.role || "");
     if (!["system", "system_clarification", "assistant"].includes(role)) continue;
     const content = String(message?.content || message?.text || "");
     for (const segment of content.split(/\r?\n|(?:\d+\.\s*)/)) {
       const text = segment.trim();
-      if (/[?？]$/.test(text)) keys.add(normalizeQuestionKey(text));
+      if (/[?？]$/.test(text)) questions.push(text);
     }
   }
-  return keys;
+  return uniqueStrings(questions);
 }
 
 function normalizeQuestionDimension(value) {
@@ -1243,11 +1265,13 @@ function appendQuestionGroup(message, questions, mode = "initial") {
     .split("我还需要确认几个问题：")[0]
     .split("我先从几个不同方向确认一下：")[0]
     .split("我再补充确认两个不同方向的问题：")[0]
+    .split("我先确认一个关键口径：")[0]
+    .split("我再补充确认一个问题：")[0]
     .split("还需要确认一个关键口径：")[0]
     .trim();
   const heading = mode === "refinement"
-    ? "我再补充确认两个不同方向的问题："
-    : "我先从几个不同方向确认一下：";
+    ? "我再补充确认一个问题："
+    : "我先确认一个关键口径：";
   const list = questions.map((question, index) => `${index + 1}. ${ensureQuestionMark(question.question || question)}`).join("\n");
   return `${base}\n\n${heading}\n${list}`;
 }
@@ -1260,9 +1284,12 @@ function resolveClarificationProgress(input = {}) {
   const messages = Array.isArray(input.pmMessages) ? input.pmMessages : [];
   const latestRole = String(messages[messages.length - 1]?.role || "");
   const systemMessages = messages.filter((message) => ["system", "system_clarification", "assistant"].includes(String(message.role || "")));
-  const hasQuestionGroup = systemMessages.some((message) => /几个不同方向|两个不同方向|还需要确认|继续丰富需求|澄清问题组/.test(String(message?.content || message?.text || "")));
+  const askedQuestionCount = extractAskedQuestionTexts(input).length;
+  const hasRefinementQuestion = systemMessages.some((message) => /再补充确认|继续丰富后的确认|refinement/i.test(String(message?.content || message?.text || "")));
   const mode = input.refinementRequested ? "refinement" : "initial";
-  const clarificationComplete = !input.refinementRequested && latestRole === "pm" && hasQuestionGroup;
+  const clarificationComplete = !input.refinementRequested && latestRole === "pm" && (
+    hasRefinementQuestion || askedQuestionCount >= INITIAL_REQUIRED_ANSWERS
+  );
   const targetCount = mode === "refinement" ? REFINEMENT_QUESTIONS : INITIAL_MIN_QUESTIONS;
   return {
     mode,
@@ -1271,7 +1298,7 @@ function resolveClarificationProgress(input = {}) {
     remainingQuestionCount: 0,
     isFinalQuestion: true,
     clarificationComplete,
-    nextQuestionIndex: Math.min(systemMessages.length, Math.max(0, buildNaturalQuestionBank(input).length - 1))
+    nextQuestionIndex: Math.min(askedQuestionCount, Math.max(0, buildNaturalQuestionBank(input).length - 1))
   };
 }
 
@@ -1542,6 +1569,20 @@ function normalizeQuestions(questions, clarification = {}) {
 
 function latestPmText(messages) {
   return [...(messages || [])].reverse().find((message) => message.role === "pm")?.content || "";
+}
+
+function conversationText(messages) {
+  return (Array.isArray(messages) ? messages : [])
+    .map((message) => String(message?.content || message?.text || ""))
+    .join("\n");
+}
+
+function isViewCountClarification(input = {}) {
+  return /浏览量|浏览|访问量|view\s*count|views/.test(conversationText(input.pmMessages).toLowerCase());
+}
+
+function shouldPreferCanonicalQuestionSequence(input = {}) {
+  return isViewCountClarification(input);
 }
 
 function latestRawPmText(messages) {

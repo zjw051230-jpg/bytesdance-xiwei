@@ -935,28 +935,24 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByText(/EVPI-lite/)).not.toBeInTheDocument();
   });
 
-  it("walks DSL clarification as grouped questions and supports refinement loops", async () => {
-    const initialQuestions = [
-      "浏览量统计对象是所有文章详情页，还是也包含列表页曝光？",
-      "浏览量去重规则是什么，比如同一用户 24 小时内访问同一篇文章只算 1 次，还是每次刷新都累计？",
-      "未登录用户是否也统计浏览量？如果统计，按 IP、设备还是 session 去重？",
-      "浏览量数据需要实时展示，还是可以有延迟缓存？",
-      "验收时你希望至少看到哪些结果？"
-    ];
-    const firstRefinement = [
-      "如果浏览量统计接口失败，页面应该显示旧数据，还是提示加载失败？",
-      "这次前后端边界怎么拆，是否需要新增独立统计接口？"
-    ];
-    const secondRefinement = [
-      "管理员或作者本人访问文章时是否计入浏览量？",
-      "是否需要为重复访问去重留下可验证日志或测试数据？"
-    ];
+  it("walks DSL clarification as concise P1 plus P2 refinement loops", async () => {
+    const firstQuestion = "你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？";
+    const secondQuestion = "浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？";
+    const refinementQuestion = "如果浏览量统计失败或接口异常，文章页应该隐藏该数据、显示 0，还是显示加载失败提示？";
+    const secondRefinementQuestion = "管理员或作者本人访问文章时是否计入浏览量？";
     const skillTurns = [
       buildSkillTurn({
-        message: `我先从几个不同方向确认一下：\n${initialQuestions.map((item, index) => `${index + 1}. ${item}`).join("\n")}`,
-        questions: initialQuestions.map((question, index) => ({ question, dimension: ["object", "data", "permission", "state", "acceptance"][index] })),
+        message: `我先确认一个关键口径：\n1. ${firstQuestion}`,
+        questions: [{ question: firstQuestion, dimension: "data" }],
         score: 62,
-        asked: 5,
+        asked: 1,
+        remaining: 0
+      }),
+      buildSkillTurn({
+        message: `我先确认一个关键口径：\n1. ${secondQuestion}`,
+        questions: [{ question: secondQuestion, dimension: "data" }],
+        score: 64,
+        asked: 1,
         remaining: 0
       }),
       buildSkillTurn({
@@ -965,11 +961,11 @@ describe("monitor console and workspace picker", () => {
         complete: true
       }),
       buildSkillTurn({
-        message: `我再补充确认两个不同方向的问题：\n1. ${firstRefinement[0]}\n2. ${firstRefinement[1]}`,
-        questions: firstRefinement.map((question, index) => ({ question, dimension: ["edge_case", "implementation_boundary"][index] })),
+        message: `我再补充确认一个问题：\n1. ${refinementQuestion}`,
+        questions: [{ question: refinementQuestion, dimension: "edge_case" }],
         score: 80,
         clarificationMode: "refinement",
-        asked: 2,
+        asked: 1,
         remaining: 0
       }),
       buildSkillTurn({
@@ -978,11 +974,11 @@ describe("monitor console and workspace picker", () => {
         complete: true
       }),
       buildSkillTurn({
-        message: `我再补充确认两个不同方向的问题：\n1. ${secondRefinement[0]}\n2. ${secondRefinement[1]}`,
-        questions: secondRefinement.map((question, index) => ({ question, dimension: ["permission", "acceptance"][index] })),
+        message: `我再补充确认一个问题：\n1. ${secondRefinementQuestion}`,
+        questions: [{ question: secondRefinementQuestion, dimension: "permission" }],
         score: 81,
         clarificationMode: "refinement",
-        asked: 2,
+        asked: 1,
         remaining: 0
       }),
       buildSkillTurn({
@@ -1014,14 +1010,16 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(document.querySelectorAll(".mode-tab")[1]);
     fireEvent.click(document.querySelector(".enter-workbench-button"));
 
-    await sendWorkbenchAnswer("文章详情页要增加浏览量统计，同时改前后端。");
-    await waitFor(() => expect(screen.getByText(initialQuestions[0])).toBeInTheDocument());
-    for (const question of initialQuestions) {
-      expect(screen.getByText(question)).toBeInTheDocument();
-    }
+    await sendWorkbenchAnswer("我需要做一个统计浏览量的，放在文章最后。");
+    await waitFor(() => expect(screen.getByText(firstQuestion)).toBeInTheDocument());
+    expect(screen.queryByText(secondQuestion)).not.toBeInTheDocument();
     expect(screen.getByText("62%")).toBeInTheDocument();
 
-    await sendWorkbenchAnswer("详情页统计，24h 去重，未登录也按 session 统计，验收看刷新后计数变化。");
+    await sendWorkbenchAnswer("总浏览量。");
+    await waitFor(() => expect(screen.getByText(secondQuestion)).toBeInTheDocument());
+    expect(screen.getByText("64%")).toBeInTheDocument();
+
+    await sendWorkbenchAnswer("需要去重，同一用户 24 小时只算一次。");
     await waitFor(() => expect(screen.getByText("当前需求已经具备进入设计规划的基础信息。你可以继续丰富需求，也可以开始施工。")).toBeInTheDocument());
     expect(screen.getByText("91%")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "继续丰富需求" })).toBeInTheDocument();
@@ -1029,24 +1027,22 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getByText("ready_for_design")).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "继续丰富需求" }));
-    await waitFor(() => expect(screen.getByText(firstRefinement[0])).toBeInTheDocument());
-    expect(screen.getByText(firstRefinement[1])).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(refinementQuestion)).toBeInTheDocument());
     expect(screen.getByText("80%")).toBeInTheDocument();
     const firstRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body);
     expect(firstRefineRequest.refinementRequested).toBe(true);
 
-    await sendWorkbenchAnswer("接口失败显示旧数据并给轻提示，前后端用独立统计接口。");
+    await sendWorkbenchAnswer("接口异常时显示 0，并给一个轻提示。");
     await waitFor(() => expect(screen.getByText("92%")).toBeInTheDocument());
     expect(screen.getByRole("button", { name: "继续丰富需求" })).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "继续丰富需求" }));
-    await waitFor(() => expect(screen.getByText(secondRefinement[0])).toBeInTheDocument());
-    expect(screen.getByText(secondRefinement[1])).toBeInTheDocument();
-    expect(screen.queryByText(firstRefinement[0])).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByText(secondRefinementQuestion)).toBeInTheDocument());
+    expect(screen.queryByText(refinementQuestion)).not.toBeInTheDocument();
     const secondRefineRequest = JSON.parse(fetchMock.mock.calls.filter(([url]) => String(url).endsWith("/api/skill/pm-dsl-turn")).at(-1)[1].body);
     expect(secondRefineRequest.refinementRequested).toBe(true);
 
-    await sendWorkbenchAnswer("作者本人不计入浏览量，验收时保留去重测试数据。");
+    await sendWorkbenchAnswer("作者本人不计入浏览量。");
     await waitFor(() => expect(screen.getByText("93%")).toBeInTheDocument());
 
     fireEvent.click(screen.getByRole("button", { name: "开始施工" }));
@@ -1650,8 +1646,8 @@ function buildSkillTurn({ message, question = "", questions = null, score, asked
       remainingQuestionCount: remaining,
       askedQuestionCount: asked,
       questionCount: questionItems.length,
-      minQuestionCount: clarificationMode === "refinement" ? 2 : 5,
-      maxQuestionCount: clarificationMode === "refinement" ? 2 : 8,
+      minQuestionCount: 1,
+      maxQuestionCount: 1,
       clarificationMode,
       coveredDimensions,
       isFinalQuestion,
@@ -1675,8 +1671,8 @@ function buildSkillTurn({ message, question = "", questions = null, score, asked
         questions: questionItems,
         currentQuestion: complete ? "" : questionItems[0]?.question || "",
         questionCount: questionItems.length,
-        minQuestionCount: clarificationMode === "refinement" ? 2 : 5,
-        maxQuestionCount: clarificationMode === "refinement" ? 2 : 8,
+        minQuestionCount: 1,
+        maxQuestionCount: 1,
         clarificationMode,
         coveredDimensions,
         clarificationComplete: complete

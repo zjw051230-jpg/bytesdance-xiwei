@@ -680,14 +680,14 @@ describe("DSL backend API", () => {
     expect(result.ok).toBe(true);
     expect(modelCalls).toBe(1);
     expect(result.data.skipDslGeneration).not.toBe(true);
-    expect(result.data.clarification.currentQuestion).toBe("未登录用户的浏览量是否也要统计？");
+    expect(result.data.clarification.currentQuestion).toBe("浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？");
   });
 
-  it("returns an initial multi-dimensional clarification question group", async () => {
+  it("returns one concise initial clarification question for article view counts", async () => {
     const result = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
       pmMessages: [
-        { role: "pm", content: "文章详情页要增加独立浏览量统计，同时改前后端。" }
+        { role: "pm", content: "我需要做一个统计浏览量的，放在文章最后。" }
       ]
     }, {
       runsRoot: testRunsRoot,
@@ -715,31 +715,29 @@ describe("DSL backend API", () => {
 
     expect(result.ok).toBe(true);
     const questions = result.data.clarification.questions;
-    expect(questions.length).toBeGreaterThanOrEqual(5);
-    expect(questions.length).toBeLessThanOrEqual(8);
-    expect(new Set(questions.map((question) => question.dimension)).size).toBeGreaterThanOrEqual(3);
-    expect(questions.every((question) => question.dimension === "acceptance")).toBe(false);
+    expect(questions).toHaveLength(1);
+    expect(questions[0].question).toBe("你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？");
+    expect(questions[0].dimension).toBe("data");
     expect(result.data.clarification.clarificationMode).toBe("initial");
-    expect(result.data.clarification.questionCount).toBe(questions.length);
-    expect(result.data.clarification.minQuestionCount).toBe(5);
-    expect(result.data.clarification.maxQuestionCount).toBe(8);
+    expect(result.data.clarification.questionCount).toBe(1);
+    expect(result.data.clarification.minQuestionCount).toBe(1);
+    expect(result.data.clarification.maxQuestionCount).toBe(1);
+    expect(result.data.assistant_message).toContain("我先确认一个关键口径：");
+    expect(result.data.assistant_message).not.toContain("几个不同方向");
     expect(result.data.uiState.dslCompletion.rawScore).toBeDefined();
     expect(result.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
   });
 
-  it("returns two non-repeated refinement questions from different dimensions", async () => {
+  it("asks the second P1 question after the first concise answer", async () => {
     const alreadyAsked = [
-      "浏览量统计对象是所有文章详情页，还是也包含列表页曝光？",
-      "浏览量去重规则是什么，比如同一用户 24 小时内访问同一篇文章只算 1 次，还是每次刷新都累计？"
+      "你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？"
     ];
     const result = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
-      clarificationMode: "refinement",
-      refinementRequested: true,
       pmMessages: [
-        { role: "pm", content: "文章详情页要增加独立浏览量统计，同时改前后端。" },
+        { role: "pm", content: "我需要做一个统计浏览量的，放在文章最后。" },
         { role: "system_clarification", content: alreadyAsked.join("\n") },
-        { role: "pm", content: "详情页统计，24h 去重，未登录也按 session 统计。" }
+        { role: "pm", content: "总浏览量。" }
       ]
     }, {
       runsRoot: testRunsRoot,
@@ -770,12 +768,68 @@ describe("DSL backend API", () => {
 
     expect(result.ok).toBe(true);
     const questions = result.data.clarification.questions;
-    expect(result.data.clarification.clarificationMode).toBe("refinement");
-    expect(questions).toHaveLength(2);
-    expect(new Set(questions.map((question) => question.dimension)).size).toBe(2);
+    expect(result.data.clarification.clarificationMode).toBe("initial");
+    expect(questions).toHaveLength(1);
+    expect(questions[0].question).toBe("浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？");
     for (const text of alreadyAsked) {
       expect(questions.map((question) => question.question)).not.toContain(text);
     }
+    expect(result.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
+  });
+
+  it("returns one non-repeated refinement question", async () => {
+    const alreadyAsked = [
+      "你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？",
+      "浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？"
+    ];
+    const result = await runSkillTurn({
+      projectId: "conduit-realworld-example-app",
+      clarificationMode: "refinement",
+      refinementRequested: true,
+      pmMessages: [
+        { role: "pm", content: "我需要做一个统计浏览量的，放在文章最后。" },
+        { role: "system_clarification", content: alreadyAsked[0] },
+        { role: "pm", content: "总浏览量。" },
+        { role: "system_clarification", content: alreadyAsked[1] },
+        { role: "pm", content: "需要去重，同一用户 24 小时只算一次。" }
+      ]
+    }, {
+      runsRoot: testRunsRoot,
+      dslRuntimeRoot: path.resolve("e2e"),
+      nodeEnv: "development",
+      modelClient: async () => JSON.stringify({
+        assistant_message: "继续丰富需求。",
+        dsl_patch: { candidate: true },
+        current_dsl_summary: {
+          title: "Article view count",
+          goal: "Show independent article view counts.",
+          scope: ["Article detail view count"],
+          out_of_scope: ["Agent Plan"],
+          acceptance_criteria: ["View count follows dedup rules"],
+          unknowns: ["Edge cases"]
+        },
+        clarification: {
+          should_ask: true,
+          questions: [
+            { question: alreadyAsked[0], dimension: "object" },
+            { question: "这次前后端边界怎么拆，是否需要新增独立统计接口？", dimension: "implementation_boundary" }
+          ]
+        },
+        risk_boundary: { ready_for_agent: false, can_handoff_to_agent: false, handoff_decision: "clarify_first" },
+        source: { mode: "model_generated_real", provider: "test", skills_used: [] }
+      })
+    });
+
+    expect(result.ok).toBe(true);
+    const questions = result.data.clarification.questions;
+    expect(result.data.clarification.clarificationMode).toBe("refinement");
+    expect(questions).toHaveLength(1);
+    expect(questions[0].question).toBe("如果浏览量统计失败或接口异常，文章页应该隐藏该数据、显示 0，还是显示加载失败提示？");
+    for (const text of alreadyAsked) {
+      expect(questions.map((question) => question.question)).not.toContain(text);
+    }
+    expect(result.data.assistant_message).toContain("我再补充确认一个问题：");
+    expect(result.data.assistant_message).not.toContain("两个不同方向");
     expect(result.data.uiState.dslCompletion.displayScore).toBeGreaterThanOrEqual(75);
     expect(result.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
   });
@@ -952,7 +1006,7 @@ describe("DSL backend API", () => {
     expect(result.data.risk_boundary.handoff_decision).toBe("clarify_first");
   });
 
-  it("normalizes clarification into a multi-dimensional question group with progress metadata", async () => {
+  it("normalizes clarification into one concise question with progress metadata", async () => {
     const oneQuestionResult = await runSkillTurn({
       projectId: "conduit-realworld-example-app",
       pmMessages: [{ role: "pm", content: "Login failure hint is too vague; users need to know the next step." }]
@@ -980,15 +1034,13 @@ describe("DSL backend API", () => {
     });
 
     expect(oneQuestionResult.ok).toBe(true);
-    expect(oneQuestionResult.data.clarification.questions.length).toBeGreaterThanOrEqual(5);
-    expect(oneQuestionResult.data.clarification.questions.length).toBeLessThanOrEqual(8);
-    expect(new Set(oneQuestionResult.data.clarification.questions.map((question) => question.dimension)).size).toBeGreaterThanOrEqual(3);
+    expect(oneQuestionResult.data.clarification.questions).toHaveLength(1);
     expect(oneQuestionResult.data.clarification.currentQuestion).toMatch(/failure scenarios|登录失败|密码错误|账号不存在/i);
     expect(oneQuestionResult.data.clarification.remainingQuestionCount).toBe(0);
-    expect(oneQuestionResult.data.clarification.askedQuestionCount).toBe(oneQuestionResult.data.clarification.questions.length);
+    expect(oneQuestionResult.data.clarification.askedQuestionCount).toBe(1);
     expect(oneQuestionResult.data.clarification.isFinalQuestion).toBe(true);
     expect(oneQuestionResult.data.clarification.clarificationComplete).toBe(false);
-    expect(oneQuestionResult.data.assistant_message).toContain("我先从几个不同方向确认一下：");
+    expect(oneQuestionResult.data.assistant_message).toContain("我先确认一个关键口径：");
     expect(questionLineCount(oneQuestionResult.data.assistant_message)).toBe(oneQuestionResult.data.clarification.questions.length);
     expect(oneQuestionResult.data.uiState.dslCompletion.displayScore).toBeLessThan(85);
 
@@ -1022,11 +1074,10 @@ describe("DSL backend API", () => {
     });
 
     expect(manyQuestionResult.ok).toBe(true);
-    expect(manyQuestionResult.data.clarification.questions.length).toBeGreaterThanOrEqual(5);
-    expect(manyQuestionResult.data.clarification.questions.length).toBeLessThanOrEqual(8);
+    expect(manyQuestionResult.data.clarification.questions).toHaveLength(1);
     expect(manyQuestionResult.data.clarification.currentQuestion).toBe("Question 1: what should PM confirm?");
     expect(questionLineCount(manyQuestionResult.data.assistant_message)).toBe(manyQuestionResult.data.clarification.questions.length);
-    expect(manyQuestionResult.data.assistant_message).not.toContain("9.");
+    expect(manyQuestionResult.data.assistant_message).not.toContain("2.");
   });
 
   it("marks clarification complete after the final answer and raises only the display score", async () => {
@@ -1037,15 +1088,19 @@ describe("DSL backend API", () => {
         {
           role: "system_clarification",
           content: [
-            "我先从几个不同方向确认一下：",
-            "1. 浏览量统计对象是所有文章详情页，还是也包含列表页曝光？",
-            "2. 浏览量去重规则是什么？",
-            "3. 未登录用户是否也统计浏览量？",
-            "4. 浏览量数据需要实时展示，还是可以有延迟缓存？",
-            "5. 验收时你希望至少看到哪些结果？"
+            "我先确认一个关键口径：",
+            "1. 你要统计的是每篇文章的累计总浏览量，还是还需要今日浏览量、实时浏览量等额外指标？"
           ].join("\n")
         },
-        { role: "pm", content: "详情页统计，24h 去重，未登录也按 session 统计，验收看刷新后计数变化。" }
+        { role: "pm", content: "总浏览量。" },
+        {
+          role: "system_clarification",
+          content: [
+            "我先确认一个关键口径：",
+            "1. 浏览量是否需要去重？例如同一用户 24 小时内多次访问同一篇文章是否只算一次？"
+          ].join("\n")
+        },
+        { role: "pm", content: "需要去重，同一用户 24 小时只算一次。" }
       ]
     }, {
       runsRoot: testRunsRoot,
