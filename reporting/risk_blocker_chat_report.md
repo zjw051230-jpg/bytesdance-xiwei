@@ -61,6 +61,7 @@
 
 ### 8. Git / Push
 
-* commit: pending
+* implementation commit: 05aae8d
+* report commit: pending
 * pushed: pending
 * branch: ZJWNB
