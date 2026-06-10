@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, ExternalLink, FileCheck2, Monitor, RefreshCw, RotateCcw, ShieldCheck, Smartphone, TriangleAlert } from "lucide-react";
+import { ArrowRight, CheckCircle2, Copy, ExternalLink, FileCheck2, Monitor, RefreshCw, RotateCcw, ShieldCheck, Smartphone, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getPreviewStatus, startProjectPreview } from "../api/previewClient.js";
 import {
@@ -59,7 +59,7 @@ export default function ReviewCheckWorkbench({
   const [previewState, setPreviewState] = useState(initialPreviewState);
   const [viewport, setViewport] = useState("desktop");
   const [previewKey, setPreviewKey] = useState(0);
-  const [previewExpanded, setPreviewExpanded] = useState(false);
+  const [codeExpanded, setCodeExpanded] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [rollbackMessage, setRollbackMessage] = useState("");
   const workflowReview = agentWorkflow.review || null;
@@ -214,11 +214,14 @@ export default function ReviewCheckWorkbench({
     manualConfirmations: buildConfirmations(displayItems, workflowReview)
   }), [agentWorkflow.review?.summary, displayItems, workflowReview, loadingReview, normalizedWorkflowItems.length, reviewItems]);
 
-  const auditModel = useMemo(() => buildAuditModel(reviewForAudit, previewState.previewUrl), [reviewForAudit, previewState.previewUrl]);
+  const preferredPreviewUrl = resolvePreviewUrl({ agentWorkflow, activeProject, previewState, localPath });
+  const auditModel = useMemo(() => buildAuditModel(reviewForAudit, preferredPreviewUrl), [reviewForAudit, preferredPreviewUrl]);
   const changedFileCount = changes.length || auditModel.changedFiles.length;
   const verificationStatus = changesState.data?.verificationStatus || agentWorkflow.verificationStatus || "unknown";
   const rollbackStatus = getRollbackSummaryStatus(runId, changesState);
   const selectedFileLabel = selectedChange?.filePath || auditModel.selectedFile || "未选择文件";
+  const targetRepoPath = previewState.requestedProjectRoot || previewState.projectRoot || localPath || agentWorkflow.context?.targetRepoPath || "";
+  const previewCanRender = Boolean(auditModel.previewUrl) && previewState.status !== "iframe_error";
   const changedFileRows = changes.length
     ? changes.map((change) => ({ id: change.id, filePath: change.filePath, status: change.status }))
     : auditModel.changedFiles.map((file) => ({ id: file.id || file.file, filePath: file.file, status: file.humanStatus || file.risk || "pending" }));
@@ -285,16 +288,23 @@ export default function ReviewCheckWorkbench({
     window.open(auditModel.previewUrl, "_blank", "noopener,noreferrer");
   };
 
+  const copyPreviewUrl = async () => {
+    if (!auditModel.previewUrl) return;
+    await navigator.clipboard?.writeText(auditModel.previewUrl).catch(() => {});
+  };
+
   return (
     <main className="review-check-workbench" data-testid="review-check-workbench">
       <header className="audit-overview-header">
         <div>
           <span>Agent real-run audit</span>
           <h1>审计页面</h1>
-          <p>{reviewForAudit.summary}</p>
+          <p>{auditModel.previewUrl || "暂无 previewUrl。请启动 Conduit 应用，例如在目标仓库运行 start-dev 脚本，然后回到此页面刷新预览。"}</p>
         </div>
         <dl className="audit-run-metrics" aria-label="Agent run 审计状态">
           <div><dt>项目</dt><dd>{activeProject?.name || activeProject?.id || "未选择"}</dd></div>
+          <div><dt>previewUrl</dt><dd>{auditModel.previewUrl || "not set"}</dd></div>
+          <div><dt>target repo</dt><dd>{targetRepoPath || "not bound"}</dd></div>
           <div><dt>runId</dt><dd>{runId || "no run"}</dd></div>
           <div><dt>realWritePerformed</dt><dd>{String(Boolean(agentWorkflow.realWritePerformed))}</dd></div>
           <div><dt>changed files</dt><dd>{changedFileCount}</dd></div>
@@ -304,41 +314,58 @@ export default function ReviewCheckWorkbench({
       </header>
 
       <div className="audit-workspace-grid">
-        <section className="audit-main-panel" aria-label="变更文件和 diff">
-          <section className="audit-section audit-file-section audit-primary-files">
-            <header className="audit-section-heading-row">
-              <h2><FileCheck2 size={16} />Changed Files</h2>
-              <strong>{changedFileCount}</strong>
-            </header>
-            <div className="audit-file-list">
-              {changes.length ? changes.map((change) => (
-                <ChangeCard
-                  key={change.id}
-                  change={change}
-                  selected={selectedChangeId === change.id}
-                  onSelect={() => setSelectedChangeId(change.id)}
-                  onRevert={() => setConfirmAction({ type: "file", change })}
-                />
-              )) : auditModel.changedFiles.length ? auditModel.changedFiles.map((file) => (
-                <ReviewFileCard
-                  key={file.file}
-                  file={file}
-                  onHumanStatusChange={handleHumanStatusChange}
-                />
-              )) : <p className="audit-empty-state">暂无变更文件。请先运行真实 Agent，或确认 changed files 是否返回。</p>}
-            </div>
-          </section>
-
-          <section className="audit-diff-viewer" aria-label="Diff Viewer">
-            <header>
+        <section className="audit-main-panel audit-preview-primary" aria-label="Conduit UI 预览">
+          <section className="audit-preview-pane expanded primary" aria-label="Conduit UI preview">
+            <header className="audit-preview-primary-header">
               <div>
-                <span>Diff Viewer</span>
-                <h2>{selectedFileLabel}</h2>
+                <span>Conduit UI preview</span>
+                <h2>{auditModel.previewTitle}</h2>
+                <p>{auditModel.previewUrl || "暂无可用页面预览。请先启动 Conduit 应用，然后填写 previewUrl。"}</p>
               </div>
-              <small>{diffState.loading ? "loading" : selectedChange?.status || "empty"}</small>
+              <nav aria-label="Conduit preview 操作">
+                <button type="button" aria-label="刷新 Conduit 预览" onClick={refreshPreview}><RefreshCw size={15} /></button>
+                <button type="button" aria-label="复制 preview URL" disabled={!auditModel.previewUrl} onClick={copyPreviewUrl}><Copy size={15} /></button>
+                <button type="button" aria-label="打开 Conduit 页面" disabled={!auditModel.previewUrl} onClick={openPreview}><ExternalLink size={15} /></button>
+              </nav>
             </header>
-            {diffState.error ? <p className="run-error-text" role="alert">{diffState.error}</p> : null}
-            <pre>{diffState.diff?.unifiedDiff || "暂无 diff。请先运行真实 Agent，或确认 changed files 是否返回。"}</pre>
+            <PreviewToolbar
+              auditModel={auditModel}
+              localPath={localPath}
+              previewState={previewState}
+              viewport={viewport}
+              onViewportChange={setViewport}
+              onRefresh={refreshPreview}
+              onOpenPreview={openPreview}
+            />
+            <div className={`audit-browser-frame ${viewport}`} data-testid="audit-preview-frame">
+              {previewCanRender ? (
+                <iframe
+                  key={`${previewKey}-${viewport}-${auditModel.previewUrl}`}
+                  title={auditModel.previewTitle}
+                  src={auditModel.previewUrl}
+                  onError={() => setPreviewState((current) => ({
+                    ...current,
+                    available: false,
+                    status: "iframe_error",
+                    message: "iframe 无法加载预览地址，请确认 Conduit dev server 是否启动。"
+                  }))}
+                />
+              ) : (
+                <PreviewUnavailable
+                  isLoading={previewState.loading}
+                  message={previewState.message}
+                  path={targetRepoPath}
+                  runningPath={previewState.runningProjectRoot}
+                  owner={previewState.owner}
+                  actionRequired={previewState.actionRequired}
+                  port={previewState.port}
+                  status={previewState.status}
+                  url={auditModel.previewUrl}
+                  onOpenPreview={openPreview}
+                  onRetry={loadPreview}
+                />
+              )}
+            </div>
           </section>
         </section>
 
@@ -347,7 +374,7 @@ export default function ReviewCheckWorkbench({
             <div>
               <span>Audit summary</span>
               <h2>审计结论</h2>
-              <p>{changedFileCount ? `${changedFileCount} 个文件等待审阅，diff 和回退状态在左侧可直接查看。` : "暂无变更文件，等待 Agent real-run 输出。"}</p>
+              <p>{changedFileCount ? `${changedFileCount} 个文件可在底部代码变更区查看，主区域优先展示 Conduit UI。` : "暂无变更文件，主区域仍展示 Conduit UI 预览。"}</p>
             </div>
             <strong>{reviewForAudit.status}</strong>
           </header>
@@ -416,58 +443,57 @@ export default function ReviewCheckWorkbench({
         </aside>
       </div>
 
-      <section className={`audit-preview-pane ${previewExpanded ? "expanded" : "collapsed"}`} aria-label="页面预览">
+      <section className={`audit-code-panel ${codeExpanded ? "expanded" : "collapsed"}`} aria-label="代码变更">
         <header className="audit-preview-collapse-header">
           <div>
-            <span>页面预览</span>
-            <p>{previewState.available && auditModel.previewUrl ? auditModel.previewUrl : "暂无可用页面预览，请查看 diff 和审计结果。"}</p>
+            <span>代码变更</span>
+            <p>{changedFileCount ? `${changedFileCount} 个 changed files，可展开查看 diff。` : "暂无 changed files。"}</p>
           </div>
-          <button type="button" onClick={() => setPreviewExpanded((current) => !current)}>
-            {previewExpanded ? "收起预览" : "展开预览"}
+          <button type="button" onClick={() => setCodeExpanded((current) => !current)}>
+            {codeExpanded ? "收起代码差异" : "查看代码差异"}
           </button>
         </header>
-        {previewExpanded ? (
-          <>
-            <PreviewToolbar
-              auditModel={auditModel}
-              localPath={localPath}
-              previewState={previewState}
-              viewport={viewport}
-              onViewportChange={setViewport}
-              onRefresh={refreshPreview}
-              onOpenPreview={openPreview}
-            />
-            <div className={`audit-browser-frame ${viewport}`} data-testid="audit-preview-frame">
-              {previewState.available && auditModel.previewUrl ? (
-                <iframe
-                  key={`${previewKey}-${viewport}-${auditModel.previewUrl}`}
-                  title={auditModel.previewTitle}
-                  src={auditModel.previewUrl}
-                  onError={() => setPreviewState((current) => ({
-                    ...current,
-                    available: false,
-                    status: "iframe_error",
-                    message: "iframe 无法加载后端返回的预览地址。"
-                  }))}
-                />
-              ) : null}
-              {!previewState.available ? (
-                <PreviewUnavailable
-                  isLoading={previewState.loading}
-                  message={previewState.message}
-                  path={previewState.requestedProjectRoot || previewState.projectRoot || localPath}
-                  runningPath={previewState.runningProjectRoot}
-                  owner={previewState.owner}
-                  actionRequired={previewState.actionRequired}
-                  port={previewState.port}
-                  status={previewState.status}
-                  url={auditModel.previewUrl}
-                  onOpenPreview={openPreview}
-                  onRetry={loadPreview}
-                />
-              ) : null}
-            </div>
-          </>
+        {codeExpanded ? (
+          <div className="audit-code-grid">
+            <section className="audit-section audit-file-section audit-primary-files">
+              <header className="audit-section-heading-row">
+                <h2><FileCheck2 size={16} />Changed Files</h2>
+                <strong>{changedFileCount}</strong>
+              </header>
+              <div className="audit-file-list">
+                {changes.length ? changes.map((change) => (
+                  <ChangeCard
+                    key={change.id}
+                    change={change}
+                    selected={selectedChangeId === change.id}
+                    onSelect={() => {
+                      setSelectedChangeId(change.id);
+                      setCodeExpanded(true);
+                    }}
+                    onRevert={() => setConfirmAction({ type: "file", change })}
+                  />
+                )) : auditModel.changedFiles.length ? auditModel.changedFiles.map((file) => (
+                  <ReviewFileCard
+                    key={file.file}
+                    file={file}
+                    onHumanStatusChange={handleHumanStatusChange}
+                  />
+                )) : <p className="audit-empty-state">暂无 changed files。</p>}
+              </div>
+            </section>
+
+            <section className="audit-diff-viewer" aria-label="Diff Viewer">
+              <header>
+                <div>
+                  <span>Diff Viewer</span>
+                  <h2>{selectedFileLabel}</h2>
+                </div>
+                <small>{diffState.loading ? "loading" : selectedChange?.status || "empty"}</small>
+              </header>
+              {diffState.error ? <p className="run-error-text" role="alert">{diffState.error}</p> : null}
+              <pre>{diffState.diff?.unifiedDiff || "暂无 diff。点击 changed file 后将显示对应代码差异。"}</pre>
+            </section>
+          </div>
         ) : null}
       </section>
 
@@ -684,6 +710,40 @@ function buildConfirmations(items, fallbackReview) {
   return items.map((item) => `${item.filePath || item.file}: ${humanStatusLabels[item.humanStatus || "pending"]}`);
 }
 
+function resolvePreviewUrl({ agentWorkflow = {}, activeProject = {}, previewState = {}, localPath = "" }) {
+  const runPreviewUrl = firstString(
+    agentWorkflow.previewUrl,
+    agentWorkflow.run?.previewUrl,
+    agentWorkflow.result?.previewUrl,
+    agentWorkflow.review?.previewUrl,
+    agentWorkflow.artifacts?.preview?.previewUrl,
+    agentWorkflow.artifacts?.["preview.json"]?.json?.previewUrl
+  );
+  if (runPreviewUrl) return runPreviewUrl;
+
+  const projectPreviewUrl = firstString(activeProject.previewUrl, activeProject.devUrl);
+  if (projectPreviewUrl) return projectPreviewUrl;
+
+  if (previewState.previewUrl) return previewState.previewUrl;
+
+  const projectText = [
+    activeProject.name,
+    activeProject.slug,
+    activeProject.id,
+    activeProject.localPath,
+    activeProject.path,
+    activeProject.projectRoot,
+    localPath
+  ].filter(Boolean).join(" ");
+  if (/conduit/i.test(projectText)) return "http://127.0.0.1:3000/#/login";
+
+  return "";
+}
+
+function firstString(...values) {
+  return values.find((value) => typeof value === "string" && value.trim())?.trim() || "";
+}
+
 function buildAuditModel(review, previewUrl) {
   const changedFiles = Array.isArray(review.changedFiles) && review.changedFiles.length
     ? review.changedFiles
@@ -728,5 +788,6 @@ function getPreviewUnavailableMessage({ status, message, port }) {
     const label = port ? `${port}` : "目标端口";
     return `${label} 被外部进程占用，未打开当前项目`;
   }
-  return message || "";
+  if (status === "iframe_error") return message || "iframe 加载失败，请确认 Conduit dev server 是否启动。";
+  return message || "请启动 Conduit 应用，例如在目标仓库运行 start-dev 脚本，然后回到此页面刷新预览。";
 }

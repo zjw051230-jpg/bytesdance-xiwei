@@ -1,0 +1,29 @@
+{
+  "task": "Review Conduit UI Preview",
+  "status": "committed_not_pushed",
+  "ui": {
+    "previewIsPrimary": true,
+    "diffIsSecondary": true,
+    "auditPanelKept": true,
+    "externalOpenButtonKept": true,
+    "previewFallbackShown": true
+  },
+  "scope": {
+    "agentRealRunBackendTouched": false,
+    "dslTouched": false,
+    "monitorTouched": false,
+    "riskChatTouched": false,
+    "agentMatrixTouched": false,
+    "skillsTouched": false,
+    "conduitForkTouched": false
+  },
+  "tests": {
+    "skipped": true,
+    "reason": "per user instruction; run in integration gate"
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "ZJWNB"
+  }
+}
