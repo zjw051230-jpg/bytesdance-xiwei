@@ -71,13 +71,14 @@ export default function AgentWorkMatrix({ agentWorkflow = {}, isStarting = false
       : [];
   const stages = buildAgentStages(stageEvents, agentWorkflow, isStarting);
   const runningAgent = stages.find((stage) => stage.status === "running")?.agent || "";
+  const runState = getRunState(agentWorkflow, stages, isStarting);
 
   return (
     <section className="agent-work-matrix" aria-label="Agent 工作矩阵" data-testid="agent-work-matrix">
       <div className="agent-work-matrix-header">
         <div>
           <h3>Agent 工作矩阵</h3>
-          <p>{runningAgent ? `${runningAgent} 正在工作` : "等待 Agent run 或 stageEvents"}</p>
+          <p>{getRunStateMessage(runState, runningAgent)}</p>
         </div>
         <span className={`agent-matrix-run-state ${agentWorkflow?.status || "idle"}`}>
           {agentWorkflow?.runId || "No run"}
@@ -91,6 +92,7 @@ export default function AgentWorkMatrix({ agentWorkflow = {}, isStarting = false
 }
 
 function buildAgentStages(stageEvents, agentWorkflow, isStarting) {
+  const runFinished = isTerminalRun(agentWorkflow) || agentWorkflow?.realWritePerformed === true;
   const eventMap = new Map();
   for (const event of stageEvents) {
     const key = normalizeAgentKey(event?.agent || event?.name || event?.key || event?.title);
@@ -100,7 +102,7 @@ function buildAgentStages(stageEvents, agentWorkflow, isStarting) {
 
   const stages = agentBlueprint.map((blueprint, index) => {
     const event = findEventForAgent(eventMap, blueprint.agent);
-    const status = normalizeStatus(event?.status || inferDefaultStatus({ index, agentWorkflow, isStarting }));
+    const status = normalizeStatus(event?.status || inferDefaultStatus({ index, agentWorkflow, isStarting, runFinished }));
     return {
       ...blueprint,
       ...(event || {}),
@@ -113,16 +115,59 @@ function buildAgentStages(stageEvents, agentWorkflow, isStarting) {
     };
   });
 
-  if (isStarting && !stages.some((stage) => stage.status === "running")) {
-    return stages.map((stage, index) => index === 0 ? { ...stage, status: "running", summary: "Agent run 正在启动" } : stage);
+  const normalizedStages = normalizeCompletedRunStages(stages, { runFinished });
+  if (isStarting && !runFinished && !normalizedStages.some((stage) => stage.status === "running")) {
+    return normalizedStages.map((stage, index) => index === 0 ? { ...stage, status: "running", summary: "Agent run 正在启动" } : stage);
   }
-  return stages;
+  return normalizedStages;
 }
 
-function inferDefaultStatus({ agentWorkflow = {}, isStarting }) {
-  if (isStarting || agentWorkflow?.status === "running") return "idle";
+function inferDefaultStatus({ agentWorkflow = {}, isStarting, runFinished }) {
+  if (runFinished) return "idle";
+  if (isStarting || isRunningRun(agentWorkflow)) return "idle";
   if (agentWorkflow?.status === "blocked" || agentWorkflow?.status === "failed") return "idle";
   return "idle";
+}
+
+function normalizeCompletedRunStages(stages, { runFinished = false } = {}) {
+  const summaryCompleted = stages.some((stage) => stage.agent === "SummaryAgent" && stage.status === "completed");
+  if (!runFinished && !summaryCompleted) return stages;
+  return stages.map((stage) => {
+    if (!["completed", "failed", "blocked", "skipped"].includes(stage.status)) {
+      return { ...stage, status: "completed" };
+    }
+    return stage;
+  });
+}
+
+function getRunState(agentWorkflow = {}, stages = [], isStarting = false) {
+  const hasStageWork = stages.some((stage) => stage.status !== "idle");
+  if (!agentWorkflow?.runId && !hasStageWork) return "idle";
+  if (agentWorkflow?.status === "failed" || stages.some((stage) => stage.status === "failed")) return "failed";
+  if (agentWorkflow?.status === "blocked" || stages.some((stage) => stage.status === "blocked")) return "blocked";
+  if (isTerminalRun(agentWorkflow) || agentWorkflow?.realWritePerformed === true) return "completed";
+  if (stages.some((stage) => stage.agent === "SummaryAgent" && stage.status === "completed")) return "completed";
+  if (isStarting || isRunningRun(agentWorkflow) || stages.some((stage) => stage.status === "running")) return "running";
+  return agentWorkflow?.runId ? "completed" : "idle";
+}
+
+function getRunStateMessage(runState, runningAgent) {
+  if (runState === "running" && runningAgent) return `${runningAgent} 正在工作`;
+  if (runState === "running") return "Agent run 正在工作";
+  if (runState === "completed") return "Agent run 已完成";
+  if (runState === "failed") return "Agent run 失败";
+  if (runState === "blocked") return "Agent run 已阻断";
+  return "等待 Agent run 或 stageEvents";
+}
+
+function isTerminalRun(agentWorkflow = {}) {
+  const status = String(agentWorkflow?.status || "").toLowerCase();
+  return ["completed", "finished", "done", "success", "passed", "no_changes", "cancelled"].includes(status);
+}
+
+function isRunningRun(agentWorkflow = {}) {
+  const status = String(agentWorkflow?.status || "").toLowerCase();
+  return ["running", "processing", "generating", "queued", "active", "in_progress", "working"].includes(status);
 }
 
 function findEventForAgent(eventMap, agentName) {

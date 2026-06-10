@@ -1,0 +1,32 @@
+{
+  "task": "Agent Work Matrix Status Fix",
+  "status": "pushed",
+  "bugfix": {
+    "requirementAgentStuckRunningFixed": true,
+    "completedRunHasNoRunningStage": true,
+    "summaryCompletedClearsRunning": true,
+    "realWritePerformedClearsRunning": true,
+    "noFakeRunning": true
+  },
+  "scope": {
+    "reviewConduitPreviewTouched": false,
+    "dslArtifactsInputGateTouched": false,
+    "realAgentBackendTouched": false,
+    "monitorTouched": false,
+    "riskChatTouched": false,
+    "skillsTouched": false,
+    "agent2RawTouched": false,
+    "conduitForkTouched": false
+  },
+  "tests": {
+    "skippedFullTests": true,
+    "reason": "per user instruction; run in integration gate",
+    "gitDiffCheck": "passed_with_crlf_warnings_only",
+    "staticSearch": "completed"
+  },
+  "git": {
+    "commit": "fix: normalize agent work matrix completed status",
+    "pushed": true,
+    "branch": "ZJWNB"
+  }
+}
