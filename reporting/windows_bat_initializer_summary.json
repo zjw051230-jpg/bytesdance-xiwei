@@ -1,0 +1,36 @@
+{
+  "task": "Task 13.8 Windows BAT Initializer",
+  "status": "committed_not_pushed",
+  "bat": {
+    "rootBatCreated": true,
+    "nodeNpmCheck": true,
+    "npmInstallIfMissing": true,
+    "configTemplateCopy": true,
+    "dbInit": true,
+    "portCleanup9999": true,
+    "portCleanup8787": true,
+    "devStartup": true,
+    "browserOpen": true
+  },
+  "tests": {
+    "dbInit": "passed",
+    "npmTest": "passed: 9 files / 97 tests",
+    "build": "passed",
+    "smoke": "passed",
+    "verify": "passed: 1920x1080 and 1440x900 render checks",
+    "batSmoke": "passed: backend 8787 and frontend proxy 9999 health checks"
+  },
+  "security": {
+    "apiKeyLeakage": false,
+    "localConfigCommitted": false,
+    "localDbCommitted": false,
+    "runsCommitted": false,
+    "nodeModulesCommitted": false,
+    "distCommitted": false
+  },
+  "git": {
+    "commit": "chore: add Windows workbench bootstrap script",
+    "pushed": false,
+    "branch": "main"
+  }
+}

@@ -34,7 +34,8 @@
     "smoke:e2e-real:dry-run": "node scripts/smoke-e2e-real.mjs --dry-run",
     "smoke:standalone-artifacts": "node scripts/smoke-standalone-artifacts.mjs",
     "smoke:agent-integration": "node scripts/smoke-agent-integration.mjs",
-    "verify": "node scripts/verify-render.mjs"
+    "verify": "node scripts/verify-render.mjs",
+    "start:workbench": "cmd /c start-workbench.bat"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.1.1",
