@@ -1,6 +1,6 @@
 {
   "task": "Task 13.8 Windows BAT Initializer",
-  "status": "committed_not_pushed",
+  "status": "pushed",
   "bat": {
     "rootBatCreated": true,
     "nodeNpmCheck": true,
@@ -29,8 +29,8 @@
     "distCommitted": false
   },
   "git": {
-    "commit": "chore: add Windows workbench bootstrap script",
-    "pushed": false,
+    "commit": "8c4fa20",
+    "pushed": true,
     "branch": "main"
   }
 }

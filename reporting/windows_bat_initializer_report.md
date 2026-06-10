@@ -40,8 +40,8 @@
 - dist committed: false
 
 ### 7. Git / Push
-- commit: `chore: add Windows workbench bootstrap script`
-- pushed: false, network push failed with connection reset
+- commit: `8c4fa20` (`chore: add Windows workbench bootstrap script`)
+- pushed: true
 - branch: main
 
 ### 8. 是否建议返工
