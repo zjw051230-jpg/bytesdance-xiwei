@@ -198,15 +198,17 @@ export async function startAgentRun(request = {}, config = {}) {
     dryRun: true,
     realWritePerformed: false,
     context,
-    plan: { ...plan, stageEvents, activityTimeline: stageEvents },
+    plan,
     review,
     prDraft,
     artifacts,
     latestReturn: "Dry-run plan generated from agent(1) contract; no target repo writes performed."
   });
+  plan.stageEvents = Array.isArray(stageEvents) ? stageEvents : [];
+  plan.activityTimeline = plan.stageEvents;
   artifacts["agent_activity_timeline.json"] = {
     runId,
-    stageEvents,
+    stageEvents: plan.stageEvents,
     dryRun: true,
     realWritePerformed: false
   };
@@ -228,8 +230,8 @@ export async function startAgentRun(request = {}, config = {}) {
     outputDir,
     relativeOutputDir: relativeOutputDir(outputDir),
     latestReturn: "Dry-run plan generated from agent(1) contract; no target repo writes performed.",
-    stageEvents,
-    activityTimeline: stageEvents,
+    stageEvents: plan.stageEvents,
+    activityTimeline: plan.stageEvents,
     progress: [
       { step: "readiness", status: "completed" },
       { step: "context_preview", status: "completed" },
@@ -562,8 +564,8 @@ export function getAgentArtifacts(runId, config = {}) {
       outputDir: run.outputDir,
       relativeOutputDir: run.relativeOutputDir,
       artifacts: run.artifacts,
-      stageEvents: run.stageEvents || run.activityTimeline || [],
-      activityTimeline: run.activityTimeline || run.stageEvents || [],
+      stageEvents: coalesceStageEvents(run.stageEvents, run.activityTimeline),
+      activityTimeline: coalesceStageEvents(run.activityTimeline, run.stageEvents),
       review: run.review,
       prDraft: run.prDraft
     },
@@ -602,8 +604,8 @@ function readPersistedAgentArtifacts(runId, config = {}) {
         }])),
         review: reviewFromItems(reviewItems, run),
         prDraft: prDraft ? prDraftForWorkbench(prDraft) : null,
-        stageEvents: run.planJson?.stageEvents || run.planJson?.activityTimeline || [],
-        activityTimeline: run.planJson?.activityTimeline || run.planJson?.stageEvents || [],
+        stageEvents: coalesceStageEvents(run.planJson?.stageEvents, run.planJson?.activityTimeline),
+        activityTimeline: coalesceStageEvents(run.planJson?.activityTimeline, run.planJson?.stageEvents),
         activity
       };
     });
@@ -614,7 +616,7 @@ function readPersistedAgentArtifacts(runId, config = {}) {
 
 function mergeAgentRun(memoryRun, persistedRun) {
   const plan = memoryRun?.plan || persistedRun.planJson || {};
-  const stageEvents = memoryRun?.stageEvents || memoryRun?.activityTimeline || plan.stageEvents || plan.activityTimeline || [];
+  const stageEvents = coalesceStageEvents(memoryRun?.stageEvents, memoryRun?.activityTimeline, plan.stageEvents, plan.activityTimeline);
   return {
     ...(memoryRun || {}),
     ...persistedRun,
@@ -624,7 +626,7 @@ function mergeAgentRun(memoryRun, persistedRun) {
     context: memoryRun?.context || persistedRun.contextSnapshot || {},
     plan,
     stageEvents,
-    activityTimeline: memoryRun?.activityTimeline || stageEvents,
+    activityTimeline: coalesceStageEvents(memoryRun?.activityTimeline, stageEvents),
     progress: memoryRun?.progress || []
   };
 }
@@ -632,18 +634,22 @@ function mergeAgentRun(memoryRun, persistedRun) {
 export function getAgentRunEvents(runId, config = {}) {
   const result = getAgentRun(runId, config);
   if (!result.ok) return result;
-  const stageEvents = result.data.stageEvents || result.data.activityTimeline || [];
+  const stageEvents = coalesceStageEvents(result.data.stageEvents, result.data.activityTimeline);
   return {
     ok: true,
     data: {
       runId,
       stageEvents,
-      activityTimeline: result.data.activityTimeline || stageEvents,
+      activityTimeline: coalesceStageEvents(result.data.activityTimeline, stageEvents),
       dryRun: result.data.dryRun ?? true,
       realWritePerformed: result.data.realWritePerformed ?? false
     },
     error: null
   };
+}
+
+function coalesceStageEvents(...values) {
+  return values.find((value) => Array.isArray(value)) || [];
 }
 
 function reviewFromItems(reviewItems = [], run = {}) {

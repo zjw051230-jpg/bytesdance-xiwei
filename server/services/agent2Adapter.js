@@ -75,7 +75,7 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
     dryRun: !realExecution,
     realWritePerformed,
     context,
-    plan: { ...plan, stageEvents, activityTimeline: stageEvents },
+    plan,
     review,
     prDraft,
     artifacts: artifactJson,
@@ -83,9 +83,11 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
     latestReturn: failureMessage,
     errorSummary: failed ? failureMessage : ""
   });
+  plan.stageEvents = Array.isArray(stageEvents) ? stageEvents : [];
+  plan.activityTimeline = plan.stageEvents;
   artifactJson["agent_activity_timeline.json"] = {
     runId,
-    stageEvents,
+    stageEvents: plan.stageEvents,
     dryRun: !realExecution,
     realWritePerformed
   };
@@ -104,8 +106,8 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
         ? `Agent(2) real execution failed for ${taskTitle}: ${failureMessage}`
         : `Agent(2) real execution finished for ${taskTitle}; realWritePerformed=${realWritePerformed}.${!realWritePerformed && executionSummary ? ` ${executionSummary}.` : ""}`
       : `Agent(2) dry-run adapter generated a Workbench preview for ${taskTitle}; no runtime execution or repo writes performed.`,
-    stageEvents,
-    activityTimeline: stageEvents,
+    stageEvents: plan.stageEvents,
+    activityTimeline: plan.stageEvents,
     progress: [
       { step: "readiness", status: "completed" },
       { step: realExecution ? "agent2_runtime" : "agent2_contract_mapping", status: failed ? "failed" : "completed" },

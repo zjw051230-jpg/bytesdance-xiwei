@@ -140,6 +140,14 @@ export default function DesignPlanningWorkbench({
       const runFromApi = await getAgentRun(run.runId).catch(() => run);
       const artifactsFromApi = await getAgentArtifacts(run.runId).catch(() => ({ artifacts: run.artifacts || {} }));
       const artifacts = artifactsFromApi.artifacts || runFromApi.artifacts || run.artifacts || {};
+      const stageEvents = coalesceStageEvents(
+        runFromApi.stageEvents,
+        runFromApi.activityTimeline,
+        artifactsFromApi.stageEvents,
+        artifactsFromApi.activityTimeline,
+        run.stageEvents,
+        run.activityTimeline
+      );
       onAgentWorkflowChange?.((current) => ({
         ...current,
         status: runFromApi.status || "completed",
@@ -157,6 +165,8 @@ export default function DesignPlanningWorkbench({
         executionResult: runFromApi.executionResult || run.executionResult || extractExecutionResultFromArtifacts(artifacts),
         reviewResult: runFromApi.reviewResult || run.reviewResult || null,
         agentProcess: runFromApi.agentProcess || run.agentProcess || null,
+        stageEvents,
+        activityTimeline: stageEvents,
         artifactError: artifactsFromApi.error || null,
         error: null
       }));
@@ -269,6 +279,28 @@ function arrayOfStrings(value) {
   if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
   if (typeof value === "string" && value.trim()) return [value.trim()];
   return [];
+}
+
+function normalizeStageEvents(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map((stage, index) => ({
+    ...stage,
+    id: stage?.id || `${stage?.agent || "AgentStage"}-${index + 1}`,
+    agent: stage?.agent || stage?.name || "AgentStage",
+    title: stage?.title || stage?.summary || "",
+    summary: stage?.summary || stage?.title || "",
+    status: normalizeStageStatus(stage?.status),
+    errorSummary: stage?.errorSummary || stage?.error || ""
+  }));
+}
+
+function coalesceStageEvents(...values) {
+  return normalizeStageEvents(values.find((value) => Array.isArray(value)) || []);
+}
+
+function normalizeStageStatus(status) {
+  const value = String(status || "idle").toLowerCase();
+  return ["idle", "running", "completed", "skipped", "blocked", "failed"].includes(value) ? value : "idle";
 }
 
 function isThemeRequest(text) {
@@ -417,6 +449,7 @@ function ExecutionFeedbackPanel({ tasks }) {
 
 function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTargetRepoPath = false, onContextPreview, onPlanPreview, onOpenReview, onOpenPr }) {
   const planSteps = agentWorkflow.plan?.steps || [];
+  const stageEvents = coalesceStageEvents(agentWorkflow.stageEvents, agentWorkflow.activityTimeline);
   const artifactCount = Object.keys(agentWorkflow.artifacts || {}).length;
   const writeState = agentWorkflow.realWritePerformed
     ? "Real write performed on target repository"
@@ -458,6 +491,20 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
           ))}
         </ol>
       ) : null}
+      {agentWorkflow.runId ? (
+        stageEvents.length ? (
+          <div className="task-stage-detail-list" aria-label="Agent activity timeline">
+            {stageEvents.map((stage, index) => (
+              <span className={`task-stage-detail ${stage.status || "idle"}`} key={stage.id || `${stage.agent || "stage"}-${index}`}>
+                <strong>{stage.agent || stage.title || "AgentStage"}</strong>
+                <small>{stage.status || "idle"}</small>
+              </span>
+            ))}
+          </div>
+        ) : null
+      ) : (
+        <p className="monitor-empty-state">尚未启动 Agent dry-run。点击生成执行计划后，将在这里展示各阶段活动状态。</p>
+      )}
     </section>
   );
 }
