@@ -3,6 +3,13 @@ import { openWorkbenchDatabase } from "../db/connection.js";
 import { migrateDatabase } from "../db/migrate.js";
 import { seedWorkbenchDatabase } from "../db/seed.js";
 import { createPersistenceService } from "../services/persistence/persistenceService.js";
+import {
+  createRunCheckpoint,
+  getRunChangeDiff,
+  listRunChanges,
+  resetRunWorkspace,
+  revertRunFile
+} from "../services/rollbackService.js";
 
 export async function handlePersistenceRoutes(request, response, config = {}) {
   const url = new URL(request.url, "http://127.0.0.1");
@@ -19,7 +26,7 @@ export async function handlePersistenceRoutes(request, response, config = {}) {
       return true;
     }
     const body = bodyResult.data;
-    const result = routeSafely({ method: request.method, url, body, service });
+    const result = await routeSafely({ method: request.method, url, body, service, config });
     if (!result) {
       sendError(response, 404, "not_found", "Persistence route not found");
     } else if (result.error) {
@@ -44,7 +51,7 @@ function isPersistencePath(pathname) {
     pathname.startsWith("/api/pr-drafts/");
 }
 
-function routeRequest({ method, url, body, service }) {
+async function routeRequest({ method, url, body, service, config }) {
   const path = decodeURIComponent(url.pathname);
 
   if (method === "GET" && path === "/api/projects") return { data: service.projects.list() };
@@ -155,6 +162,36 @@ function routeRequest({ method, url, body, service }) {
     return { data: service.reviewItems.listByRun(match[1]) };
   }
 
+  match = path.match(/^\/api\/agent\/runs\/([^/]+)\/changes$/);
+  if (match && method === "GET") {
+    const result = await listRunChanges(service, match[1]);
+    return unwrapServiceResult(result);
+  }
+
+  match = path.match(/^\/api\/agent\/runs\/([^/]+)\/changes\/([^/]+)\/diff$/);
+  if (match && method === "GET") {
+    const result = await getRunChangeDiff(service, match[1], match[2], config);
+    return unwrapServiceResult(result);
+  }
+
+  match = path.match(/^\/api\/agent\/runs\/([^/]+)\/rollback\/file$/);
+  if (match && method === "POST") {
+    const result = await revertRunFile(service, match[1], body, config);
+    return unwrapServiceResult(result);
+  }
+
+  match = path.match(/^\/api\/agent\/runs\/([^/]+)\/rollback$/);
+  if (match && method === "POST") {
+    const result = await resetRunWorkspace(service, match[1], body, config);
+    return unwrapServiceResult(result);
+  }
+
+  match = path.match(/^\/api\/agent\/runs\/([^/]+)\/checkpoints$/);
+  if (match && method === "POST") {
+    const result = await createRunCheckpoint(service, match[1], body, config);
+    return unwrapServiceResult(result);
+  }
+
   match = path.match(/^\/api\/review-items\/([^/]+)$/);
   if (match && method === "PATCH") return getOr404(service.reviewItems.update(match[1], body), "review_item_not_found");
 
@@ -183,9 +220,9 @@ function routeRequest({ method, url, body, service }) {
   return null;
 }
 
-function routeSafely(args) {
+async function routeSafely(args) {
   try {
-    return routeRequest(args);
+    return await routeRequest(args);
   } catch (error) {
     return {
       error: {
@@ -199,6 +236,14 @@ function routeSafely(args) {
       status: 500
     };
   }
+}
+
+function unwrapServiceResult(result) {
+  if (result?.ok) return { data: result.data, status: result.status || 200 };
+  return {
+    error: result?.error || { code: "request_failed", message: "Request failed", details: {} },
+    status: result?.status || 400
+  };
 }
 
 function getOr404(data, code) {

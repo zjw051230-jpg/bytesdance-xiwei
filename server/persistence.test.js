@@ -399,6 +399,114 @@ describe("persistent workbench database", () => {
     expect(activity.data.some((item) => item.message === "Activity API persisted")).toBe(true);
   });
 
+  it("creates baseline snapshots and rolls back files without modifying the original repo", async () => {
+    const dbName = "rollback-file-api";
+    const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+    await fs.mkdir(path.join(targetRepoPath, "src"), { recursive: true });
+    await fs.writeFile(path.join(targetRepoPath, "src", "App.jsx"), "baseline app\n", "utf8");
+    const agent2Runner = async ({ env }) => {
+      await fs.writeFile(path.join(env.AGENT_REPO_ROOT, "src", "App.jsx"), "changed app\n", "utf8");
+      return fakeAgent2Stdout({ file: "src/App.jsx" });
+    };
+    const baseUrl = await startServer(dbName, { agent2Runner, workspaceAdapterType: "copy" });
+    const { response: startRun, payload: runPayload } = await requestJson(baseUrl, "/api/agent/run", {
+      method: "POST",
+      body: JSON.stringify({
+        projectId: `${dbName}-project`,
+        taskTitle: "Rollback file test",
+        dryRun: false,
+        agentProvider: "agent2",
+        targetRepoPath
+      })
+    });
+    expect(startRun.status).toBe(200);
+    expectOkEnvelope(startRun, runPayload);
+    expect(runPayload.data.workspace.baselineSnapshotId).toBeTruthy();
+    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("baseline app\n");
+
+    const runId = runPayload.data.runId;
+    const changes = await requestJson(baseUrl, `/api/agent/runs/${runId}/changes`);
+    expectOkEnvelope(changes.response, changes.payload);
+    expect(changes.payload.data.available).toBe(true);
+    expect(changes.payload.data.changes[0].filePath).toBe("src/App.jsx");
+    expect(changes.payload.data.changes[0].status).toBe("changed");
+
+    const revert = await requestJson(baseUrl, `/api/agent/runs/${runId}/rollback/file`, {
+      method: "POST",
+      body: JSON.stringify({ changeId: changes.payload.data.changes[0].id, reason: "test revert" })
+    });
+    expect(revert.response.status).toBe(200);
+    expectOkEnvelope(revert.response, revert.payload);
+    expect(revert.payload.data.change.status).toBe("reverted");
+
+    const after = await requestJson(baseUrl, `/api/agent/runs/${runId}/changes`);
+    expect(after.payload.data.verificationStatus).toBe("stale");
+    expect(after.payload.data.changes[0].status).toBe("reverted");
+    expect(after.payload.data.rollbackHistory[0].operationType).toBe("file_revert");
+    const events = await requestJson(baseUrl, `/api/agent/runs/${runId}/events`);
+    expect(events.payload.data.map((event) => event.type)).toEqual(expect.arrayContaining([
+      "PATCH_FILE_REVERTED",
+      "ROLLBACK_COMPLETED",
+      "VERIFICATION_INVALIDATED"
+    ]));
+    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("baseline app\n");
+  });
+
+  it("resets the full run workspace to baseline and leaves PR readiness data stale", async () => {
+    const dbName = "rollback-reset-api";
+    const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+    await fs.mkdir(path.join(targetRepoPath, "src"), { recursive: true });
+    await fs.writeFile(path.join(targetRepoPath, "src", "App.jsx"), "baseline app\n", "utf8");
+    await fs.writeFile(path.join(targetRepoPath, "src", "Theme.css"), "baseline css\n", "utf8");
+    const agent2Runner = async ({ env }) => {
+      await fs.writeFile(path.join(env.AGENT_REPO_ROOT, "src", "App.jsx"), "changed app\n", "utf8");
+      await fs.writeFile(path.join(env.AGENT_REPO_ROOT, "src", "Theme.css"), "changed css\n", "utf8");
+      return fakeAgent2Stdout({ file: "src/App.jsx" });
+    };
+    const baseUrl = await startServer(dbName, { agent2Runner, workspaceAdapterType: "copy" });
+    const { payload: runPayload } = await requestJson(baseUrl, "/api/agent/run", {
+      method: "POST",
+      body: JSON.stringify({
+        projectId: `${dbName}-project`,
+        taskTitle: "Rollback reset test",
+        dryRun: false,
+        agentProvider: "agent2",
+        targetRepoPath
+      })
+    });
+    const runId = runPayload.data.runId;
+    const reset = await requestJson(baseUrl, `/api/agent/runs/${runId}/rollback`, {
+      method: "POST",
+      body: JSON.stringify({ reason: "test reset" })
+    });
+    expect(reset.response.status).toBe(200);
+    expectOkEnvelope(reset.response, reset.payload);
+    expect(reset.payload.data.changes.every((change) => change.status === "reset")).toBe(true);
+
+    const workspacePath = runPayload.data.workspace.workspacePath;
+    expect(await fs.readFile(path.join(workspacePath, "src", "App.jsx"), "utf8")).toBe("baseline app\n");
+    expect(await fs.readFile(path.join(workspacePath, "src", "Theme.css"), "utf8")).toBe("baseline css\n");
+    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("baseline app\n");
+
+    const run = await requestJson(baseUrl, `/api/agent/runs/${runId}`);
+    expect(run.payload.data.verificationStatus).toBe("stale");
+    const changes = await requestJson(baseUrl, `/api/agent/runs/${runId}/changes`);
+    expect(changes.payload.data.rollbackHistory[0].operationType).toBe("run_reset");
+    expect(changes.payload.data.changes.every((change) => change.status === "reset")).toBe(true);
+  });
+
+  it("returns workspace_not_initialized for old runs without baseline snapshots", async () => {
+    const dbName = "rollback-old-run";
+    const { runId } = await createDirectPersistenceFixture(dbName);
+    const baseUrl = await startServer(dbName);
+    const { response, payload } = await requestJson(baseUrl, `/api/agent/runs/${runId}/rollback`, {
+      method: "POST",
+      body: JSON.stringify({ reason: "old run" })
+    });
+    expect(response.status).toBe(409);
+    expectErrorEnvelope(response, payload, "workspace_not_initialized");
+  });
+
   it("returns required error envelopes for bad requests and missing records", async () => {
     const baseUrl = await startServer("error-api");
     const malformed = await fetch(`${baseUrl}/api/projects`, {
@@ -496,6 +604,51 @@ function createFakeAgent2Runner() {
       }
     })
   });
+}
+
+function fakeAgent2Stdout({ file = "src/App.jsx" } = {}) {
+  return {
+    exitCode: 0,
+    timedOut: false,
+    stderr: "",
+    stdout: JSON.stringify({
+      task_id: "rollback_agent",
+      task_name: "Rollback test",
+      status: "success",
+      selected_actions: [
+        { selected_action: "execute_patch", selected_tool: "execute_patch", reason: "Apply Patch" }
+      ],
+      patch_plan: {
+        summary: "Apply rollback test patch.",
+        patches: [{ file, operation: "replace", changes: ["Update file"], risk_level: "low" }]
+      },
+      review_result: {
+        approved: true,
+        risk_level: "low",
+        summary: "Rollback patch approved."
+      },
+      execution_result: {
+        executed: true,
+        mode: "real_repo_apply",
+        summary: "Applied patch.",
+        files: [{ file, status: "applied", real_write: true, bytes_written: 12 }]
+      },
+      pr_draft: {
+        title: "Rollback test",
+        summary: "Apply rollback test patch.",
+        changed_files: [{ file, operation: "replace", risk_level: "low" }],
+        test_commands: ["npm test"],
+        manual_checklist: ["Review rollback patch."]
+      },
+      safety_gates: {
+        repo_apply_enabled: true,
+        repo_confirmed: true,
+        test_run_enabled: false,
+        test_confirmed: false,
+        repo_mode: "real"
+      }
+    })
+  };
 }
 
 async function createAgentRunFixture(dbName) {

@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
 
 const validPlanningStatuses = new Set(["todo", "running", "blocked", "done", "needs_review", "cancelled"]);
-const validHumanStatuses = new Set(["pending", "approved", "needs_change", "blocked"]);
+const validHumanStatuses = new Set(["pending", "approved", "needs_change", "blocked", "reverted", "resolved"]);
 const validPrStatuses = new Set(["draft", "ready", "blocked", "merged", "cancelled"]);
 const validArtifactTypes = new Set(["dsl", "context", "report", "patch", "test_log", "screenshot", "pr_summary"]);
+const validChangeStatuses = new Set(["changed", "reverted", "reset", "approved", "needs_change"]);
 
 export function createPersistenceService(database) {
   return {
@@ -16,7 +17,10 @@ export function createPersistenceService(database) {
     agentArtifacts: agentArtifactRepository(database),
     reviewItems: reviewItemRepository(database),
     prDrafts: prDraftRepository(database),
-    activity: activityRepository(database)
+    activity: activityRepository(database),
+    workspaceSnapshots: workspaceSnapshotRepository(database),
+    fileChangeRecords: fileChangeRecordRepository(database),
+    rollbackOperations: rollbackOperationRepository(database)
   };
 }
 
@@ -284,10 +288,11 @@ function agentRunRepository(database) {
       database.prepare(`
         INSERT INTO agent_runs (
           id, requirement_id, plan_id, task_id, status, dry_run, real_write_performed,
-          target_repo_path, context_snapshot, plan_json, result_summary, error_code,
+          target_repo_path, source_repo_path, workspace_path, baseline_snapshot_id, verification_status,
+          context_snapshot, plan_json, result_summary, error_code,
           error_message, started_at, finished_at, created_at, updated_at
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).run(
         id,
         input.requirementId || input.requirement_id || null,
@@ -297,6 +302,10 @@ function agentRunRepository(database) {
         boolToInt(input.dryRun ?? input.dry_run ?? true),
         boolToInt(input.realWritePerformed ?? input.real_write_performed ?? false),
         cleanText(input.targetRepoPath || input.target_repo_path || ""),
+        cleanText(input.sourceRepoPath || input.source_repo_path || ""),
+        cleanText(input.workspacePath || input.workspace_path || ""),
+        cleanText(input.baselineSnapshotId || input.baseline_snapshot_id || ""),
+        cleanText(input.verificationStatus || input.verification_status || "unknown"),
         cleanJson(input.contextSnapshot ?? input.context_snapshot ?? {}),
         cleanJson(input.planJson ?? input.plan_json ?? {}),
         cleanText(input.resultSummary || input.result_summary || ""),
@@ -315,6 +324,7 @@ function agentRunRepository(database) {
       const next = { ...existing, ...input };
       database.prepare(`
         UPDATE agent_runs SET status = ?, dry_run = ?, real_write_performed = ?, target_repo_path = ?,
+          source_repo_path = ?, workspace_path = ?, baseline_snapshot_id = ?, verification_status = ?,
           context_snapshot = ?, plan_json = ?, result_summary = ?, error_code = ?, error_message = ?,
           started_at = ?, finished_at = ?, updated_at = ? WHERE id = ?
       `).run(
@@ -322,6 +332,10 @@ function agentRunRepository(database) {
         boolToInt(next.dryRun ?? next.dry_run ?? true),
         boolToInt(next.realWritePerformed ?? next.real_write_performed ?? false),
         cleanText(next.targetRepoPath || next.target_repo_path || ""),
+        cleanText(next.sourceRepoPath || next.source_repo_path || ""),
+        cleanText(next.workspacePath || next.workspace_path || ""),
+        cleanText(next.baselineSnapshotId || next.baseline_snapshot_id || ""),
+        cleanText(next.verificationStatus || next.verification_status || "unknown"),
         cleanJson(next.contextSnapshot ?? next.context_snapshot ?? {}),
         cleanJson(next.planJson ?? next.plan_json ?? {}),
         cleanText(next.resultSummary || next.result_summary || ""),
@@ -493,6 +507,142 @@ function activityRepository(database) {
   };
 }
 
+function workspaceSnapshotRepository(database) {
+  return {
+    listByRun(runId) {
+      return database.prepare("SELECT * FROM workspace_snapshots WHERE run_id = ? ORDER BY created_at ASC").all(runId).map(mapWorkspaceSnapshot);
+    },
+    get(id) {
+      return mapWorkspaceSnapshot(database.prepare("SELECT * FROM workspace_snapshots WHERE id = ?").get(id));
+    },
+    getBaseline(runId) {
+      return mapWorkspaceSnapshot(database.prepare("SELECT * FROM workspace_snapshots WHERE run_id = ? AND snapshot_type = 'baseline' ORDER BY created_at ASC LIMIT 1").get(runId));
+    },
+    create(runId, input = {}) {
+      const id = safeId(input.id, input.snapshotType === "checkpoint" ? "checkpoint" : "snapshot");
+      database.prepare(`
+        INSERT INTO workspace_snapshots (
+          id, run_id, snapshot_type, source_repo_path, workspace_path, baseline_path,
+          adapter_type, metadata_json, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        runId,
+        normalizeSnapshotType(input.snapshotType || input.snapshot_type || "baseline"),
+        cleanText(input.sourceRepoPath || input.source_repo_path || ""),
+        cleanText(input.workspacePath || input.workspace_path || ""),
+        cleanText(input.baselinePath || input.baseline_path || ""),
+        cleanText(input.adapterType || input.adapter_type || ""),
+        cleanJson(input.metadataJson ?? input.metadata_json ?? {}),
+        input.createdAt || input.created_at || timestamp()
+      );
+      return this.get(id);
+    }
+  };
+}
+
+function fileChangeRecordRepository(database) {
+  return {
+    listByRun(runId) {
+      return database.prepare("SELECT * FROM file_change_records WHERE run_id = ? ORDER BY file_path ASC").all(runId).map(mapFileChangeRecord);
+    },
+    get(id) {
+      return mapFileChangeRecord(database.prepare("SELECT * FROM file_change_records WHERE id = ?").get(id));
+    },
+    getByRunAndPath(runId, filePath) {
+      return mapFileChangeRecord(database.prepare("SELECT * FROM file_change_records WHERE run_id = ? AND file_path = ?").get(runId, filePath));
+    },
+    upsert(runId, input = {}) {
+      const now = timestamp();
+      const filePath = cleanText(input.filePath || input.file_path || "");
+      const existing = this.getByRunAndPath(runId, filePath);
+      if (existing) return this.update(existing.id, input);
+      const id = safeId(input.id, "change");
+      database.prepare(`
+        INSERT INTO file_change_records (
+          id, run_id, snapshot_id, file_path, status, change_type, change_summary,
+          diff_stat_json, before_hash, after_hash, created_at, updated_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        runId,
+        input.snapshotId || input.snapshot_id || null,
+        filePath,
+        normalizeChangeStatus(input.status || "changed"),
+        cleanText(input.changeType || input.change_type || "modified"),
+        cleanText(input.changeSummary || input.change_summary || ""),
+        cleanJson(input.diffStatJson ?? input.diff_stat_json ?? input.diffStat ?? {}),
+        cleanText(input.beforeHash || input.before_hash || ""),
+        cleanText(input.afterHash || input.after_hash || ""),
+        now,
+        now
+      );
+      return this.get(id);
+    },
+    update(id, input = {}) {
+      const existing = this.get(id);
+      if (!existing) return null;
+      const next = { ...existing, ...input };
+      database.prepare(`
+        UPDATE file_change_records SET snapshot_id = ?, file_path = ?, status = ?, change_type = ?,
+          change_summary = ?, diff_stat_json = ?, before_hash = ?, after_hash = ?, updated_at = ?
+        WHERE id = ?
+      `).run(
+        next.snapshotId || next.snapshot_id || null,
+        cleanText(next.filePath || next.file_path || ""),
+        normalizeChangeStatus(next.status || "changed"),
+        cleanText(next.changeType || next.change_type || "modified"),
+        cleanText(next.changeSummary || next.change_summary || ""),
+        cleanJson(next.diffStatJson ?? next.diff_stat_json ?? next.diffStat ?? {}),
+        cleanText(next.beforeHash || next.before_hash || ""),
+        cleanText(next.afterHash || next.after_hash || ""),
+        timestamp(),
+        id
+      );
+      return this.get(id);
+    },
+    markRunReset(runId) {
+      database.prepare("UPDATE file_change_records SET status = 'reset', updated_at = ? WHERE run_id = ?").run(timestamp(), runId);
+      return this.listByRun(runId);
+    }
+  };
+}
+
+function rollbackOperationRepository(database) {
+  return {
+    listByRun(runId) {
+      return database.prepare("SELECT * FROM rollback_operations WHERE run_id = ? ORDER BY created_at DESC").all(runId).map(mapRollbackOperation);
+    },
+    get(id) {
+      return mapRollbackOperation(database.prepare("SELECT * FROM rollback_operations WHERE id = ?").get(id));
+    },
+    create(runId, input = {}) {
+      const id = safeId(input.id, "rollback");
+      database.prepare(`
+        INSERT INTO rollback_operations (
+          id, run_id, change_id, operation_type, status, requested_by,
+          reason, files_json, error_message, created_at
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        id,
+        runId,
+        input.changeId || input.change_id || null,
+        normalizeRollbackType(input.operationType || input.operation_type || "file_revert"),
+        input.status === "failed" ? "failed" : "completed",
+        cleanText(input.requestedBy || input.requested_by || "human"),
+        cleanText(input.reason || ""),
+        cleanJson(input.filesJson ?? input.files_json ?? input.files ?? []),
+        cleanText(input.errorMessage || input.error_message || ""),
+        input.createdAt || input.created_at || timestamp()
+      );
+      return this.get(id);
+    }
+  };
+}
+
 function mapProject(row) {
   if (!row) return null;
   return {
@@ -584,6 +734,10 @@ function mapAgentRun(row) {
     dryRun: Boolean(row.dry_run),
     realWritePerformed: Boolean(row.real_write_performed),
     targetRepoPath: row.target_repo_path,
+    sourceRepoPath: row.source_repo_path || "",
+    workspacePath: row.workspace_path || "",
+    baselineSnapshotId: row.baseline_snapshot_id || "",
+    verificationStatus: row.verification_status || "unknown",
     contextSnapshot: parseJson(row.context_snapshot, {}),
     planJson: parseJson(row.plan_json, {}),
     resultSummary: row.result_summary,
@@ -658,6 +812,55 @@ function mapActivity(row) {
   };
 }
 
+function mapWorkspaceSnapshot(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    runId: row.run_id,
+    snapshotType: row.snapshot_type,
+    sourceRepoPath: row.source_repo_path,
+    workspacePath: row.workspace_path,
+    baselinePath: row.baseline_path,
+    adapterType: row.adapter_type,
+    metadataJson: parseJson(row.metadata_json, {}),
+    createdAt: row.created_at
+  };
+}
+
+function mapFileChangeRecord(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    runId: row.run_id,
+    snapshotId: row.snapshot_id,
+    filePath: row.file_path,
+    status: row.status,
+    changeType: row.change_type,
+    changeSummary: row.change_summary,
+    diffStatJson: parseJson(row.diff_stat_json, {}),
+    beforeHash: row.before_hash,
+    afterHash: row.after_hash,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function mapRollbackOperation(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    runId: row.run_id,
+    changeId: row.change_id,
+    operationType: row.operation_type,
+    status: row.status,
+    requestedBy: row.requested_by,
+    reason: row.reason,
+    filesJson: parseJson(row.files_json, []),
+    errorMessage: row.error_message,
+    createdAt: row.created_at
+  };
+}
+
 function safeId(value, prefix) {
   const candidate = String(value || "").trim();
   if (/^[A-Za-z0-9_.:-]{2,80}$/.test(candidate)) return candidate;
@@ -728,4 +931,16 @@ function normalizePrStatus(value) {
 
 function normalizeArtifactType(value) {
   return validArtifactTypes.has(value) ? value : "report";
+}
+
+function normalizeSnapshotType(value) {
+  return value === "checkpoint" ? "checkpoint" : "baseline";
+}
+
+function normalizeChangeStatus(value) {
+  return validChangeStatuses.has(value) ? value : "changed";
+}
+
+function normalizeRollbackType(value) {
+  return value === "run_reset" ? "run_reset" : "file_revert";
 }

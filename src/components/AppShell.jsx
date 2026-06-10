@@ -10,11 +10,12 @@ import { fallbackProject, workspaceProjects } from "../data/workspaceProjects.js
 const initialProjects = workspaceProjects.length > 0 ? workspaceProjects : [fallbackProject];
 
 export default function AppShell() {
-  const [mode, setMode] = useState("monitor");
+  const directPrRoute = parsePrDraftRoute();
+  const [mode, setMode] = useState(directPrRoute ? "workbench" : "monitor");
   const [projectList, setProjectList] = useState(initialProjects);
-  const [activeProjectId, setActiveProjectId] = useState(initialProjects[0]?.id);
+  const [activeProjectId, setActiveProjectId] = useState(directPrRoute?.projectId || initialProjects[0]?.id);
   const [projectLoadState, setProjectLoadState] = useState({ loading: true, error: "" });
-  const [workspacePage, setWorkspacePage] = useState("picker");
+  const [workspacePage, setWorkspacePage] = useState(directPrRoute ? "pr" : "picker");
   const [workspaceToast, setWorkspaceToast] = useState("");
 
   useEffect(() => {
@@ -161,10 +162,22 @@ export default function AppShell() {
           toast={workspaceToast}
           onToast={setWorkspaceToast}
           projectLoadState={projectLoadState}
+          routeRequirementId={directPrRoute?.requirementId}
+          routeProjectId={directPrRoute?.projectId}
         />
       )}
     </div>
   );
+}
+
+function parsePrDraftRoute() {
+  if (typeof window === "undefined") return null;
+  const match = window.location.pathname.match(/^\/projects\/([^/]+)\/requirements\/([^/]+)\/pr-draft\/?$/);
+  if (!match) return null;
+  return {
+    projectId: decodeURIComponent(match[1]),
+    requirementId: decodeURIComponent(match[2])
+  };
 }
 
 function logDevDuration(label, startedAt) {

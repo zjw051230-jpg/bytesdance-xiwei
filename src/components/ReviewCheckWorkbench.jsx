@@ -1,7 +1,15 @@
-import { ArrowRight, CheckCircle2, ExternalLink, FileCheck2, Monitor, RefreshCw, ShieldCheck, Smartphone, TriangleAlert } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink, FileCheck2, Monitor, RefreshCw, RotateCcw, ShieldCheck, Smartphone, TriangleAlert } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getPreviewStatus, startProjectPreview } from "../api/previewClient.js";
-import { getPrDraft, listReviewItems, updateReviewItem } from "../api/persistenceClient.js";
+import {
+  getAgentRunChangeDiff,
+  getPrDraft,
+  listAgentRunChanges,
+  listReviewItems,
+  resetAgentRunWorkspace,
+  revertAgentRunFile,
+  updateReviewItem
+} from "../api/persistenceClient.js";
 
 const DEFAULT_PREVIEW_TITLE = "Conduit login page";
 const initialPreviewState = {
@@ -29,10 +37,10 @@ const humanStatusLabels = {
   pending: "待审阅",
   approved: "已通过",
   needs_change: "需修改",
-  blocked: "阻塞"
+  blocked: "阻塞",
+  reverted: "已回退",
+  resolved: "已解决"
 };
-
-const emptyReviewSummary = "暂无 Agent real-run 审计结果。请先在设计规划页生成 real-run。";
 
 export default function ReviewCheckWorkbench({
   activeProject,
@@ -43,11 +51,16 @@ export default function ReviewCheckWorkbench({
 }) {
   const [runId, setRunId] = useState(agentWorkflow.runId || "");
   const [reviewItems, setReviewItems] = useState([]);
+  const [changesState, setChangesState] = useState({ loading: false, error: "", data: null });
+  const [selectedChangeId, setSelectedChangeId] = useState("");
+  const [diffState, setDiffState] = useState({ loading: false, error: "", diff: null });
   const [reviewError, setReviewError] = useState("");
   const [loadingReview, setLoadingReview] = useState(false);
   const [previewState, setPreviewState] = useState(initialPreviewState);
   const [viewport, setViewport] = useState("desktop");
   const [previewKey, setPreviewKey] = useState(0);
+  const [confirmAction, setConfirmAction] = useState(null);
+  const [rollbackMessage, setRollbackMessage] = useState("");
   const workflowReview = agentWorkflow.review || null;
   const projectId = activeProject?.id || "active-project";
   const localPath = typeof activeProject?.localPath === "string" ? activeProject.localPath.trim() : "";
@@ -74,6 +87,33 @@ export default function ReviewCheckWorkbench({
     };
   }, [activeRequirement?.id, runId, onAgentWorkflowChange]);
 
+  const reloadChanges = useCallback(async () => {
+    if (!runId) {
+      setChangesState({ loading: false, error: "", data: null });
+      return;
+    }
+    setChangesState((current) => ({ ...current, loading: true, error: "" }));
+    try {
+      const data = await listAgentRunChanges(runId);
+      setChangesState({ loading: false, error: "", data });
+      const firstActive = data?.changes?.find((change) => change.status !== "reverted" && change.status !== "reset") || data?.changes?.[0];
+      setSelectedChangeId((current) => current || firstActive?.id || "");
+      onAgentWorkflowChange?.((current) => ({
+        ...current,
+        verificationStatus: data?.verificationStatus || current.verificationStatus
+      }));
+    } catch (error) {
+      const code = error.payload?.error?.code || "";
+      setChangesState({
+        loading: false,
+        error: code === "workspace_not_initialized"
+          ? "该 Agent Run 没有 baseline workspace snapshot，无法回退。"
+          : error.message || "变更记录加载失败",
+        data: null
+      });
+    }
+  }, [runId, onAgentWorkflowChange]);
+
   useEffect(() => {
     let active = true;
     setReviewError("");
@@ -85,17 +125,11 @@ export default function ReviewCheckWorkbench({
     listReviewItems(runId)
       .then((items) => {
         if (!active) return;
-        if (Array.isArray(items)) {
-          setReviewItems(items);
-        } else if (Array.isArray(items?.review?.changedFiles)) {
-          setReviewItems(normalizeWorkflowReviewItems(items.review.changedFiles));
-        } else {
-          setReviewItems([]);
-        }
+        setReviewItems(Array.isArray(items) ? items : []);
       })
       .catch((error) => {
         if (!active) return;
-        setReviewError(`审计页面加载失败：${error.message || "Persistence API request failed"}`);
+        setReviewError(`审计项加载失败：${error.message || "Persistence API request failed"}`);
       })
       .finally(() => {
         if (active) setLoadingReview(false);
@@ -104,6 +138,31 @@ export default function ReviewCheckWorkbench({
       active = false;
     };
   }, [runId]);
+
+  useEffect(() => {
+    reloadChanges();
+  }, [reloadChanges]);
+
+  useEffect(() => {
+    let active = true;
+    if (!runId || !selectedChangeId) {
+      setDiffState({ loading: false, error: "", diff: null });
+      return () => {
+        active = false;
+      };
+    }
+    setDiffState({ loading: true, error: "", diff: null });
+    getAgentRunChangeDiff(runId, selectedChangeId)
+      .then((diff) => {
+        if (active) setDiffState({ loading: false, error: "", diff });
+      })
+      .catch((error) => {
+        if (active) setDiffState({ loading: false, error: error.message || "Diff 加载失败", diff: null });
+      });
+    return () => {
+      active = false;
+    };
+  }, [runId, selectedChangeId]);
 
   const handleHumanStatusChange = async (itemId, humanStatus) => {
     setReviewItems((current) => current.map((item) => item.id === itemId ? { ...item, humanStatus } : item));
@@ -115,8 +174,31 @@ export default function ReviewCheckWorkbench({
     }
   };
 
+  const performRollback = async () => {
+    const action = confirmAction;
+    if (!action || !runId) return;
+    setRollbackMessage("");
+    setConfirmAction(null);
+    try {
+      if (action.type === "file") {
+        await revertAgentRunFile(runId, { changeId: action.change.id, reason: "Rejected from Review Check page." });
+        setRollbackMessage(`已回退 ${action.change.filePath}。验证状态已标记为 stale。`);
+      } else {
+        await resetAgentRunWorkspace(runId, { reason: "Reset from Review Check page." });
+        setRollbackMessage("已重置整个 run workspace。验证状态已标记为 stale。");
+      }
+      await reloadChanges();
+      const items = await listReviewItems(runId).catch(() => null);
+      if (Array.isArray(items)) setReviewItems(items);
+    } catch (error) {
+      setRollbackMessage(`回退失败：${error.message || "Persistence API request failed"}`);
+    }
+  };
+
   const normalizedWorkflowItems = normalizeWorkflowReviewItems(workflowReview?.changedFiles || []);
   const displayItems = reviewItems.length > 0 ? reviewItems : normalizedWorkflowItems;
+  const changes = changesState.data?.changes || [];
+  const selectedChange = changes.find((change) => change.id === selectedChangeId) || changes[0] || null;
   const reviewForAudit = useMemo(() => ({
     status: reviewItems.length > 0 ? summarizeHumanStatus(reviewItems) : workflowReview?.status || "not_generated",
     summary: reviewItems.length > 0
@@ -125,20 +207,13 @@ export default function ReviewCheckWorkbench({
         ? workflowReview?.summary || `${normalizedWorkflowItems.length} 个 review item 来自 Agent real-run。`
         : loadingReview
           ? "正在读取持久化 review items..."
-          : emptyReviewSummary,
+          : "暂无 Agent real-run 审计结果。请先在设计规划页生成 real-run。",
     changedFiles: displayItems.map(reviewItemToAuditFile),
     tests: buildTests(displayItems, workflowReview),
     manualConfirmations: buildConfirmations(displayItems, workflowReview)
   }), [agentWorkflow.review?.summary, displayItems, workflowReview, loadingReview, normalizedWorkflowItems.length, reviewItems]);
 
   const auditModel = useMemo(() => buildAuditModel(reviewForAudit, previewState.previewUrl), [reviewForAudit, previewState.previewUrl]);
-  const [selectedFile, setSelectedFile] = useState(auditModel.selectedFile);
-
-  useEffect(() => {
-    if (!auditModel.changedFiles.some((file) => file.file === selectedFile)) {
-      setSelectedFile(auditModel.selectedFile);
-    }
-  }, [auditModel.changedFiles, auditModel.selectedFile, selectedFile]);
 
   const loadPreview = useCallback(async () => {
     const sequence = requestSequence.current + 1;
@@ -244,6 +319,18 @@ export default function ReviewCheckWorkbench({
             />
           ) : null}
         </div>
+
+        <section className="audit-diff-viewer" aria-label="Diff Viewer">
+          <header>
+            <div>
+              <span>Diff Viewer</span>
+              <h2>{selectedChange?.filePath || "未选择文件"}</h2>
+            </div>
+            <small>{diffState.loading ? "loading" : selectedChange?.status || "empty"}</small>
+          </header>
+          {diffState.error ? <p className="run-error-text" role="alert">{diffState.error}</p> : null}
+          <pre>{diffState.diff?.unifiedDiff || "暂无 diff。旧 run 没有 baseline 时无法展示可回退 diff。"}</pre>
+        </section>
       </section>
 
       <aside className="audit-side-panel" aria-label="审计说明">
@@ -256,44 +343,38 @@ export default function ReviewCheckWorkbench({
           <strong>{reviewForAudit.status}</strong>
         </header>
         {reviewError ? <p className="run-error-text" role="alert">{reviewError}</p> : null}
+        {rollbackMessage ? <p className="run-status-panel" role="status">{rollbackMessage}</p> : null}
+
+        <RollbackInspector
+          runId={runId}
+          changesState={changesState}
+          onReset={() => setConfirmAction({ type: "run" })}
+        />
+
+        <section className="audit-section audit-file-section">
+          <h2><FileCheck2 size={16} />Changed Files</h2>
+          <div className="audit-file-list">
+            {changes.length ? changes.map((change) => (
+              <ChangeCard
+                key={change.id}
+                change={change}
+                selected={selectedChangeId === change.id}
+                onSelect={() => setSelectedChangeId(change.id)}
+                onRevert={() => setConfirmAction({ type: "file", change })}
+              />
+            )) : auditModel.changedFiles.length ? auditModel.changedFiles.map((file) => (
+              <ReviewFileCard
+                key={file.file}
+                file={file}
+                onHumanStatusChange={handleHumanStatusChange}
+              />
+            )) : <p className="audit-empty-state">暂无变更文件</p>}
+          </div>
+        </section>
 
         <section className="audit-section audit-visible-change">
           <h2><ShieldCheck size={16} />用户可见变化</h2>
-          <ul>
-            {auditModel.visibleChanges.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-        </section>
-
-        <section className="audit-section audit-file-section">
-          <h2><FileCheck2 size={16} />变更文件</h2>
-          <div className="audit-file-list">
-            {auditModel.changedFiles.length ? auditModel.changedFiles.map((file) => (
-              <div className="audit-file-card-shell" key={file.file}>
-                <button
-                  type="button"
-                  className={`audit-file-card ${selectedFile === file.file ? "selected" : ""}`}
-                  aria-pressed={selectedFile === file.file}
-                  onClick={() => setSelectedFile(file.file)}
-                >
-                  <strong>{file.file}</strong>
-                  <span>{file.changeSummary}</span>
-                  <small>{file.risk}</small>
-                </button>
-                {file.id ? (
-                  <label className="audit-human-status">
-                    <span>人工状态</span>
-                    <select
-                      aria-label={`人工审阅状态 ${file.file}`}
-                      value={file.humanStatus || "pending"}
-                      onChange={(event) => handleHumanStatusChange(file.id, event.target.value)}
-                    >
-                      {Object.entries(humanStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
-                    </select>
-                  </label>
-                ) : null}
-              </div>
-            )) : <p className="audit-empty-state">暂无变更文件</p>}
-          </div>
+          <ul>{auditModel.visibleChanges.map((item) => <li key={item}>{item}</li>)}</ul>
         </section>
 
         <section className="audit-section">
@@ -316,13 +397,128 @@ export default function ReviewCheckWorkbench({
         </section>
 
         <section className="audit-section audit-risk-section">
-          <h2><TriangleAlert size={16} />需要人工确认</h2>
-          <ul>{reviewForAudit.manualConfirmations.map((item) => <li key={item}>{item}</li>)}</ul>
+          <h2><TriangleAlert size={16} />Rollback History</h2>
+          <ul>
+            {(changesState.data?.rollbackHistory || []).length
+              ? changesState.data.rollbackHistory.map((item) => <li key={item.id}>{item.operationType}: {item.status}</li>)
+              : <li>暂无回退记录</li>}
+          </ul>
         </section>
 
         <button className="audit-pr-button" type="button" onClick={onOpenPr}>进入 PR 页面 <ArrowRight size={15} /></button>
       </aside>
+
+      {confirmAction ? (
+        <div className="rollback-confirm-backdrop">
+          <section className="rollback-confirm-modal" role="dialog" aria-modal="true" aria-label="确认回退">
+            <h2>{confirmAction.type === "file" ? "确认回退单个文件" : "确认重置整个 Agent Run"}</h2>
+            <p>
+              此操作只会修改 Workbench 创建的 run workspace，并恢复到本次 run 开始前的 baseline snapshot。
+              不会对原始 Conduit 仓库执行 git reset 或覆盖写入。
+            </p>
+            {confirmAction.change ? <code>{confirmAction.change.filePath}</code> : <code>{runId || "no run"}</code>}
+            <div>
+              <button type="button" onClick={() => setConfirmAction(null)}>取消</button>
+              <button type="button" className="danger" onClick={performRollback}>确认回退</button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>
+  );
+}
+
+function RollbackInspector({ runId, changesState, onReset }) {
+  const data = changesState.data;
+  const unavailableReason = getRollbackUnavailableReason(runId, changesState);
+  const unavailable = Boolean(unavailableReason);
+  return (
+    <section className="audit-section rollback-inspector">
+      <h2><RotateCcw size={16} />Rollback Inspector</h2>
+      {changesState.error ? <p className="run-error-text">{changesState.error}</p> : null}
+      {data?.verificationStatus === "stale" ? <p className="verification-stale-warning">Verification stale：回退后测试和 PR readiness 已失效，需要重新验证。</p> : null}
+      <dl>
+        <div><dt>run</dt><dd>{runId || "no run"}</dd></div>
+        <div><dt>baseline</dt><dd>{data?.baselineSnapshot?.id || "not initialized"}</dd></div>
+        <div><dt>adapter</dt><dd>{data?.baselineSnapshot?.adapterType || "unknown"}</dd></div>
+        <div><dt>verification</dt><dd>{data?.verificationStatus || "unknown"}</dd></div>
+      </dl>
+      {unavailableReason ? (
+        <p className="rollback-disabled-reason" id="rollback-reset-disabled-reason">
+          {unavailableReason}
+        </p>
+      ) : null}
+      <button
+        type="button"
+        className="rollback-reset-button"
+        disabled={unavailable}
+        aria-describedby={unavailableReason ? "rollback-reset-disabled-reason" : undefined}
+        title={unavailableReason || "Reset this run workspace to its baseline snapshot"}
+        onClick={onReset}
+      >
+        Reset Run Workspace
+      </button>
+    </section>
+  );
+}
+
+function getRollbackUnavailableReason(runId, changesState) {
+  const data = changesState.data;
+  if (!runId) return "当前没有关联 Agent Run，无法重置 run workspace。";
+  if (changesState.loading) return "正在加载 run workspace 状态，请稍后再试。";
+  if (changesState.error) return "回退状态加载失败，请先刷新审计页面或重新进入当前 run。";
+  if (!data) return "尚未读取到 run workspace 状态。";
+  if (data.available === false && data.reason === "workspace_not_initialized") {
+    return "当前 run 没有 baseline snapshot，通常是旧 run 或后端重启前生成的 run。请重新执行一次 real Agent run 后再使用 Reset Run Workspace。";
+  }
+  if (data.available === false) {
+    return data.reason ? `当前 run workspace 不可回退：${data.reason}` : "当前 run workspace 不可回退。";
+  }
+  return "";
+}
+
+function ChangeCard({ change, selected, onSelect, onRevert }) {
+  const reverted = change.status === "reverted" || change.status === "reset";
+  return (
+    <div className="audit-file-card-shell">
+      <button
+        type="button"
+        className={`audit-file-card ${selected ? "selected" : ""} ${reverted ? "reverted" : ""}`}
+        aria-pressed={selected}
+        onClick={onSelect}
+      >
+        <strong>{change.filePath}</strong>
+        <span>{change.changeSummary || change.changeType || "changed"}</span>
+        <small>{change.status}</small>
+      </button>
+      <button type="button" className="rollback-file-button" disabled={!change.canRevert || reverted} onClick={onRevert}>
+        Revert File
+      </button>
+    </div>
+  );
+}
+
+function ReviewFileCard({ file, onHumanStatusChange }) {
+  return (
+    <div className="audit-file-card-shell">
+      <button type="button" className="audit-file-card">
+        <strong>{file.file}</strong>
+        <span>{file.changeSummary}</span>
+        <small>{file.risk}</small>
+      </button>
+      {file.id ? (
+        <label className="audit-human-status">
+          <span>人工状态</span>
+          <select
+            aria-label={`人工审阅状态 ${file.file}`}
+            value={file.humanStatus || "pending"}
+            onChange={(event) => onHumanStatusChange(file.id, event.target.value)}
+          >
+            {Object.entries(humanStatusLabels).map(([value, label]) => <option value={value} key={value}>{label}</option>)}
+          </select>
+        </label>
+      ) : null}
+    </div>
   );
 }
 
@@ -361,7 +557,7 @@ function PreviewUnavailable({ isLoading, message, path, runningPath, owner, acti
       {path ? <code title={path}>绑定路径：{path}</code> : null}
       {runningPath ? <code title={runningPath}>运行路径：{runningPath}</code> : null}
       {url ? <span>预览 URL：{url}</span> : null}
-      <small>{[status, owner, actionRequired].filter(Boolean).join(" · ")}</small>
+      <small>{[status, owner, actionRequired].filter(Boolean).join(" / ")}</small>
       <div className="audit-preview-actions">
         <button type="button" onClick={onRetry}>重试 <RefreshCw size={14} /></button>
         <button type="button" disabled={!url} onClick={onOpenPreview}>打开新窗口 <ExternalLink size={14} /></button>
@@ -397,9 +593,10 @@ function reviewItemToAuditFile(item) {
 }
 
 function summarizeHumanStatus(items) {
-  if (items.every((item) => item.humanStatus === "approved")) return "approved";
+  if (items.every((item) => item.humanStatus === "approved" || item.humanStatus === "resolved")) return "approved";
   if (items.some((item) => item.humanStatus === "needs_change")) return "needs_change";
   if (items.some((item) => item.humanStatus === "blocked")) return "blocked";
+  if (items.every((item) => item.humanStatus === "reverted")) return "reverted";
   return "needs_review";
 }
 

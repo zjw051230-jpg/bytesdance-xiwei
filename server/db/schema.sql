@@ -73,6 +73,10 @@ CREATE TABLE IF NOT EXISTS agent_runs (
   dry_run INTEGER NOT NULL DEFAULT 1,
   real_write_performed INTEGER NOT NULL DEFAULT 0,
   target_repo_path TEXT NOT NULL DEFAULT '',
+  source_repo_path TEXT NOT NULL DEFAULT '',
+  workspace_path TEXT NOT NULL DEFAULT '',
+  baseline_snapshot_id TEXT NOT NULL DEFAULT '',
+  verification_status TEXT NOT NULL DEFAULT 'unknown',
   context_snapshot TEXT NOT NULL DEFAULT '{}',
   plan_json TEXT NOT NULL DEFAULT '{}',
   result_summary TEXT NOT NULL DEFAULT '',
@@ -103,7 +107,7 @@ CREATE TABLE IF NOT EXISTS review_items (
   requirement_mapping TEXT NOT NULL DEFAULT '',
   risk_level TEXT NOT NULL DEFAULT '',
   test_status TEXT NOT NULL DEFAULT '',
-  human_status TEXT NOT NULL DEFAULT 'pending' CHECK (human_status IN ('pending', 'approved', 'needs_change', 'blocked')),
+  human_status TEXT NOT NULL DEFAULT 'pending' CHECK (human_status IN ('pending', 'approved', 'needs_change', 'blocked', 'reverted', 'resolved')),
   human_comment TEXT NOT NULL DEFAULT '',
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -134,6 +138,47 @@ CREATE TABLE IF NOT EXISTS activity_logs (
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS workspace_snapshots (
+  id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
+  snapshot_type TEXT NOT NULL DEFAULT 'baseline' CHECK (snapshot_type IN ('baseline', 'checkpoint')),
+  source_repo_path TEXT NOT NULL DEFAULT '',
+  workspace_path TEXT NOT NULL DEFAULT '',
+  baseline_path TEXT NOT NULL DEFAULT '',
+  adapter_type TEXT NOT NULL DEFAULT '',
+  metadata_json TEXT NOT NULL DEFAULT '{}',
+  created_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS file_change_records (
+  id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
+  snapshot_id TEXT REFERENCES workspace_snapshots(id) ON DELETE SET NULL,
+  file_path TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'changed' CHECK (status IN ('changed', 'reverted', 'reset', 'approved', 'needs_change')),
+  change_type TEXT NOT NULL DEFAULT 'modified',
+  change_summary TEXT NOT NULL DEFAULT '',
+  diff_stat_json TEXT NOT NULL DEFAULT '{}',
+  before_hash TEXT NOT NULL DEFAULT '',
+  after_hash TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE(run_id, file_path)
+);
+
+CREATE TABLE IF NOT EXISTS rollback_operations (
+  id TEXT PRIMARY KEY,
+  run_id TEXT NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
+  change_id TEXT REFERENCES file_change_records(id) ON DELETE SET NULL,
+  operation_type TEXT NOT NULL CHECK (operation_type IN ('file_revert', 'run_reset')),
+  status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('completed', 'failed')),
+  requested_by TEXT NOT NULL DEFAULT 'human',
+  reason TEXT NOT NULL DEFAULT '',
+  files_json TEXT NOT NULL DEFAULT '[]',
+  error_message TEXT NOT NULL DEFAULT '',
+  created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_requirements_project_id ON requirements(project_id);
 CREATE INDEX IF NOT EXISTS idx_clarification_requirement_id ON clarification_turns(requirement_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_plan_id ON planning_tasks(plan_id);
@@ -141,3 +186,6 @@ CREATE INDEX IF NOT EXISTS idx_agent_runs_requirement_id ON agent_runs(requireme
 CREATE INDEX IF NOT EXISTS idx_agent_artifacts_run_id ON agent_artifacts(run_id);
 CREATE INDEX IF NOT EXISTS idx_review_items_run_id ON review_items(run_id);
 CREATE INDEX IF NOT EXISTS idx_activity_project_id ON activity_logs(project_id);
+CREATE INDEX IF NOT EXISTS idx_workspace_snapshots_run_id ON workspace_snapshots(run_id);
+CREATE INDEX IF NOT EXISTS idx_file_change_records_run_id ON file_change_records(run_id);
+CREATE INDEX IF NOT EXISTS idx_rollback_operations_run_id ON rollback_operations(run_id);

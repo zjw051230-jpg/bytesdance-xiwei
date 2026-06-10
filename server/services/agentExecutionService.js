@@ -5,6 +5,7 @@ import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { persistAgentDryRun, withPersistence } from "./persistence/workbenchPersistenceAdapter.js";
 import { createAgent2DryRun, mapAgent2ResultToWorkbench } from "./agent2Adapter.js";
 import { readDoubaoArkConfig } from "./doubaoArkClient.js";
+import { selectWorkspaceAdapter } from "./workspaceAdapter.js";
 
 const agentRoot = path.resolve("agent(1)", "agent");
 const pythonCoreRoot = path.join(agentRoot, "agent_core");
@@ -132,14 +133,35 @@ export async function startAgentRun(request = {}, config = {}) {
     if (selectedAgentProvider(request, config) !== "agent2") {
       request = { ...request, agentProvider: "agent2" };
     }
+    let workspace;
+    try {
+      const adapter = config.workspaceAdapter || await selectWorkspaceAdapter({
+        sourceRepoPath: targetRepoPath,
+        runsRoot: config.runsRoot || path.resolve("runs"),
+        adapterType: config.workspaceAdapterType
+      });
+      workspace = await adapter.createRunWorkspace({
+        runId,
+        sourceRepoPath: targetRepoPath
+      });
+    } catch (error) {
+      return errorResult(error.code || "workspace_create_failed", "Could not create isolated run workspace.", {
+        reason: String(error.message || error),
+        sourceRepoPath: targetRepoPath
+      });
+    }
+
     const result = await runAgent2RealExecution(request, {
       runId,
       outputDir,
       relativeOutputDir: relativeOutputDir(outputDir),
-      targetRepoPath,
+      targetRepoPath: workspace.workspacePath,
+      sourceRepoPath: targetRepoPath,
+      workspace,
       now
     }, config);
     if (!result.ok) return result;
+    await attachWorkspaceChanges(result.data, workspace, config);
     agentRuns.set(runId, result.data);
     persistAgentDryRun(result.data, config);
     return result;
@@ -216,6 +238,7 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
   const agent2Root = path.resolve("agent(2)", "agent");
   const mainModuleCwd = agent2Root;
   const targetRepoPath = options.targetRepoPath;
+  const sourceRepoPath = options.sourceRepoPath || targetRepoPath;
   const inputDsl = buildAgent2RequirementDsl(request, targetRepoPath);
   const inputJson = JSON.stringify(inputDsl);
   const rawOutputPath = path.join(options.outputDir, "agent2_real_stdout.json");
@@ -320,6 +343,26 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
     rawOutputPath,
     requestPath
   };
+  run.workspace = {
+    ...(options.workspace || {}),
+    baselineSnapshotId: `snapshot-${options.runId}-baseline`
+  };
+  run.sourceRepoPath = sourceRepoPath;
+  run.targetRepoPath = targetRepoPath;
+  run.verificationStatus = "fresh";
+  run.context = {
+    ...(run.context || {}),
+    sourceRepoPath,
+    targetRepoPath,
+    workspacePath: targetRepoPath,
+    baselineSnapshotId: run.workspace.baselineSnapshotId,
+    executionBoundary: {
+      ...(run.context?.executionBoundary || {}),
+      sourceRepoPath,
+      isolatedWorkspacePath: targetRepoPath,
+      originalRepoWriteBlocked: true
+    }
+  };
   run.artifacts = {
     ...run.artifacts,
     "agent2_real_request.json": { exists: true, path: requestPath, json: inputDsl },
@@ -329,6 +372,41 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
 
   await writeWorkbenchArtifacts(options.outputDir, run.artifacts);
   return { ok: true, data: run, error: null };
+}
+
+async function attachWorkspaceChanges(run, workspace, config = {}) {
+  if (!workspace?.workspacePath || !workspace?.baselinePath) return;
+  try {
+    const adapter = config.workspaceAdapter || await selectWorkspaceAdapter({
+      sourceRepoPath: workspace.sourceRepoPath,
+      runsRoot: config.runsRoot || path.resolve("runs"),
+      adapterType: workspace.adapterType || config.workspaceAdapterType || "copy"
+    });
+    const changes = await adapter.getChangedFiles({
+      workspacePath: workspace.workspacePath,
+      baselinePath: workspace.baselinePath
+    });
+    run.workspace = {
+      ...(run.workspace || workspace),
+      ...workspace,
+      baselineSnapshotId: run.workspace?.baselineSnapshotId || `snapshot-${run.runId}-baseline`,
+      changedFiles: changes
+    };
+    if (Array.isArray(run.review?.changedFiles)) {
+      const summaryByFile = new Map(run.review.changedFiles.map((file) => [file.file || file.filePath, file]));
+      run.workspace.changedFiles = changes.map((change) => ({
+        ...change,
+        changeSummary: summaryByFile.get(change.filePath)?.changeSummary || summaryByFile.get(change.filePath)?.summary || `${change.changeType} ${change.filePath}`
+      }));
+    }
+  } catch (error) {
+    run.workspace = {
+      ...(run.workspace || workspace),
+      ...workspace,
+      baselineSnapshotId: run.workspace?.baselineSnapshotId || `snapshot-${run.runId}-baseline`,
+      changeScanError: String(error.message || error)
+    };
+  }
 }
 
 function buildAgent2RequirementDsl(request = {}, targetRepoPath = "") {

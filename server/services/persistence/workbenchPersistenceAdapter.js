@@ -140,13 +140,18 @@ export function persistAgentDryRun(run = {}, config = {}) {
       status: run.status,
       dryRun: run.dryRun,
       realWritePerformed: run.realWritePerformed,
-      targetRepoPath: run.context?.targetRepoPath || "",
+      targetRepoPath: run.targetRepoPath || run.context?.targetRepoPath || "",
+      sourceRepoPath: run.sourceRepoPath || run.context?.sourceRepoPath || "",
+      workspacePath: run.workspace?.workspacePath || run.context?.workspacePath || "",
+      baselineSnapshotId: run.workspace?.baselineSnapshotId || "",
+      verificationStatus: run.verificationStatus || "fresh",
       contextSnapshot: run.context || {},
       planJson: run.plan || {},
       resultSummary: run.latestReturn || "",
       startedAt: run.startedAt,
       finishedAt: run.finishedAt
     });
+    const baselineSnapshot = persistWorkspaceSnapshot(service, run);
     for (const [name, artifact] of Object.entries(run.artifacts || {})) {
       service.agentArtifacts.create(run.runId, {
         type: artifactTypeFromName(name),
@@ -164,6 +169,19 @@ export function persistAgentDryRun(run = {}, config = {}) {
         riskLevel: file.risk ? "P1" : "P2",
         testStatus: "pending",
         humanStatus: "pending"
+      });
+    }
+    for (const change of run.workspace?.changedFiles || []) {
+      service.fileChangeRecords.upsert(run.runId, {
+        id: change.id,
+        snapshotId: baselineSnapshot?.id || run.workspace?.baselineSnapshotId || null,
+        filePath: change.filePath,
+        status: change.status || "changed",
+        changeType: change.changeType || "modified",
+        changeSummary: change.changeSummary || "",
+        diffStat: change.diffStat || {},
+        beforeHash: change.beforeHash || "",
+        afterHash: change.afterHash || ""
       });
     }
     if (run.prDraft) {
@@ -186,6 +204,38 @@ export function persistAgentDryRun(run = {}, config = {}) {
       payloadJson: { realWritePerformed: run.realWritePerformed }
     });
   });
+}
+
+function persistWorkspaceSnapshot(service, run = {}) {
+  if (!run.workspace?.workspacePath || !run.workspace?.baselinePath) return null;
+  const snapshot = service.workspaceSnapshots.create(run.runId, {
+    id: run.workspace.baselineSnapshotId || `snapshot-${run.runId}-baseline`,
+    snapshotType: "baseline",
+    sourceRepoPath: run.workspace.sourceRepoPath || run.sourceRepoPath || "",
+    workspacePath: run.workspace.workspacePath,
+    baselinePath: run.workspace.baselinePath,
+    adapterType: run.workspace.adapterType || "copy",
+    metadataJson: {
+      createdBy: "agent_run_start",
+      changeScanError: run.workspace.changeScanError || ""
+    },
+    createdAt: run.workspace.createdAt
+  });
+  service.activity.create({
+    projectId: run.context?.projectId || "conduit-realworld-example-app",
+    requirementId: run.context?.requirementId || `req-agent-${run.runId}`,
+    runId: run.runId,
+    type: "WORKSPACE_SNAPSHOT_CREATED",
+    level: "info",
+    message: "Run baseline workspace snapshot created.",
+    payloadJson: {
+      snapshotId: snapshot.id,
+      adapterType: snapshot.adapterType,
+      sourceRepoPath: snapshot.sourceRepoPath,
+      workspacePath: snapshot.workspacePath
+    }
+  });
+  return snapshot;
 }
 
 function guardedPersist(config, callback) {

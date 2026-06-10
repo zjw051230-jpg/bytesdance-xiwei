@@ -78,6 +78,26 @@ export async function listReviewItems(runId) {
   return requestJson(`/api/agent/runs/${encodeURIComponent(runId)}/review`);
 }
 
+export async function listAgentRunChanges(runId) {
+  return requestJson(`/api/agent/runs/${encodeURIComponent(runId)}/changes`);
+}
+
+export async function getAgentRunChangeDiff(runId, changeId) {
+  return requestJson(`/api/agent/runs/${encodeURIComponent(runId)}/changes/${encodeURIComponent(changeId)}/diff`);
+}
+
+export async function revertAgentRunFile(runId, payload) {
+  return postJson(`/api/agent/runs/${encodeURIComponent(runId)}/rollback/file`, payload);
+}
+
+export async function resetAgentRunWorkspace(runId, payload) {
+  return postJson(`/api/agent/runs/${encodeURIComponent(runId)}/rollback`, payload);
+}
+
+export async function createAgentRunCheckpoint(runId, payload) {
+  return postJson(`/api/agent/runs/${encodeURIComponent(runId)}/checkpoints`, payload);
+}
+
 export async function updateReviewItem(reviewItemId, payload) {
   return patchJson(`/api/review-items/${encodeURIComponent(reviewItemId)}`, payload);
 }

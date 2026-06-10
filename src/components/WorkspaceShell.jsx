@@ -18,7 +18,9 @@ export default function WorkspaceShell({
   onWorkspacePageChange,
   toast,
   onToast,
-  projectLoadState
+  projectLoadState,
+  routeRequirementId,
+  routeProjectId
 }) {
   const [railExpanded, setRailExpanded] = useState(false);
   const [agentWorkflow, setAgentWorkflow] = useState(initialAgentWorkflowState);
@@ -31,16 +33,22 @@ export default function WorkspaceShell({
     const startedAt = typeof performance !== "undefined" ? performance.now() : Date.now();
     setActiveRequirement(null);
     setRequirementError("");
-    if (!activeProject?.id) return () => {
+    if (!activeProject?.id && !routeRequirementId) return () => {
       active = false;
     };
-    if (/^(pending|mock)-/.test(String(activeProject.id))) return () => {
+    if (!routeRequirementId && /^(pending|mock)-/.test(String(activeProject.id))) return () => {
       active = false;
     };
 
-    listRequirements(activeProject.id)
+    const requirementPromise = routeRequirementId ? getRequirement(routeRequirementId) : listRequirements(activeProject.id);
+    requirementPromise
       .then(async (requirements) => {
         if (!active) return;
+        if (routeRequirementId && requirements?.id) {
+          setActiveRequirement(requirements);
+          logDevDuration("workbench:active-tab-data-load", startedAt);
+          return;
+        }
         const latest = Array.isArray(requirements) ? requirements[0] : null;
         if (!latest?.id) {
           setActiveRequirement(null);
@@ -60,7 +68,7 @@ export default function WorkspaceShell({
     return () => {
       active = false;
     };
-  }, [activeProject?.id]);
+  }, [activeProject?.id, routeRequirementId]);
 
   const enterWorkbench = (project = activeProject) => {
     if (project) {
@@ -133,7 +141,10 @@ export default function WorkspaceShell({
         ) : null}
         {workspacePage === "pr" ? (
           <PRWorkbench
+            activeProject={activeProject}
             activeRequirement={activeRequirement}
+            requirementId={routeRequirementId}
+            projectId={routeProjectId || activeProject?.id}
             agentWorkflow={agentWorkflow}
             onAgentWorkflowChange={setAgentWorkflow}
           />

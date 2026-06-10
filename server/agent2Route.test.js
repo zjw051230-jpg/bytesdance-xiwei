@@ -130,7 +130,10 @@ describe("Agent(2) route integration", () => {
     expect(payload.ok).toBe(true);
     expect(payload.error).toBeNull();
     expect(agent2Runner).toHaveBeenCalledOnce();
-    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toBe(targetRepoPath);
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).not.toBe(targetRepoPath);
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toContain(path.join("workspaces", payload.data.runId, "workspace"));
+    expect(payload.data.sourceRepoPath).toBe(targetRepoPath);
+    expect(payload.data.targetRepoPath).toBe(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT);
     expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe("1");
     expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_PLANNER).toBe("1");
     expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_CODER).toBe("1");

@@ -86,8 +86,8 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "PR 页面" }));
     expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "PR 页面" })).toBeInTheDocument();
-    expect(screen.getByText("PR 摘要")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "PR Draft Center" })).toBeInTheDocument();
+    expect(screen.getByText("Summary")).toBeInTheDocument();
   });
 
   it("runs the real agent workflow from design planning into review and PR pages", async () => {
@@ -217,7 +217,7 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelector(".audit-pr-button"));
     expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
-    expect(screen.getByText("RUN-agent-ui")).toBeInTheDocument();
+    expect(screen.getAllByText("RUN-agent-ui").length).toBeGreaterThan(0);
     expect(screen.getByText("Improve login failure guidance")).toBeInTheDocument();
     expect(screen.getByText("No API keys or local configs committed")).toBeInTheDocument();
   });

@@ -184,6 +184,95 @@ describe("frontend persistence wiring", () => {
     expect(screen.queryByText("src/components/LoginForm.jsx")).not.toBeInTheDocument();
   });
 
+  it("shows rollback diff and reverted state in the Review page", async () => {
+    let reverted = false;
+    const fetchMock = vi.fn(async (url, options = {}) => {
+      const target = String(url);
+      if (target.endsWith("/review")) {
+        return ok([{ id: "review-1", filePath: "src/App.jsx", changeSummary: "Theme update", reason: "Maps to DSL", requirementMapping: "theme", riskLevel: "P1", testStatus: "pending", humanStatus: reverted ? "reverted" : "pending" }]);
+      }
+      if (target.endsWith("/changes") && !options?.method) {
+        return ok({
+          runId: "RUN-rollback-ui",
+          available: true,
+          verificationStatus: reverted ? "stale" : "fresh",
+          baselineSnapshot: { id: "snapshot-RUN-rollback-ui-baseline", adapterType: "copy" },
+          changes: [{
+            id: "change-app",
+            filePath: "src/App.jsx",
+            status: reverted ? "reverted" : "changed",
+            changeType: "modified",
+            changeSummary: "Theme update",
+            canRevert: !reverted
+          }],
+          rollbackHistory: reverted ? [{ id: "rollback-1", operationType: "file_revert", status: "completed" }] : []
+        });
+      }
+      if (target.endsWith("/changes/change-app/diff")) {
+        return ok({ filePath: "src/App.jsx", unifiedDiff: "--- a/src/App.jsx\n+++ b/src/App.jsx\n-old\n+new" });
+      }
+      if (target.endsWith("/rollback/file") && options?.method === "POST") {
+        reverted = true;
+        return ok({ runId: "RUN-rollback-ui", change: { id: "change-app", filePath: "src/App.jsx", status: "reverted" }, verificationStatus: "stale" });
+      }
+      return ok({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <ReviewCheckWorkbench
+        activeProject={project}
+        activeRequirement={requirement}
+        agentWorkflow={{ runId: "RUN-rollback-ui" }}
+        onOpenPr={() => {}}
+      />
+    );
+
+    await waitFor(() => expect(screen.getAllByText("src/App.jsx").length).toBeGreaterThan(0));
+    await screen.findByText(/-old/);
+    fireEvent.click(screen.getByRole("button", { name: "Revert File" }));
+    fireEvent.click(screen.getByRole("button", { name: "确认回退" }));
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith("/api/agent/runs/RUN-rollback-ui/rollback/file", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ changeId: "change-app", reason: "Rejected from Review Check page." })
+    })));
+    await screen.findByText(/已回退 src\/App\.jsx/);
+    expect(screen.getByText(/Verification stale/)).toBeInTheDocument();
+    expect(screen.getAllByText("reverted").length).toBeGreaterThan(0);
+  });
+
+  it("disables rollback controls for old Review runs without a baseline snapshot", async () => {
+    const fetchMock = vi.fn(async (url) => {
+      const target = String(url);
+      if (target.endsWith("/review")) return ok([]);
+      if (target.endsWith("/changes")) {
+        return ok({
+          runId: "RUN-old",
+          available: false,
+          reason: "workspace_not_initialized",
+          verificationStatus: "unknown",
+          changes: [],
+          rollbackHistory: []
+        });
+      }
+      return ok({});
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    render(
+      <ReviewCheckWorkbench
+        activeProject={project}
+        activeRequirement={requirement}
+        agentWorkflow={{ runId: "RUN-old" }}
+        onOpenPr={() => {}}
+      />
+    );
+
+    await screen.findByText("not initialized");
+    expect(screen.getByRole("button", { name: "Reset Run Workspace" })).toBeDisabled();
+  });
+
   it("saves PR draft edits and checklist state", async () => {
     const fetchMock = vi.fn(async (url, options = {}) => {
       if (String(url).endsWith("/pr-draft") && !options?.method) {

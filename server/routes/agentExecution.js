@@ -11,7 +11,7 @@ import {
 export async function handleAgentExecutionRoutes(request, response, config = {}) {
   const url = new URL(request.url, "http://127.0.0.1");
   if (!url.pathname.startsWith("/api/agent")) return false;
-  if (/^\/api\/agent\/runs\/[^/]+\/(events|review)$/.test(url.pathname)) return false;
+  if (/^\/api\/agent\/runs\/[^/]+\/(events|review|changes|rollback|checkpoints)(?:\/.*)?$/.test(url.pathname)) return false;
 
   if (request.method === "GET" && url.pathname === "/api/agent/inventory") {
     writeJson(response, 200, { ok: true, data: await inspectAgent1(), error: null });
