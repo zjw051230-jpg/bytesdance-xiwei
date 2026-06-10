@@ -1,0 +1,12 @@
+{
+  "id": "dsl-scoring",
+  "source": "dsl-v2",
+  "type": "dsl",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "F:/dsl-v2/core/src/scoring/dsl_scoring.py",
+    "F:/dsl-v2/core/src/scoring/dsl_scoring_engine.py"
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "id": "agent-multi-module-planning",
+  "source": "agent(2)",
+  "type": "planning",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "agent(2)/agent/agent_core/skills/definitions/multi_module_planning.json"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "dsl-schema-activation",
+  "source": "dsl-v2",
+  "type": "dsl",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "F:/dsl-v2/core/src/router/schema_activation.py",
+    "F:/dsl-v2/core/schemas/requirement_dsl.schema.json"
+  ]
+}

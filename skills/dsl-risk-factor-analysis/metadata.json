@@ -1,0 +1,12 @@
+{
+  "id": "dsl-risk-factor-analysis",
+  "source": "dsl-v2",
+  "type": "dsl",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "F:/dsl-v2/skills/risk_factor_eval/skill.md",
+    "F:/dsl-v2/core/risk_factors/risk_factors.yaml"
+  ]
+}

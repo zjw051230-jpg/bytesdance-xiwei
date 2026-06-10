@@ -1,0 +1,12 @@
+{
+  "id": "dsl-requirement-router",
+  "source": "dsl-v2",
+  "type": "dsl",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "F:/dsl-v2/skills/prd_to_dsl/skill.md",
+    "F:/dsl-v2/core/src/router/requirement_type_router.py"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "agent-plan-generation",
+  "source": "agent(2)",
+  "type": "planning",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "agent(2)/agent/agent_core/agents/planner_agent.py",
+    "agent(2)/agent/agent_core/actions/make_plan.py"
+  ]
+}

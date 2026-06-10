@@ -1,0 +1,12 @@
+{
+  "id": "agent-review-check",
+  "source": "agent(2)",
+  "type": "review",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "agent(2)/agent/agent_core/agents/reviewer_agent.py",
+    "agent(2)/agent/agent_core/actions/review_patch.py"
+  ]
+}

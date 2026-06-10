@@ -1,0 +1,12 @@
+{
+  "id": "dsl-gap-vector-retrieval",
+  "source": "dsl-v2",
+  "type": "dsl",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "F:/dsl-v2/core/src/risk_engine/gap_vector.py",
+    "F:/dsl-v2/skills/code_context/skill.md"
+  ]
+}

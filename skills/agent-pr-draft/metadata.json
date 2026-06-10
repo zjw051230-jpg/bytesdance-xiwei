@@ -1,0 +1,12 @@
+{
+  "id": "agent-pr-draft",
+  "source": "agent(2)",
+  "type": "pr",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "agent(2)/agent/agent_core/agents/pr_draft_agent.py",
+    "agent(2)/agent/agent_core/actions/finish.py"
+  ]
+}

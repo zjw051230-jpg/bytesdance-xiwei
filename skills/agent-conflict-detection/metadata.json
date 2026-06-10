@@ -1,0 +1,11 @@
+{
+  "id": "agent-conflict-detection",
+  "source": "agent(2)",
+  "type": "safety",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "agent(2)/agent/agent_core/skills/definitions/conflict_detection.json"
+  ]
+}

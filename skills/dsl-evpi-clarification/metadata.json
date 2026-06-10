@@ -1,0 +1,12 @@
+{
+  "id": "dsl-evpi-clarification",
+  "source": "dsl-v2",
+  "type": "dsl",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "F:/dsl-v2/skills/clarification/skill.md",
+    "F:/dsl-v2/core/src/clarification/evpi_lite.py"
+  ]
+}

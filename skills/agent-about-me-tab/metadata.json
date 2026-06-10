@@ -1,0 +1,11 @@
+{
+  "id": "agent-about-me-tab",
+  "source": "agent(2)",
+  "type": "agent",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "agent(2)/agent/agent_core/skills/definitions/profile_about_tab.json"
+  ]
+}

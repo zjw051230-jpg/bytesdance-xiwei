@@ -1,0 +1,11 @@
+{
+  "id": "agent-cover-image",
+  "source": "agent(2)",
+  "type": "agent",
+  "entrypoint": "skill.md",
+  "dryRunOnly": true,
+  "realWriteAllowed": false,
+  "sourceFiles": [
+    "agent(2)/agent/agent_core/skills/definitions/article_cover_image.json"
+  ]
+}
