@@ -2,6 +2,7 @@ import { AlertTriangle, Check, CheckCircle2, Circle, ClipboardList, Eye, FileTex
 import { useEffect, useState } from "react";
 import { checkAgentReadiness, getAgentArtifacts, getAgentRun, startAgentRun } from "../api/agentClient.js";
 import { getDesignPlan, listPlanningTasks, updatePlanningTask } from "../api/persistenceClient.js";
+import AgentWorkMatrix from "./AgentWorkMatrix.jsx";
 
 const planningStatusLabels = {
   todo: "未开始",
@@ -91,17 +92,17 @@ export default function DesignPlanningWorkbench({
           projectId: activeProject?.id,
           projectName: activeProject?.name,
           requirementId: activeRequirement?.id,
-          boundary: targetRepoPath ? "real Agent(2) execution target selected" : "real execution blocked: missing project localPath",
+          boundary: targetRepoPath ? "dry-run preview target selected" : "dry-run preview blocked: missing project localPath",
           targetRepoPath: targetRepoPath || "not_set",
           agent1EntryPoints: readiness.entrypoints
         },
-        latestReturn: "Agent input context preview is ready.",
+        latestReturn: "Agent 输入 Context 已准备好，当前不会写入业务仓库。",
         error: null
       }));
-      onToast?.("Agent context preview ready");
+      onToast?.("Agent 输入 Context 已准备好");
     } catch (error) {
       const message = error.message || "Agent API request failed";
-      setPlanError(`Real Agent execution failed: ${message}`);
+      setPlanError(`Agent 输入 Context 准备失败：${message}`);
       onAgentWorkflowChange?.((current) => ({ ...current, status: "blocked", error: message }));
     }
   };
@@ -110,7 +111,7 @@ export default function DesignPlanningWorkbench({
     setPlanError("");
     const targetRepoPath = resolveProjectLocalPath(activeProject);
     if (!targetRepoPath) {
-      const message = "Real execution requires the selected project to have localPath/targetRepoPath.";
+      const message = "缺少项目路径，暂时不能生成 Agent dry-run 计划。";
       setPlanError(message);
       onAgentWorkflowChange?.((current) => ({
         ...current,
@@ -124,7 +125,7 @@ export default function DesignPlanningWorkbench({
     onAgentWorkflowChange?.((current) => ({
       ...current,
       status: "running",
-      latestReturn: "Real Agent(2) execution is running against the target repository.",
+      latestReturn: "正在生成 Agent dry-run 预览，不会写入业务仓库。",
       error: null
     }));
     try {
@@ -133,7 +134,7 @@ export default function DesignPlanningWorkbench({
         requirementId: activeRequirement?.id,
         requirementDsl: buildAgentRequirementDsl(activeRequirement, designPlan, planningTasks),
         taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
-        dryRun: false,
+        dryRun: true,
         agentProvider: "agent2",
         targetRepoPath
       });
@@ -160,7 +161,7 @@ export default function DesignPlanningWorkbench({
         artifacts,
         outputDir: runFromApi.outputDir || run.outputDir,
         relativeOutputDir: runFromApi.relativeOutputDir || run.relativeOutputDir,
-        dryRun: runFromApi.dryRun ?? run.dryRun ?? false,
+        dryRun: runFromApi.dryRun ?? run.dryRun ?? true,
         realWritePerformed: runFromApi.realWritePerformed ?? run.realWritePerformed ?? false,
         executionResult: runFromApi.executionResult || run.executionResult || extractExecutionResultFromArtifacts(artifacts),
         reviewResult: runFromApi.reviewResult || run.reviewResult || null,
@@ -170,14 +171,14 @@ export default function DesignPlanningWorkbench({
         artifactError: artifactsFromApi.error || null,
         error: null
       }));
-      onToast?.(`Real Agent execution completed: ${runFromApi.runId || run.runId}`);
+      onToast?.(`Agent dry-run 计划已生成：${runFromApi.runId || run.runId}`);
     } catch (error) {
       const message = error.message || "Agent API request failed";
-      setPlanError(`真实 Agent 执行失败: ${message}`);
+      setPlanError(`Agent dry-run 计划生成失败：${message}`);
       onAgentWorkflowChange?.((current) => ({
         ...current,
         status: "blocked",
-        latestReturn: "Real Agent execution failed.",
+        latestReturn: "Agent dry-run 计划生成失败。",
         error: message
       }));
     } finally {
@@ -210,7 +211,12 @@ export default function DesignPlanningWorkbench({
             isAgentRunStarting={isAgentRunStarting}
             hasTargetRepoPath={hasTargetRepoPath}
           />
-          <TaskBreakdownPanel tasks={planningTasks} onStatusChange={handleTaskStatusChange} />
+          <TaskBreakdownPanel
+            tasks={planningTasks}
+            agentWorkflow={agentWorkflow}
+            isAgentRunStarting={isAgentRunStarting}
+            onStatusChange={handleTaskStatusChange}
+          />
         </section>
 
         <ExecutionFeedbackPanel tasks={planningTasks} />
@@ -388,20 +394,21 @@ function MilestonePanel({ plan, tasks, agentWorkflow = {}, isAgentRunStarting = 
   );
 }
 
-function TaskBreakdownPanel({ tasks, onStatusChange }) {
+function TaskBreakdownPanel({ tasks, agentWorkflow = {}, isAgentRunStarting = false, onStatusChange }) {
   return (
     <section className="planning-card task-breakdown-panel" aria-label="任务拆解清单">
       <div className="planning-card-header">
-        <h2>任务拆解清单</h2>
+        <h2>任务拆解清单 / Agent 工作矩阵</h2>
         <button type="button" aria-label="全部状态">全部状态</button>
       </div>
+      <AgentWorkMatrix agentWorkflow={agentWorkflow} isStarting={isAgentRunStarting} />
       <div className="task-breakdown-table">
         <div className="task-table-row task-table-head">
           <span>任务项</span><span>负责人</span><span>状态</span><span>预计完成</span>
         </div>
         {tasks.length === 0 ? (
           <div className="task-table-row">
-            <span><em>0.</em>暂无任务拆解。设计规划保存后会从 API 恢复。</span>
+            <span><em>0.</em>暂无具体任务拆解。Agent 计划生成后会在这里展示任务列表。</span>
             <span>待分配</span><span>空状态</span><span>-</span>
           </div>
         ) : tasks.map((item, index) => (

@@ -68,6 +68,7 @@ export function artifactsToUiState(artifacts = {}) {
   const readiness = mapReadiness(scoring, finalDsl, evpi);
   const risks = mapRisks(riskActivation, scoring, evpi);
   const recommendedQuestion = mapRecommendedQuestion(evpi);
+  const blockerQuestions = mapBlockerQuestions(evpi, scoring, risks, recommendedQuestion);
   const humanReport = mapHumanReport(finalDsl, scoring, evpi, summaryMd, risks);
   const boundaries = mapBoundaries(finalDsl);
 
@@ -76,6 +77,9 @@ export function artifactsToUiState(artifacts = {}) {
     readiness,
     risks,
     recommendedQuestion,
+    activeRiskQuestion: blockerQuestions[0] || recommendedQuestion,
+    blockerQuestions,
+    riskClarificationTarget: blockerQuestions[0]?.targetRiskId || blockerQuestions[0]?.targetField || "",
     humanReport,
     coverageItems: mapCoverage(finalDsl, scoring, evpi),
     reportQuality: mapReportQuality(dslCompletion, risks),
@@ -98,6 +102,9 @@ export function emptyUiState() {
     },
     risks: [],
     recommendedQuestion: null,
+    activeRiskQuestion: null,
+    blockerQuestions: [],
+    riskClarificationTarget: "",
     humanReport: {
       summary: {
         title: "",
@@ -137,6 +144,9 @@ export function fallbackUiState() {
     },
     risks: fallbackRisks,
     recommendedQuestion: fallbackQuestion,
+    activeRiskQuestion: fallbackQuestion,
+    blockerQuestions: [fallbackQuestion],
+    riskClarificationTarget: "fallback_risk",
     humanReport: fallbackReport,
     coverageItems: fallbackCoverage,
     reportQuality: [
@@ -270,6 +280,48 @@ function mapRecommendedQuestion(evpi) {
     source: "EVPI-lite",
     factorIds: item.factor_ids || item.target_fields || []
   };
+}
+
+function mapBlockerQuestions(evpi, scoring, risks, recommendedQuestion) {
+  const rankedQuestions = Array.isArray(evpi?.ranked_questions) ? evpi.ranked_questions : [];
+  const explicitQuestions = [
+    ...rankedQuestions,
+    ...(Array.isArray(evpi?.blocker_questions) ? evpi.blocker_questions : []),
+    ...(Array.isArray(scoring?.blocker_questions) ? scoring.blocker_questions : [])
+  ];
+  const mapped = explicitQuestions.map((item, index) => ({
+    id: String(item.id || item.question_id || `blocker-question-${index + 1}`),
+    questionId: String(item.question_id || item.id || `blocker-question-${index + 1}`),
+    text: String(item.question || item.text || item.prompt || ""),
+    reason: String(item.reason || item.expected_value_reason || item.source || ""),
+    priority: normalizePriority(item.priority || item.severity || (index === 0 ? "P0" : "P1")),
+    targetRiskId: Array.isArray(item.factor_ids) ? String(item.factor_ids[0] || "") : String(item.factor_id || item.risk_id || ""),
+    targetField: Array.isArray(item.target_fields) ? String(item.target_fields[0] || "") : String(item.target_field || item.field || ""),
+    blocking: item.blocking !== false
+  })).filter((item) => item.text);
+
+  if (mapped.length) return mapped;
+  if (recommendedQuestion?.text) {
+    return [{
+      ...recommendedQuestion,
+      id: "recommended-risk-question",
+      questionId: "recommended-risk-question",
+      priority: "P1",
+      blocking: true,
+      targetRiskId: Array.isArray(recommendedQuestion.factorIds) ? String(recommendedQuestion.factorIds[0] || "") : "",
+      targetField: Array.isArray(recommendedQuestion.factorIds) ? String(recommendedQuestion.factorIds[0] || "") : ""
+    }];
+  }
+  return risks.slice(0, 2).map((risk, index) => ({
+    id: `risk-question-${index + 1}`,
+    questionId: `risk-question-${index + 1}`,
+    text: risk.question || risk.prompt || `请确认：${risk.description}`,
+    reason: risk.impact || risk.category || "",
+    priority: risk.priority || "P1",
+    targetRiskId: risk.key || "",
+    targetField: risk.category || "",
+    blocking: true
+  })).filter((item) => item.text);
 }
 
 function mapHumanReport(finalDsl, scoring, evpi, summaryMd, risks) {

@@ -1,4 +1,5 @@
 import { ArrowRight, FileText, Info } from "lucide-react";
+import RiskBlockerChat from "./RiskBlockerChat.jsx";
 
 export default function DSLStatusConsole({
   uiState,
@@ -6,14 +7,14 @@ export default function DSLStatusConsole({
   onOpenReport,
   onCancelRun,
   onRetryRun,
-  onOpenPartialArtifacts
+  onOpenPartialArtifacts,
+  onSubmitRiskClarification
 }) {
   const artifactCompletion = completionFromArtifacts(runState?.artifacts);
   const emptyState = isNotStartedState(uiState, runState);
   const completionMeta = resolveDisplayCompletion(artifactCompletion, uiState?.dslCompletion, emptyState, runState);
   const completion = completionMeta.displayScore;
   const coverageItems = uiState?.coverageItems ?? { covered: [], pending: [] };
-  const risks = uiState?.risks ?? [];
   const readiness = uiState?.readiness ?? { handoff_decision: "not_started", source: "not_started" };
   const runStatus = runState?.status ?? "idle";
   const skillStatus = runState?.skillStatus || (runStatus === "skill_turn" ? "done" : "idle");
@@ -135,19 +136,11 @@ export default function DSLStatusConsole({
         )}
       </section>
 
-      <section className="dsl-panel risk-panel">
-        <h3>激活风险 <span>（需优先处理）</span></h3>
-        <div className="risk-list">
-          {risks.length ? risks.map((risk) => (
-            <div className="risk-item" key={risk.key}>
-              <span className={`risk-priority ${risk.priority.toLowerCase()}`}>{risk.priority}</span>
-              <code>{risk.key}</code>
-              <p>{risk.description}</p>
-              <em>{risk.impact}</em>
-            </div>
-          )) : <p className="risk-empty">暂无风险</p>}
-        </div>
-      </section>
+      <RiskBlockerChat
+        uiState={uiState}
+        emptyState={emptyState}
+        onSubmit={onSubmitRiskClarification}
+      />
 
       <button
         className={`report-cta ${reportCta.ready ? "ready" : "empty"}`}

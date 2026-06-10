@@ -138,19 +138,22 @@ export default function DSLWorkbench({
     pollRef.current = "";
   };
 
-  const handleSendAnswer = async (text) => {
+  const handleSendAnswer = async (text, submitMeta = {}) => {
     const trimmedText = String(text || "").trim();
     if (!trimmedText) return;
+    const isRiskClarification = submitMeta.source === "risk_blocker_chat";
     const pmMessage = {
       id: `pm-${Date.now()}-${messages.length}`,
       author: "PM",
       role: "pm",
       time: "刚刚",
-      text: trimmedText
+      text: trimmedText,
+      source: submitMeta.source || "pm_input",
+      riskClarificationTarget: isRiskClarification ? submitMeta : null
     };
     const nextMessages = trimmedText ? [...messages, pmMessage] : messages;
     const intent = detectInputIntent(trimmedText);
-    const hasClarificationContext = hasActiveClarificationContext(messages, loadedRequirement, runState);
+    const hasClarificationContext = isRiskClarification || hasActiveClarificationContext(messages, loadedRequirement, runState);
     if (shouldGateInputIntent(intent) && !hasClarificationContext) {
       setInputGateActive(true);
       const assistantText = buildInputGateReply(intent, trimmedText);
@@ -212,7 +215,7 @@ export default function DSLWorkbench({
     });
 
     setMessages([...nextMessages, loadingMessage]);
-    setUiState((current) => markUiStateInitialRequirement(current, trimmedText));
+    setUiState((current) => isRiskClarification ? current : markUiStateInitialRequirement(current, trimmedText));
     onToast("已追加 PM 回答");
     setRunState((current) => ({
       ...current,
@@ -264,12 +267,14 @@ export default function DSLWorkbench({
     createClarification(requirement.id, {
       role: "pm",
       content: trimmedText,
-      source: "pm_input"
+      source: submitMeta.source || "pm_input"
     }).catch((error) => setHistoryError(`PM 输入保存失败：${error.message || "Persistence API request failed"}`));
 
     let skillReplyResolved = false;
     try {
-      const skillTurn = await createSkillPmDslTurn(buildSkillTurnRequest(requestPayload, nextMessages, uiState));
+      const skillTurn = await createSkillPmDslTurn(buildSkillTurnRequest(requestPayload, nextMessages, uiState, isRiskClarification
+        ? { riskClarification: submitMeta }
+        : {}));
       const clarificationComplete = isClarificationCompleteTurn(skillTurn);
       const assistantText = skillTurn.assistant_message || (clarificationComplete
         ? CLARIFICATION_COMPLETE_MESSAGE
@@ -388,6 +393,7 @@ export default function DSLWorkbench({
         error: runError
       }));
       onToast(skillReplyResolved ? "完整 artifacts 生成失败" : "DSL run 失败");
+      if (isRiskClarification) throw new Error("回答保存失败，请重试");
     }
   };
 
@@ -713,6 +719,7 @@ export default function DSLWorkbench({
         onCancelRun={handleCancelRun}
         onRetryRun={handleRetryRun}
         onOpenPartialArtifacts={handleOpenPartialArtifacts}
+        onSubmitRiskClarification={handleSendAnswer}
       />
 
       {toast ? <div className="selection-toast dsl-toast" role="status">{toast}</div> : null}
@@ -1152,7 +1159,9 @@ function messagesToRunnerPayload(messages) {
       }
       return {
         role: "pm",
-        content: message.text
+        content: message.text,
+        source: message.source || "pm_input",
+        riskClarificationTarget: message.riskClarificationTarget || undefined
       };
     });
 }
