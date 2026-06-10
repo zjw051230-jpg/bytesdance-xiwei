@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { prepareRunDirectory, relativeOutputDir } from "./runStore.js";
 import { persistAgentDryRun, withPersistence } from "./persistence/workbenchPersistenceAdapter.js";
+import { createAgent2DryRun } from "./agent2Adapter.js";
 
 const agentRoot = path.resolve("agent(1)", "agent");
 const pythonCoreRoot = path.join(agentRoot, "agent_core");
@@ -118,6 +119,19 @@ export async function startAgentRun(request = {}, config = {}) {
 
   const { runId, outputDir } = await prepareRunDirectory(config.runsRoot || path.resolve("runs"));
   const now = new Date().toISOString();
+  if (selectedAgentProvider(request, config) === "agent2") {
+    const run = createAgent2DryRun(request, {
+      runId,
+      outputDir,
+      relativeOutputDir: relativeOutputDir(outputDir),
+      now
+    });
+    await writeWorkbenchArtifacts(outputDir, run.artifacts);
+    agentRuns.set(runId, run);
+    persistAgentDryRun(run, config);
+    return { ok: true, data: run, error: null };
+  }
+
   const context = buildAgentContext(request, runId);
   const plan = buildPreviewPlan(context);
   const review = buildReviewCheck(plan, context);
@@ -297,6 +311,19 @@ function dbErrorDetails(error) {
     name: String(error?.name || "Error"),
     code: String(error?.code || "")
   };
+}
+
+function selectedAgentProvider(request = {}, config = {}) {
+  return String(request.agentProvider || config.agentProvider || process.env.AGENT_PROVIDER || "agent1").toLowerCase();
+}
+
+async function writeWorkbenchArtifacts(outputDir, artifacts = {}) {
+  await fs.mkdir(outputDir, { recursive: true });
+  await Promise.all(
+    Object.entries(artifacts).map(([filename, artifact]) =>
+      fs.writeFile(path.join(outputDir, filename), JSON.stringify(artifact.json ?? artifact, null, 2), "utf8")
+    )
+  );
 }
 
 function buildAgentContext(request, runId) {
