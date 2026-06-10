@@ -1,0 +1,34 @@
+{
+  "task": "Remove Real Write P2 Panel",
+  "status": "committed_not_pushed",
+  "ui": {
+    "realWritePanelRemoved": true,
+    "realWriteButtonRemoved": true,
+    "realExecutionCopyRemoved": true,
+    "dryRunPreviewKept": true,
+    "reviewPrEntriesKept": true
+  },
+  "safety": {
+    "dryRunOnly": true,
+    "realWritePerformed": false,
+    "realWriteEntryExposed": false
+  },
+  "scope": {
+    "dslTouched": false,
+    "monitorTouched": false,
+    "riskBlockerTouched": false,
+    "agentWorkMatrixLogicTouched": false,
+    "stageEventsBackendTouched": false,
+    "skillsTouched": false,
+    "agent2RawTouched": false
+  },
+  "tests": {
+    "skipped": true,
+    "reason": "per user instruction; run in integration gate"
+  },
+  "git": {
+    "commit": "",
+    "pushed": false,
+    "branch": "ZJWNB"
+  }
+}

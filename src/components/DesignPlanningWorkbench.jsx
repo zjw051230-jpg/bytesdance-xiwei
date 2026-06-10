@@ -194,7 +194,7 @@ export default function DesignPlanningWorkbench({
         <header className="planning-page-heading">
           <div>
             <h1>设计规划</h1>
-            <p>把 RequirementDSL 后半段编排成可审阅的 Agent real-run 流程。</p>
+            <p>把 RequirementDSL 后半段编排成可审阅的 Agent dry-run 预览链路。</p>
           </div>
           <span>{activeProject?.name ?? "Codex Workbench"}</span>
         </header>
@@ -462,14 +462,13 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
   const latestSummary = latestAgentSummary(agentWorkflow, latestStage);
   const visibleArtifacts = buildAgentArtifactTags(agentWorkflow, artifacts);
   const dryRunValue = agentWorkflow.runId ? String(agentWorkflow.dryRun !== false) : "等待生成";
-  const realWriteValue = agentWorkflow.realWritePerformed === true ? "已发生" : "未开启";
   const targetPath = agentWorkflow.context?.targetRepoPath || agentWorkflow.context?.localPath || "";
   return (
-    <section className="planning-card agent-execution-panel" aria-label="Agent 执行控制台">
+    <section className="planning-card agent-execution-panel" aria-label="Agent dry-run 预览控制台">
       <div className="planning-card-header">
         <div>
-          <h2>Agent 执行控制台</h2>
-          <p>只生成 dry-run 预览材料，真实写入保持关闭。</p>
+          <h2>Agent dry-run 预览控制台</h2>
+          <p>当前只生成执行计划、审阅材料和 PR 草稿，不会直接修改业务仓库。</p>
         </div>
         <span className={`agent-status ${statusInfo.className}`}>{statusInfo.label}</span>
       </div>
@@ -486,7 +485,7 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
           <span>安全边界</span>
           <ul>
             <li>dryRun：{dryRunValue}</li>
-            <li>真实写入：{realWriteValue}</li>
+            <li>realWritePerformed: false</li>
             <li>不会直接修改业务仓库</li>
             <li>{targetPath && targetPath !== "not_set" ? "项目路径仅用于生成预览上下文" : "缺少项目路径时会阻止生成计划"}</li>
           </ul>
@@ -674,7 +673,7 @@ function PlanningRightPanel({ plan, tasks }) {
           {nextActions.length ? nextActions.map((action) => (
             <article key={action.id || action.title}>
               {action.status === "done" ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-              <span>{action.title}</span><strong>{action.priority || "P2"}</strong>
+              <span>{action.title}</span><strong>{action.priority || "待定"}</strong>
             </article>
           )) : (
             <article>
@@ -736,7 +735,7 @@ function buildMilestones(plan, tasks) {
     },
     {
       name: "待审阅",
-      description: "Agent real-run 审阅入口保持人工确认。",
+      description: "Agent dry-run 审阅入口保持人工确认。",
       date: "-",
       status: hasReview ? "active" : allDone ? "completed" : "pending",
       label: hasReview ? "待审阅" : "等待任务"
@@ -750,7 +749,6 @@ function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = fals
   const isRunning = isAgentRunStarting || agentWorkflow.status === "running";
   const artifacts = Object.keys(agentWorkflow.artifacts || {});
   const changedFiles = agentWorkflow.review?.changedFiles || [];
-  const executionSummary = agentExecutionSummary(agentWorkflow);
   const executionBlocked = isAgentExecutionBlocked(agentWorkflow);
 
   return [
@@ -771,31 +769,20 @@ function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = fals
     {
       key: "runtime",
       index: 3,
-      title: "Agent runtime",
-      detail: isRunning ? "Agent(2) process is running." : hasRun ? `Run recorded: ${agentWorkflow.runId}` : "Not started.",
+      title: "Dry-run preview",
+      detail: isRunning ? "Agent dry-run preview is being generated." : hasRun ? `Run recorded: ${agentWorkflow.runId}` : "Preview not started.",
       status: isRunning ? "active" : hasRun ? "completed" : hasError ? "blocked" : "pending"
     },
     {
-      key: "write",
-      index: 4,
-      title: "Real write",
-      detail: agentWorkflow.realWritePerformed
-        ? "Target repository was modified."
-        : hasRun
-          ? executionSummary || "Run finished; Agent did not report file writes."
-          : "Waiting for real execution.",
-      status: agentWorkflow.realWritePerformed ? "completed" : hasRun || executionBlocked ? "blocked" : "pending"
-    },
-    {
       key: "review",
-      index: 5,
+      index: 4,
       title: "Review handoff",
       detail: changedFiles.length ? `${changedFiles.length} changed file(s) ready for audit.` : "No review items yet.",
       status: changedFiles.length ? "completed" : hasRun ? "active" : "pending"
     },
     {
       key: "artifacts",
-      index: 6,
+      index: 5,
       title: "Artifacts",
       detail: artifacts.length ? `${artifacts.length} artifact(s) captured for traceability.` : "No artifacts captured yet.",
       status: artifacts.length ? "completed" : hasRun ? "blocked" : "pending"
@@ -806,7 +793,6 @@ function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = fals
 function agentRunStateClass(agentWorkflow = {}, isAgentRunStarting = false) {
   if (isAgentRunStarting || agentWorkflow.status === "running") return "active";
   if (agentWorkflow.error || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed" || isAgentExecutionBlocked(agentWorkflow)) return "blocked";
-  if (agentWorkflow.realWritePerformed) return "completed";
   if (agentWorkflow.runId) return "active";
   return "pending";
 }
@@ -814,7 +800,6 @@ function agentRunStateClass(agentWorkflow = {}, isAgentRunStarting = false) {
 function agentRunStateLabel(agentWorkflow = {}, isAgentRunStarting = false) {
   if (isAgentRunStarting || agentWorkflow.status === "running") return "running";
   if (agentWorkflow.error || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed" || isAgentExecutionBlocked(agentWorkflow)) return "blocked";
-  if (agentWorkflow.realWritePerformed) return "written";
   if (agentWorkflow.runId) return "finished";
   return "idle";
 }
