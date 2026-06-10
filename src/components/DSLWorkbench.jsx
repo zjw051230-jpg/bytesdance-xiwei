@@ -544,7 +544,18 @@ export default function DSLWorkbench({
       }
       await new Promise((resolve) => setTimeout(resolve, 2000));
     }
-    throw new Error("Polling stopped");
+    const latestJob = await getDslRun(runId).catch(() => null);
+    if (latestJob?.status === "passed") {
+      return {
+        runId: latestJob.runId,
+        status: latestJob.status,
+        outputDir: latestJob.outputDir,
+        relativeOutputDir: latestJob.relativeOutputDir,
+        artifacts: latestJob.fullArtifacts || {},
+        uiState: latestJob.uiState || fallbackUiState()
+      };
+    }
+    throw pollingStoppedError(runId, latestJob);
   };
 
   const maybeAppendLongRunningMessage = (job) => {
@@ -853,6 +864,9 @@ function buildFailureReply(error) {
 }
 
 function buildArtifactFailureReply(error) {
+  if (error?.code === "polling_stopped") {
+    return `系统提示：快速澄清已完成，完整 DSL artifacts 的前端轮询被中断。后台生成可能仍在继续，当前不会自动交给 Agent 执行。请查看右侧 run 状态，或稍后重试生成完整 artifacts。原因：polling_stopped / ${error?.message || "Polling stopped before terminal status"}。`;
+  }
   const code = error?.code || "request_failed";
   const message = error?.message || "未知错误";
   return `系统提示：快速澄清已完成，完整 DSL artifacts 后台生成失败。当前不会交给 Agent 执行，你可以继续澄清或稍后重试生成完整 artifacts。原因：${code} / ${message}。`;
@@ -1020,6 +1034,25 @@ function jobError(job) {
       code: job.status === "timeout" ? "runner_timeout" : job.status === "cancelled" ? "runner_cancelled" : "runner_failed",
       message: job.status,
       details: { runId: job.runId, relativeOutputDir: job.relativeOutputDir }
+    }
+  };
+  return error;
+}
+
+function pollingStoppedError(runId, latestJob) {
+  const error = new Error("Polling stopped before this run reached terminal status.");
+  error.payload = {
+    ok: false,
+    data: latestJob || null,
+    error: {
+      code: "polling_stopped",
+      message: "Polling stopped before this run reached terminal status.",
+      details: {
+        runId,
+        status: latestJob?.status || "unknown",
+        outputDir: latestJob?.outputDir || "",
+        relativeOutputDir: latestJob?.relativeOutputDir || ""
+      }
     }
   };
   return error;

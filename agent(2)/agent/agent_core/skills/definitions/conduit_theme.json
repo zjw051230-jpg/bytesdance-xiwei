@@ -1,0 +1,46 @@
+{
+  "id": "conduit-theme",
+  "name": "conduit-theme",
+  "description": "Conduit frontend theme, color palette, and global styling changes",
+  "requirement_types": ["conduit_l1_frontend", "conduit_frontend", "frontend", "theme", "style"],
+  "keywords": ["theme", "style", "css", "ui", "color", "palette", "dark", "red", "black", "配色", "主题", "样式", "黑红", "界面"],
+  "target_modules": ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx", "frontend/src/main.jsx"],
+  "target_file_patterns": ["frontend/src/styles.css", "frontend/src/index.css", "styles.css", "index.css", "App.jsx", "main.jsx", ".css"],
+  "context_rules": [
+    "For global Conduit visual theme changes, prefer frontend/src/index.css before page-specific components.",
+    "Use concrete CSS or component style updates; do not add placeholder comments."
+  ],
+  "patch_strategy": {
+    "summary": "Prepare a low-risk Conduit frontend theme patch.",
+    "patches": [
+      {
+        "file": "frontend/src/styles.css",
+        "operation": "replace_file",
+        "reason": "Global Conduit theme styles should be implemented in the frontend CSS entrypoint",
+        "changes": ["Update global color palette and common UI states"],
+        "risk_level": "low"
+      }
+    ]
+  },
+  "acceptance_template": ["Conduit frontend pages reflect the requested theme without placeholder code."],
+  "default_test_commands": ["npm run build -w frontend"],
+  "conduit_frontend_patterns": [
+    "frontend/src/styles.css",
+    "frontend/src/index.css",
+    "frontend/src/App.jsx",
+    "frontend/src/main.jsx",
+    "frontend/src/components",
+    "frontend/src/routes"
+  ],
+  "conduit_backend_patterns": [],
+  "conduit_test_commands": ["npm run build -w frontend"],
+  "conduit_acceptance_checks": [
+    "The global stylesheet or relevant theme component is located",
+    "The requested palette is implemented through concrete CSS or component style changes"
+  ],
+  "risk_rules": {
+    "default": "low",
+    "backend": "medium",
+    "dangerous_files": ["package-lock.json", "yarn.lock", ".env"]
+  }
+}

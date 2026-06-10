@@ -234,6 +234,10 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
     AGENT_REPO_APPLY: "1",
     AGENT_REPO_CONFIRM: "YES",
     AGENT_PROVIDER: "agent2",
+    AGENT_USE_LLM_PLANNER: "1",
+    AGENT_USE_LLM_CODER: "1",
+    AGENT_TASK_ID: options.runId,
+    AGENT_STATE_DIR: path.join(options.outputDir, "agent2_state"),
     PYTHONIOENCODING: "utf-8"
   };
   if (request.runTests === true) {
@@ -330,7 +334,11 @@ async function runAgent2RealExecution(request = {}, options = {}, config = {}) {
 function buildAgent2RequirementDsl(request = {}, targetRepoPath = "") {
   const source = request.requirementDsl && typeof request.requirementDsl === "object" ? request.requirementDsl : {};
   const taskTitle = request.taskTitle || source.task_name || source.title || source.user_story || "Workbench real agent execution";
-  const targetModules = source.target_modules || source.targetModules || source.targetFiles || source.target_files || ["frontend/src"];
+  const themeRequest = isThemeRequest(`${taskTitle} ${source.user_story || ""} ${source.rawPmInput || ""} ${source.description || ""}`);
+  const sourceTargetModules = source.target_modules || source.targetModules || source.targetFiles || source.target_files;
+  const targetModules = themeRequest
+    ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx", ...arrayOfStrings(sourceTargetModules)]
+    : sourceTargetModules || ["frontend/src"];
   const acceptanceCriteria = source.acceptance_criteria || source.acceptanceCriteria || source.acceptance || [taskTitle];
   const constraints = [
     ...arrayOfStrings(source.constraints),
@@ -341,12 +349,13 @@ function buildAgent2RequirementDsl(request = {}, targetRepoPath = "") {
     requirement_id: request.requirementId || source.requirement_id || source.id || `req-${request.projectId || "workbench"}`,
     task_name: taskTitle,
     user_story: source.user_story || source.rawPmInput || source.description || taskTitle,
-    requirement_type: source.requirement_type || source.requirementType || "conduit_l1_frontend",
+    requirement_type: themeRequest ? "theme" : source.requirement_type || source.requirementType || "conduit_l1_frontend",
     target_repo: targetRepoPath,
-    target_modules: arrayOfStrings(targetModules).length ? arrayOfStrings(targetModules) : ["frontend/src"],
+    target_modules: [...new Set(arrayOfStrings(targetModules).length ? arrayOfStrings(targetModules) : ["frontend/src"])],
+    target_files: themeRequest ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx"] : arrayOfStrings(source.target_files || source.targetFiles),
     acceptance_criteria: arrayOfStrings(acceptanceCriteria).length ? arrayOfStrings(acceptanceCriteria) : [taskTitle],
     constraints,
-    skill_hint: source.skill_hint || source.skillHint || "",
+    skill_hint: themeRequest ? "conduit-theme" : source.skill_hint || source.skillHint || "",
     test_commands: arrayOfStrings(source.test_commands || source.testCommands),
     risk_level: ["low", "medium", "high"].includes(source.risk_level || source.riskLevel) ? (source.risk_level || source.riskLevel) : "low"
   };
@@ -356,6 +365,10 @@ function arrayOfStrings(value) {
   if (Array.isArray(value)) return value.map((item) => String(item)).filter(Boolean);
   if (typeof value === "string" && value.trim()) return [value.trim()];
   return [];
+}
+
+function isThemeRequest(text) {
+  return /配色|主题|样式|黑红|暗色|深色|颜色|界面|ui|theme|style|css|palette|dark|red|black/i.test(String(text || ""));
 }
 
 async function attachDoubaoEnv(env, config = {}) {

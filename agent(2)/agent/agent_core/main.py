@@ -2,6 +2,7 @@ from pathlib import Path
 import json
 import locale
 import os
+import re
 import sys
 import traceback
 
@@ -21,8 +22,13 @@ _LOSSY_PIPE_FALLBACKS = {
 }
 
 
+def _safe_task_filename(task_id: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", str(task_id or "demo_task"))
+
+
 def _state_file_path(task_id: str) -> str:
-    path = Path(__file__).resolve().parent / "storage" / "states" / f"{task_id}.json"
+    storage_root = os.getenv("AGENT_STATE_DIR")
+    path = (Path(storage_root).expanduser().resolve() if storage_root else Path(__file__).resolve().parent / "storage" / "states") / f"{_safe_task_filename(task_id)}.json"
     try:
         return str(path.relative_to(Path.cwd()))
     except ValueError:
@@ -431,7 +437,7 @@ def _json_output_validation_failed(exc: json.JSONDecodeError, context: str) -> d
 
 def main() -> None:
     raw_input = _read_user_input()
-    task_id = "demo_task"
+    task_id = os.getenv("AGENT_TASK_ID") or "demo_task"
     state_file = _state_file_path(task_id)
     try:
         parsed_input = parse_requirement_input(raw_input)

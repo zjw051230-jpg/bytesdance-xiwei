@@ -115,6 +115,10 @@ describe("Agent(2) route integration", () => {
       body: JSON.stringify({
         projectId: "conduit-realworld-example-app",
         taskTitle: "Agent2 integration test",
+        requirementDsl: {
+          task_name: "把 UI 改成黑红配色",
+          user_story: "把 Conduit Home 页面改成黑红配色主题"
+        },
         dryRun: false,
         agentProvider: "agent2",
         targetRepoPath
@@ -128,6 +132,13 @@ describe("Agent(2) route integration", () => {
     expect(agent2Runner).toHaveBeenCalledOnce();
     expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_ROOT).toBe(targetRepoPath);
     expect(agent2Runner.mock.calls[0][0].env.AGENT_REPO_APPLY).toBe("1");
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_PLANNER).toBe("1");
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_USE_LLM_CODER).toBe("1");
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_TASK_ID).toMatch(/^RUN-/);
+    expect(agent2Runner.mock.calls[0][0].env.AGENT_STATE_DIR).toContain("agent2_state");
+    const agentInput = JSON.parse(agent2Runner.mock.calls[0][0].input);
+    expect(agentInput.skill_hint).toBe("conduit-theme");
+    expect(agentInput.target_modules).toContain("frontend/src/index.css");
     expect(payload.data.plan.mode).toBe("agent2_real_execution");
     expect(payload.data.realWritePerformed).toBe(true);
     expect(payload.data.review.changedFiles[0].file).toBe("frontend/src/routes/Article/Article.jsx");

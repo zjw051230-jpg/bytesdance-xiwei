@@ -1,9 +1,22 @@
 import json
+import os
+import re
 from pathlib import Path
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from agent_core.actions import get_action_names
+
+
+def _safe_task_filename(task_id: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_.-]+", "_", str(task_id or "demo_task"))
+
+
+def _state_storage_dir() -> Path:
+    override = os.getenv("AGENT_STATE_DIR")
+    if override:
+        return Path(override).expanduser().resolve()
+    return Path(__file__).resolve().parents[1] / "storage" / "states"
 
 
 @dataclass
@@ -68,9 +81,9 @@ class AgentState:
         )
 
     def save(self) -> Path:
-        storage_dir = Path(__file__).resolve().parents[1] / "storage" / "states"
+        storage_dir = _state_storage_dir()
         storage_dir.mkdir(parents=True, exist_ok=True)
-        file_path = storage_dir / f"{self.task_id}.json"
+        file_path = storage_dir / f"{_safe_task_filename(self.task_id)}.json"
         with file_path.open("w", encoding="utf-8") as f:
             json.dump(
                 {

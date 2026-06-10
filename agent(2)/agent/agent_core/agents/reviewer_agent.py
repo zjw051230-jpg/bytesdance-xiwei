@@ -156,6 +156,8 @@ def review_patch_plan(
     matches_located_files = True
     if located_paths and patch_paths:
         matches_located_files = any(_paths_match(patch_path, located_path) for patch_path in patch_paths for located_path in located_paths)
+        if not matches_located_files and _is_theme_stylesheet_patch(matched_skill, patch_paths):
+            matches_located_files = True
         if not matches_located_files:
             approved = False
             risk_level = "high"
@@ -203,6 +205,26 @@ def review_patch_plan(
 
 def _normalize_path(path: str) -> str:
     return str(path or "").replace("\\", "/").lower().strip("/")
+
+
+def _is_theme_stylesheet_patch(matched_skill: Dict[str, Any], patch_paths: List[str]) -> bool:
+    skill_id = str((matched_skill or {}).get("id") or "").lower()
+    skill_name = str((matched_skill or {}).get("name") or "").lower()
+    if "theme" not in {skill_id, skill_name} and "theme" not in skill_id and "theme" not in skill_name:
+        return False
+
+    allowed_exact = {
+        "frontend/src/styles.css",
+        "frontend/src/index.css",
+        "frontend/src/app.css",
+    }
+    for path in patch_paths:
+        normalized = _normalize_path(path)
+        if normalized in allowed_exact:
+            return True
+        if normalized.startswith("frontend/src/") and normalized.endswith(".css"):
+            return True
+    return False
 
 
 def _is_code_patch(patch: Dict[str, Any]) -> bool:

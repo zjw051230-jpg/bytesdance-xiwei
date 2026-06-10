@@ -131,7 +131,7 @@ export default function DesignPlanningWorkbench({
       const run = await startAgentRun({
         projectId: activeProject?.id,
         requirementId: activeRequirement?.id,
-        requirementDsl: activeRequirement?.dslJson || {},
+        requirementDsl: buildAgentRequirementDsl(activeRequirement, designPlan, planningTasks),
         taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
         dryRun: false,
         agentProvider: "agent2",
@@ -154,6 +154,8 @@ export default function DesignPlanningWorkbench({
         relativeOutputDir: runFromApi.relativeOutputDir || run.relativeOutputDir,
         dryRun: runFromApi.dryRun ?? run.dryRun ?? false,
         realWritePerformed: runFromApi.realWritePerformed ?? run.realWritePerformed ?? false,
+        executionResult: runFromApi.executionResult || run.executionResult || extractExecutionResultFromArtifacts(artifacts),
+        reviewResult: runFromApi.reviewResult || run.reviewResult || null,
         agentProcess: runFromApi.agentProcess || run.agentProcess || null,
         artifactError: artifactsFromApi.error || null,
         error: null
@@ -191,7 +193,13 @@ export default function DesignPlanningWorkbench({
         <RequirementSummary requirement={activeRequirement} plan={designPlan} tasks={planningTasks} loading={isLoadingPlan} />
 
         <section className="planning-grid">
-          <MilestonePanel plan={designPlan} tasks={planningTasks} />
+          <MilestonePanel
+            plan={designPlan}
+            tasks={planningTasks}
+            agentWorkflow={agentWorkflow}
+            isAgentRunStarting={isAgentRunStarting}
+            hasTargetRepoPath={hasTargetRepoPath}
+          />
           <TaskBreakdownPanel tasks={planningTasks} onStatusChange={handleTaskStatusChange} />
         </section>
 
@@ -219,6 +227,52 @@ function resolveProjectLocalPath(project = {}) {
     .map((value) => typeof value === "string" ? value.trim() : "")
     .filter(Boolean);
   return candidates.find((value) => /^[A-Za-z]:\\|^\\\\|^\//.test(value)) || "";
+}
+
+function buildAgentRequirementDsl(requirement = {}, plan = null, tasks = []) {
+  const dsl = requirement?.dslJson && typeof requirement.dslJson === "object" ? requirement.dslJson : {};
+  const taskTitle = requirement?.title || dsl.title || dsl.task_name || plan?.title || "Workbench requirement implementation";
+  const rawPmInput = requirement?.rawPmInput || dsl.rawPmInput || dsl.user_story || dsl.description || taskTitle;
+  const themeRequest = isThemeRequest(`${taskTitle} ${rawPmInput}`);
+  const existingTargets = arrayOfStrings(dsl.target_modules || dsl.targetModules || dsl.targetFiles || dsl.target_files);
+  const targetModules = themeRequest
+    ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx", ...existingTargets]
+    : existingTargets.length ? existingTargets : ["frontend/src"];
+  const acceptanceCriteria = [
+    ...arrayOfStrings(dsl.acceptance_criteria || dsl.acceptanceCriteria || dsl.acceptance),
+    ...arrayOfStrings(plan?.acceptanceCriteria),
+    ...tasks.map((task) => task.title).filter(Boolean)
+  ];
+  return {
+    ...dsl,
+    id: requirement?.id || dsl.id,
+    requirement_id: requirement?.id || dsl.requirement_id || dsl.id,
+    title: taskTitle,
+    task_name: dsl.task_name || taskTitle,
+    user_story: rawPmInput,
+    rawPmInput,
+    description: dsl.description || rawPmInput,
+    requirement_type: themeRequest ? "theme" : dsl.requirement_type || dsl.requirementType,
+    target_modules: [...new Set(targetModules)],
+    target_files: themeRequest ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx"] : dsl.target_files || dsl.targetFiles,
+    acceptance_criteria: acceptanceCriteria.length ? [...new Set(acceptanceCriteria)] : [rawPmInput],
+    constraints: [
+      ...arrayOfStrings(dsl.constraints),
+      "Implement the PM-requested behavior in the real target repository.",
+      "Prefer concrete code/style changes over placeholder comments."
+    ],
+    skill_hint: themeRequest ? "conduit-theme" : dsl.skill_hint || dsl.skillHint || ""
+  };
+}
+
+function arrayOfStrings(value) {
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean);
+  if (typeof value === "string" && value.trim()) return [value.trim()];
+  return [];
+}
+
+function isThemeRequest(text) {
+  return /配色|主题|样式|黑红|暗色|深色|颜色|界面|ui|theme|style|css|palette|dark|red|black/i.test(String(text || ""));
 }
 
 function RequirementSummary({ requirement, plan, tasks, loading }) {
@@ -254,8 +308,13 @@ function RequirementSummary({ requirement, plan, tasks, loading }) {
   );
 }
 
-function MilestonePanel({ plan, tasks }) {
+function MilestonePanel({ plan, tasks, agentWorkflow = {}, isAgentRunStarting = false, hasTargetRepoPath = false }) {
   const milestones = buildMilestones(plan, tasks);
+  const agentRunMilestones = buildAgentRunMilestones({
+    agentWorkflow,
+    isAgentRunStarting,
+    hasTargetRepoPath
+  });
   return (
     <section className="planning-card milestone-panel" aria-label="实施阶段">
       <h2>实施阶段 / 里程碑</h2>
@@ -271,6 +330,28 @@ function MilestonePanel({ plan, tasks }) {
           </article>
         ))}
       </div>
+      <section className="agent-run-milestones" aria-label="Agent 运行过程" data-testid="agent-run-milestones">
+        <div className="agent-run-summary">
+          <div>
+            <span>Agent run process</span>
+            <strong>{agentWorkflow.runId || (isAgentRunStarting ? "Starting real run" : "No run yet")}</strong>
+          </div>
+          <em className={`agent-run-state ${agentRunStateClass(agentWorkflow, isAgentRunStarting)}`}>
+            {agentRunStateLabel(agentWorkflow, isAgentRunStarting)}
+          </em>
+        </div>
+        <div className="agent-run-step-grid">
+          {agentRunMilestones.map((step) => (
+            <article className={`agent-run-step ${step.status}`} key={step.key}>
+              <span aria-hidden="true">{step.index}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <p>{step.detail}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
     </section>
   );
 }
@@ -493,6 +574,100 @@ function buildMilestones(plan, tasks) {
       label: hasReview ? "待审阅" : "等待任务"
     }
   ];
+}
+
+function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = false, hasTargetRepoPath = false }) {
+  const hasRun = Boolean(agentWorkflow.runId);
+  const hasError = Boolean(agentWorkflow.error) || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed";
+  const isRunning = isAgentRunStarting || agentWorkflow.status === "running";
+  const artifacts = Object.keys(agentWorkflow.artifacts || {});
+  const changedFiles = agentWorkflow.review?.changedFiles || [];
+  const executionSummary = agentExecutionSummary(agentWorkflow);
+  const executionBlocked = isAgentExecutionBlocked(agentWorkflow);
+
+  return [
+    {
+      key: "target",
+      index: 1,
+      title: "Repository target",
+      detail: hasTargetRepoPath ? "Project localPath is bound and ready." : "Bind project localPath before running Agent.",
+      status: hasTargetRepoPath ? "completed" : "blocked"
+    },
+    {
+      key: "context",
+      index: 2,
+      title: "Context package",
+      detail: agentWorkflow.context ? "Requirement and target repo context prepared." : "Waiting for context preview or run start.",
+      status: agentWorkflow.context ? "completed" : hasTargetRepoPath ? "pending" : "blocked"
+    },
+    {
+      key: "runtime",
+      index: 3,
+      title: "Agent runtime",
+      detail: isRunning ? "Agent(2) process is running." : hasRun ? `Run recorded: ${agentWorkflow.runId}` : "Not started.",
+      status: isRunning ? "active" : hasRun ? "completed" : hasError ? "blocked" : "pending"
+    },
+    {
+      key: "write",
+      index: 4,
+      title: "Real write",
+      detail: agentWorkflow.realWritePerformed
+        ? "Target repository was modified."
+        : hasRun
+          ? executionSummary || "Run finished; Agent did not report file writes."
+          : "Waiting for real execution.",
+      status: agentWorkflow.realWritePerformed ? "completed" : hasRun || executionBlocked ? "blocked" : "pending"
+    },
+    {
+      key: "review",
+      index: 5,
+      title: "Review handoff",
+      detail: changedFiles.length ? `${changedFiles.length} changed file(s) ready for audit.` : "No review items yet.",
+      status: changedFiles.length ? "completed" : hasRun ? "active" : "pending"
+    },
+    {
+      key: "artifacts",
+      index: 6,
+      title: "Artifacts",
+      detail: artifacts.length ? `${artifacts.length} artifact(s) captured for traceability.` : "No artifacts captured yet.",
+      status: artifacts.length ? "completed" : hasRun ? "blocked" : "pending"
+    }
+  ];
+}
+
+function agentRunStateClass(agentWorkflow = {}, isAgentRunStarting = false) {
+  if (isAgentRunStarting || agentWorkflow.status === "running") return "active";
+  if (agentWorkflow.error || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed" || isAgentExecutionBlocked(agentWorkflow)) return "blocked";
+  if (agentWorkflow.realWritePerformed) return "completed";
+  if (agentWorkflow.runId) return "active";
+  return "pending";
+}
+
+function agentRunStateLabel(agentWorkflow = {}, isAgentRunStarting = false) {
+  if (isAgentRunStarting || agentWorkflow.status === "running") return "running";
+  if (agentWorkflow.error || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed" || isAgentExecutionBlocked(agentWorkflow)) return "blocked";
+  if (agentWorkflow.realWritePerformed) return "written";
+  if (agentWorkflow.runId) return "finished";
+  return "idle";
+}
+
+function extractExecutionResultFromArtifacts(artifacts = {}) {
+  return artifacts?.["agent2_result_preview.json"]?.json?.result?.execution_result || null;
+}
+
+function agentExecutionSummary(agentWorkflow = {}) {
+  return agentWorkflow.executionResult?.summary ||
+    extractExecutionResultFromArtifacts(agentWorkflow.artifacts || {})?.summary ||
+    "";
+}
+
+function isAgentExecutionBlocked(agentWorkflow = {}) {
+  const executionResult = agentWorkflow.executionResult || extractExecutionResultFromArtifacts(agentWorkflow.artifacts || {});
+  const summary = String(executionResult?.summary || "");
+  return agentWorkflow.runId && agentWorkflow.realWritePerformed !== true && (
+    agentWorkflow.review?.status === "blocked" ||
+    executionResult?.executed === false && /blocked|not approved|missing review/i.test(summary)
+  );
 }
 
 function summarizeTasks(tasks) {

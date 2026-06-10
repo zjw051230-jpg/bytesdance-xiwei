@@ -119,4 +119,67 @@ describe("Agent(2) dry-run adapter", () => {
     expect(run.plan.mode).toBe("agent2_dry_run_adapter");
     expect(run.artifacts["agent2_result_preview.json"].json.source).toBe("workbench_fixture");
   });
+
+  it("surfaces review-gated real execution as blocked instead of a successful write", () => {
+    const run = mapAgent2ResultToWorkbench({
+      ...sampleAgent2Result,
+      patch_plan: {
+        summary: "Prepare theme patch.",
+        patches: [{ path: "frontend/src/index.css", operation: "replace_file", reason: "Theme update", risk_level: "low" }]
+      },
+      pr_draft: {
+        title: "Apply Conduit theme",
+        changed_files: [{ file: "frontend/src/index.css", operation: "replace_file", risk_level: "low" }]
+      },
+      review_result: {
+        approved: false,
+        risk_level: "high",
+        issues: ["Patch plan does not target any located file candidate"]
+      },
+      execution_result: {
+        executed: false,
+        mode: "dry_run",
+        files: [],
+        summary: "Patch execution blocked because review was not approved"
+      }
+    }, {
+      runId: "RUN-real-blocked",
+      dryRun: false,
+      realExecution: true,
+      taskTitle: "Apply Conduit theme",
+      targetRepoPath: "F:\\safe-real-target"
+    });
+
+    expect(run.dryRun).toBe(false);
+    expect(run.realWritePerformed).toBe(false);
+    expect(run.latestReturn).toContain("Patch execution blocked because review was not approved");
+    expect(run.review.status).toBe("blocked");
+    expect(run.executionResult.summary).toBe("Patch execution blocked because review was not approved");
+    expect(run.review.changedFiles[0].file).toBe("frontend/src/index.css");
+  });
+
+  it("maps Agent(2) runtime failures to failed Workbench runs", () => {
+    const run = mapAgent2ResultToWorkbench({
+      status: "failed",
+      raw_status: "FAILED",
+      summary: {
+        message: "[Errno 22] Invalid argument while saving state"
+      },
+      execution_result: {},
+      review_result: {},
+      patch_plan: {}
+    }, {
+      runId: "RUN-agent2-failed",
+      dryRun: false,
+      realExecution: true,
+      taskTitle: "Apply Conduit theme",
+      targetRepoPath: "F:\\safe-real-target"
+    });
+
+    expect(run.status).toBe("failed");
+    expect(run.realWritePerformed).toBe(false);
+    expect(run.latestReturn).toContain("[Errno 22] Invalid argument");
+    expect(run.executionResult.summary).toContain("[Errno 22] Invalid argument");
+    expect(run.review.status).toBe("blocked");
+  });
 });

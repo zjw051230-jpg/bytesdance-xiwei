@@ -177,6 +177,8 @@ describe("monitor console and workspace picker", () => {
 
     expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument();
     expect(screen.getByText("Agent Execution Orchestrator")).toBeInTheDocument();
+    expect(screen.getByTestId("agent-run-milestones")).toBeInTheDocument();
+    expect(screen.getByText("Repository target")).toBeInTheDocument();
     expect(screen.getByText("Ready for real Agent(2) execution")).toBeInTheDocument();
 
     fireEvent.click(document.querySelectorAll(".agent-action-row button")[0]);
@@ -195,10 +197,16 @@ describe("monitor console and workspace picker", () => {
     await waitFor(() => expect(screen.getByText("Analyze RequirementDSL")).toBeInTheDocument());
     expect(screen.getByText("Agent(2) real execution finished; realWritePerformed=true.")).toBeInTheDocument();
     expect(screen.getByText("real repository patch")).toBeInTheDocument();
+    expect(screen.getByText("Real write")).toBeInTheDocument();
+    expect(screen.getByText("Target repository was modified.")).toBeInTheDocument();
+    expect(screen.getAllByText("Artifacts").length).toBeGreaterThan(0);
+    expect(screen.getByText("1 artifact(s) captured for traceability.")).toBeInTheDocument();
     const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body);
     expect(runBody.dryRun).toBe(false);
     expect(runBody.agentProvider).toBe("agent2");
     expect(runBody.targetRepoPath).toBe("C:\\Users\\www30\\Desktop\\conduit-realworld-example-app");
+    expect(runBody.requirementDsl.user_story).toBeTruthy();
+    expect(runBody.requirementDsl.constraints).toContain("Prefer concrete code/style changes over placeholder comments.");
 
     fireEvent.click(document.querySelectorAll(".agent-action-row button")[2]);
     expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();

@@ -19,13 +19,32 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
   const now = contextInput.now || new Date().toISOString();
   const runId = contextInput.runId || agent2Result.run_id || agent2Result.task_id || "RUN-agent2-preview";
   const realExecution = contextInput.realExecution === true || contextInput.dryRun === false;
-  const executionResult = objectOrEmpty(agent2Result.execution_result);
+  const failed = isAgent2Failure(agent2Result);
+  const failureMessage = agent2FailureMessage(agent2Result);
+  const rawExecutionResult = objectOrEmpty(agent2Result.execution_result);
+  const executionResult = failed && Object.keys(rawExecutionResult).length === 0
+    ? { executed: false, mode: "failed", files: [], summary: failureMessage }
+    : rawExecutionResult;
   const realWritePerformed = realExecution && executionWritesFiles(executionResult);
+  const executionSummary = typeof executionResult.summary === "string" ? executionResult.summary : "";
   const taskTitle = contextInput.taskTitle || agent2Result.task_name || (realExecution ? "Agent(2) real execution" : "Agent(2) dry-run preview");
   const requirementId = contextInput.requirementId || agent2Result.requirement_id || `req-agent-${runId}`;
-  const context = buildContext(agent2Result, contextInput, runId, requirementId, taskTitle);
-  const plan = buildPlan(agent2Result, taskTitle);
-  const review = buildReview(agent2Result, plan, context);
+  const normalizedAgent2Result = failed
+    ? {
+        ...agent2Result,
+        execution_result: executionResult,
+        review_result: Object.keys(objectOrEmpty(agent2Result.review_result)).length ? agent2Result.review_result : {
+          approved: false,
+          risk_level: "high",
+          summary: failureMessage,
+          issues: [failureMessage],
+          required_fixes: ["Fix Agent(2) runtime failure and rerun."]
+        }
+      }
+    : agent2Result;
+  const context = buildContext(normalizedAgent2Result, contextInput, runId, requirementId, taskTitle);
+  const plan = buildPlan(normalizedAgent2Result, taskTitle);
+  const review = buildReview(normalizedAgent2Result, plan, context);
   const prDraft = buildPrDraft(agent2Result, review, context);
   const artifactJson = {
     "agent2_context.json": context,
@@ -39,7 +58,7 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
       safety: {
         dryRun: !realExecution,
         realWritePerformed,
-        upstreamExecutionReported: Boolean(agent2Result.execution_result?.executed),
+        upstreamExecutionReported: Boolean(normalizedAgent2Result.execution_result?.executed),
         blockedModes,
         repoApplyEnabled: Boolean(agent2Result.safety_gates?.repo_apply_enabled),
         repoConfirmed: Boolean(agent2Result.safety_gates?.repo_confirmed),
@@ -51,7 +70,7 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
 
   return {
     runId,
-    status: "completed",
+    status: failed ? "failed" : "completed",
     startedAt: now,
     finishedAt: now,
     dryRun: !realExecution,
@@ -59,11 +78,13 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
     outputDir: contextInput.outputDir || "",
     relativeOutputDir: contextInput.relativeOutputDir || "",
     latestReturn: realExecution
-      ? `Agent(2) real execution finished for ${taskTitle}; realWritePerformed=${realWritePerformed}.`
+      ? failed
+        ? `Agent(2) real execution failed for ${taskTitle}: ${failureMessage}`
+        : `Agent(2) real execution finished for ${taskTitle}; realWritePerformed=${realWritePerformed}.${!realWritePerformed && executionSummary ? ` ${executionSummary}.` : ""}`
       : `Agent(2) dry-run adapter generated a Workbench preview for ${taskTitle}; no runtime execution or repo writes performed.`,
     progress: [
       { step: "readiness", status: "completed" },
-      { step: realExecution ? "agent2_runtime" : "agent2_contract_mapping", status: "completed" },
+      { step: realExecution ? "agent2_runtime" : "agent2_contract_mapping", status: failed ? "failed" : "completed" },
       { step: realExecution ? "real_patch_execution" : "plan_preview", status: executionResult.executed ? "completed" : "blocked" },
       { step: "review_check", status: review.status },
       { step: "pr_draft", status: "prepared" }
@@ -72,6 +93,8 @@ export function mapAgent2ResultToWorkbench(agent2Result = {}, contextInput = {})
     plan,
     review,
     prDraft,
+    executionResult,
+    reviewResult: objectOrEmpty(normalizedAgent2Result.review_result),
     artifacts: Object.fromEntries(Object.entries(artifactJson).map(([name, json]) => [name, {
       exists: true,
       path: contextInput.outputDir ? path.join(contextInput.outputDir, name) : "",
@@ -142,14 +165,18 @@ function buildPlan(agent2Result, taskTitle) {
 
 function buildReview(agent2Result, plan, context) {
   const review = objectOrEmpty(agent2Result.review_result);
+  const executionResult = objectOrEmpty(agent2Result.execution_result);
+  const executionSummary = typeof executionResult.summary === "string" ? executionResult.summary : "";
+  const executionBlocked = executionResult.executed === false && /blocked|not approved|missing review/i.test(executionSummary);
+  const executionFailed = String(executionResult.mode || "").toLowerCase() === "failed";
   const patchPlan = objectOrEmpty(agent2Result.patch_plan);
   const realExecution = context.executionBoundary?.realWriteDefault === true;
   const files = prChangedFiles(agent2Result.pr_draft).length
     ? prChangedFiles(agent2Result.pr_draft)
     : patchesAsChangedFiles(patchPlan, context);
   return {
-    status: review.approved ? "approved" : "needs_review",
-    summary: review.summary || agent2Result.execution_result?.summary || (realExecution ? "Agent(2) real execution finished and needs human review." : "Agent(2) preview needs human review before any real write."),
+    status: review.approved ? "approved" : executionBlocked || executionFailed ? "blocked" : "needs_review",
+    summary: review.summary || executionSummary || (realExecution ? "Agent(2) real execution finished and needs human review." : "Agent(2) preview needs human review before any real write."),
     changedFiles: files.map((file) => ({
       file: file.file,
       changeSummary: file.changeSummary || file.operation || "Agent(2) planned change",
@@ -242,6 +269,22 @@ function objectOrEmpty(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : {};
 }
 
+function isAgent2Failure(agent2Result = {}) {
+  const status = String(agent2Result.status || agent2Result.raw_status || "").toLowerCase();
+  return status === "failed" || status === "failure" || status === "error";
+}
+
+function agent2FailureMessage(agent2Result = {}) {
+  const summary = objectOrEmpty(agent2Result.summary);
+  const risks = objectOrEmpty(agent2Result.risks);
+  return String(
+    summary.message ||
+    agent2Result.error ||
+    risks.last_error ||
+    "Agent(2) runtime failed before producing a patch plan."
+  );
+}
+
 function fileList(agent2Result) {
   return (agent2Result.located_files?.files || [])
     .map((file) => file.relative_path || file.file || file.path)
@@ -251,7 +294,7 @@ function fileList(agent2Result) {
 
 function filesFromPatchPlan(patchPlan) {
   return (patchPlan.patches || [])
-    .map((patch) => patch.file)
+    .map((patch) => patch.file || patch.path)
     .filter(Boolean)
     .map((file) => String(file).replaceAll("\\", "/"));
 }
@@ -268,7 +311,7 @@ function patchesAsChangedFiles(patchPlan, context) {
     }));
   }
   return patches.map((patch) => ({
-    file: String(patch.file || "").replaceAll("\\", "/"),
+    file: String(patch.file || patch.path || "").replaceAll("\\", "/"),
     changeSummary: Array.isArray(patch.changes) ? patch.changes.join("; ") : patch.operation || "Agent(2) planned change",
     why: patch.reason,
     risk: patch.risk_level
