@@ -16,6 +16,7 @@ const excludedNames = new Set([
   ".pytest_cache",
   ".vite"
 ]);
+const resetPreservedRelativePaths = new Set([".git", "node_modules", "frontend/node_modules"]);
 
 export class WorkspaceAdapter {
   async createRunWorkspace() {
@@ -108,7 +109,7 @@ export class CopyWorkspaceAdapter extends WorkspaceAdapter {
     const baselineRoot = path.resolve(baselinePath || "");
     assertUsableRoot(workspaceRoot, "workspace");
     assertUsableRoot(baselineRoot, "baseline");
-    await fs.rm(workspaceRoot, { recursive: true, force: true });
+    await pruneWorkspaceForReset(workspaceRoot, workspaceRoot);
     await copyTree(baselineRoot, workspaceRoot);
     return { workspacePath: workspaceRoot, baselinePath: baselineRoot, resetAt: new Date().toISOString() };
   }
@@ -246,6 +247,22 @@ async function copyTree(source, target) {
     } else if (entry.isFile()) {
       await fs.mkdir(path.dirname(targetPath), { recursive: true });
       await fs.copyFile(sourcePath, targetPath);
+    }
+  }
+}
+
+async function pruneWorkspaceForReset(root, dir) {
+  const entries = await fs.readdir(dir, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    const entryPath = path.join(dir, entry.name);
+    const relativePath = path.relative(root, entryPath).replaceAll("\\", "/");
+    if (resetPreservedRelativePaths.has(relativePath)) continue;
+    if (entry.isDirectory()) {
+      await pruneWorkspaceForReset(root, entryPath);
+      const remaining = await fs.readdir(entryPath).catch(() => []);
+      if (remaining.length === 0) await fs.rm(entryPath, { recursive: true, force: true });
+    } else {
+      await fs.rm(entryPath, { force: true });
     }
   }
 }

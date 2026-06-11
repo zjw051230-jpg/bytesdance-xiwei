@@ -384,7 +384,7 @@ function toStringList(value) {
 
 export const agentStageDefinitions = [
   ["requirement", "RequirementAgent", "读取 RequirementDSL / 设计输入"],
-  ["readiness", "ReadinessAgent", "检查 dry-run 执行条件"],
+  ["readiness", "ReadinessAgent", "检查执行边界"],
   ["context", "ContextAgent", "编译 Agent 上下文"],
   ["planner", "PlannerAgent", "生成任务拆解"],
   ["locator", "LocatorAgent", "定位相关文件"],
@@ -406,11 +406,13 @@ export function buildAgentStageEvents(run = {}) {
   const hasReview = hasObject(run.review) && (Array.isArray(run.review.changedFiles) && run.review.changedFiles.length || run.review.summary || run.review.status);
   const hasPrDraft = hasObject(run.prDraft) && (run.prDraft.title || run.prDraft.body || toStringList(run.prDraft.summary).length || toStringList(run.prDraft.checklist).length);
   const hasSummary = Boolean(run.latestReturn || run.resultSummary || run.executionResult?.summary);
+  const realExecution = run.dryRun === false || run.context?.executionBoundary?.realWriteDefault === true;
   const dryRunSafe = run.dryRun !== false && run.realWritePerformed !== true;
+  const executionBoundaryOk = realExecution || dryRunSafe;
 
   const statusByKey = {
     requirement: hasContext ? "completed" : "skipped",
-    readiness: dryRunSafe ? "completed" : "blocked",
+    readiness: executionBoundaryOk ? "completed" : "blocked",
     context: hasContext ? "completed" : "skipped",
     planner: hasPlan ? "completed" : "skipped",
     locator: hasTargets ? "completed" : "skipped",
@@ -422,7 +424,9 @@ export function buildAgentStageEvents(run = {}) {
   };
   const summaryByKey = {
     requirement: run.context?.requirementDsl?.title || run.context?.taskTitle || "Requirement input was read.",
-    readiness: dryRunSafe ? "dryRun=true and realWritePerformed=false." : "Run boundary is not dry-run safe.",
+    readiness: realExecution
+      ? "Real Agent run boundary is active for isolated workspace execution."
+      : dryRunSafe ? "dryRun=true and realWritePerformed=false." : "Run boundary is not dry-run safe.",
     context: hasContext ? "Agent context snapshot is available." : "No context snapshot was produced.",
     planner: hasPlan ? `${run.plan.steps?.length || 0} plan step(s) available.` : "No plan output was produced.",
     locator: hasTargets ? `${(run.plan?.targetFiles || run.review?.changedFiles || []).length} file target(s) available.` : "No located files were produced.",

@@ -669,6 +669,9 @@ def _code_patch_for_item(user_input: str, matched_skill: Optional[Dict[str, Any]
     elif skill_id == "cover-image":
         after = _cover_image_after(file_path, before)
         confidence = 0.74 if before and after != before else 0.42
+    elif skill_id == "conduit-theme":
+        after = _conduit_theme_after(before)
+        confidence = 0.76 if after != before else 0.42
     else:
         after = _generic_after(before, changes)
         confidence = 0.64 if before else 0.52
@@ -686,6 +689,123 @@ def _code_patch_for_item(user_input: str, matched_skill: Optional[Dict[str, Any]
         },
     )
     return result
+
+
+def _conduit_theme_after(before: str) -> str:
+    marker = "/* Agent theme override: black-red conduit */"
+    if marker in (before or ""):
+        return before
+
+    theme = f"""
+
+{marker}
+:root {{
+  --agent-bg: #050507;
+  --agent-panel: #111114;
+  --agent-panel-strong: #1b0d10;
+  --agent-text: #f4f4f5;
+  --agent-muted: #b7aeb2;
+  --agent-red: #dc2626;
+  --agent-red-dark: #991b1b;
+  --agent-red-soft: rgba(220, 38, 38, 0.16);
+}}
+
+html,
+body,
+#root {{
+  min-height: 100%;
+  background: var(--agent-bg);
+  color: var(--agent-text);
+}}
+
+body,
+.home-page,
+.article-page,
+.profile-page,
+.settings-page,
+.editor-page,
+.auth-page,
+.container.page {{
+  background:
+    radial-gradient(circle at top left, rgba(220, 38, 38, 0.2), transparent 34rem),
+    var(--agent-bg);
+  color: var(--agent-text);
+}}
+
+.navbar,
+.footer,
+.banner,
+.article-preview,
+.article-page .banner,
+.sidebar,
+.tag-list,
+.auth-page .form,
+.editor-page form,
+.settings-page form {{
+  border-color: rgba(220, 38, 38, 0.28);
+  background: var(--agent-panel);
+  color: var(--agent-text);
+}}
+
+.navbar-brand,
+.nav-link,
+.banner h1,
+.article-page h1,
+.article-preview h1,
+.article-preview h2,
+h1,
+h2,
+h3,
+h4,
+p,
+span,
+label {{
+  color: var(--agent-text);
+}}
+
+a,
+.nav-link.active,
+.article-meta .author,
+.tag-pill {{
+  color: #ff6b6b;
+}}
+
+.btn-primary,
+.btn-outline-primary:hover,
+button[type="submit"],
+.favorite-btn.active,
+.follow-btn.active {{
+  border-color: var(--agent-red);
+  background: linear-gradient(180deg, var(--agent-red), var(--agent-red-dark));
+  color: #fff;
+}}
+
+.btn-outline-primary,
+.btn-outline-secondary,
+.tag-default {{
+  border-color: rgba(220, 38, 38, 0.42);
+  background: var(--agent-red-soft);
+  color: #fecaca;
+}}
+
+input,
+textarea,
+select,
+.form-control {{
+  border-color: rgba(220, 38, 38, 0.32);
+  background: #09090b;
+  color: var(--agent-text);
+}}
+
+input::placeholder,
+textarea::placeholder,
+.text-muted,
+.date {{
+  color: var(--agent-muted);
+}}
+"""
+    base = str(before or "").rstrip()
+    return f"{base}{theme}\n" if base else theme.lstrip() + "\n"
 
 
 def _login_remember_credentials_after(before: str) -> str:
@@ -1006,15 +1126,23 @@ def _l3_patch_plan(
     return result
 
 
-def _fallback_patch_plan(user_input, matched_skill, plan, located_files, reason: str, metric: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    fallback = _rule_patch_plan(user_input, matched_skill, plan, located_files, upgrade_code_patches=False)
+def _fallback_patch_plan(
+    user_input,
+    matched_skill,
+    plan,
+    located_files,
+    reason: str,
+    metric: Optional[Dict[str, Any]] = None,
+    repo_adapter=None,
+) -> Dict[str, Any]:
+    fallback = _rule_patch_plan(user_input, matched_skill, plan, located_files, repo_adapter=repo_adapter, upgrade_code_patches=True)
     fallback["metadata"] = {"llm_coder_fallback_reason": reason}
     if metric:
         fallback.setdefault("llm_metrics", []).append(metric)
     return fallback
 
 
-def _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm_adapter=None) -> Dict[str, Any]:
+def _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm_adapter=None, repo_adapter=None) -> Dict[str, Any]:
     adapter = llm_adapter or get_default_llm_adapter()
     located_targets = _located_files_for_patch(located_files)
     system_prompt = (
@@ -1036,15 +1164,15 @@ def _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm
     result = adapter.generate(prompt=prompt, system_prompt=system_prompt, temperature=0.2)
     metric = build_llm_call_metric("coder", result, prompt=prompt, system_prompt=system_prompt, started_ms=started_ms)
     if not result.get("ok"):
-        return _fallback_patch_plan(user_input, matched_skill, plan, located_files, result.get("error") or "llm_generate_failed", metric=metric)
+        return _fallback_patch_plan(user_input, matched_skill, plan, located_files, result.get("error") or "llm_generate_failed", metric=metric, repo_adapter=repo_adapter)
 
     try:
         data = json.loads(_strip_json_fence(result.get("text", "")))
     except (TypeError, ValueError) as exc:
-        return _fallback_patch_plan(user_input, matched_skill, plan, located_files, f"invalid_json: {exc}", metric=metric)
+        return _fallback_patch_plan(user_input, matched_skill, plan, located_files, f"invalid_json: {exc}", metric=metric, repo_adapter=repo_adapter)
 
     if not isinstance(data, dict) or not isinstance(data.get("patches"), list) or not data["patches"]:
-        return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "invalid_patch_root", metric=metric)
+        return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "invalid_patch_root", metric=metric, repo_adapter=repo_adapter)
 
     patches = []
     for patch in data["patches"]:
@@ -1054,13 +1182,13 @@ def _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm
         path = patch.get("path")
         content = patch.get("content")
         if operation not in ALLOWED_LLM_PATCH_OPERATIONS:
-            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "unsupported_operation", metric=metric)
+            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "unsupported_operation", metric=metric, repo_adapter=repo_adapter)
         if not _is_safe_patch_path(path):
-            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "unsafe_path", metric=metric)
+            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "unsafe_path", metric=metric, repo_adapter=repo_adapter)
         if located_targets and not _path_matches_any(path, located_targets):
-            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "path_not_in_located_files", metric=metric)
+            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "path_not_in_located_files", metric=metric, repo_adapter=repo_adapter)
         if not isinstance(content, str) or content == "":
-            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "empty_content", metric=metric)
+            return _fallback_patch_plan(user_input, matched_skill, plan, located_files, "empty_content", metric=metric, repo_adapter=repo_adapter)
         patches.append(
             {
                 "operation": operation,
@@ -1111,6 +1239,6 @@ def generate_patch_plan(
         return l3_plan
 
     if os.getenv("AGENT_USE_LLM_CODER") == "1":
-        return _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm_adapter=llm_adapter)
+        return _generate_llm_patch_plan(user_input, matched_skill, plan, located_files, llm_adapter=llm_adapter, repo_adapter=repo_adapter)
 
     return _rule_patch_plan(user_input, matched_skill, plan, located_files, historical_recall=historical_recall, repo_adapter=repo_adapter)

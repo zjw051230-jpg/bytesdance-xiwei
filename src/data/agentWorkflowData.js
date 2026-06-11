@@ -8,6 +8,10 @@ export const initialAgentWorkflowState = {
   review: null,
   prDraft: null,
   artifacts: {},
+  workspace: null,
+  workspacePath: "",
+  sourceRepoPath: "",
+  targetRepoPath: "",
   error: null
 };
 

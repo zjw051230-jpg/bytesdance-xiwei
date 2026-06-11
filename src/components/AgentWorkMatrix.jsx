@@ -71,6 +71,8 @@ export default function AgentWorkMatrix({ agentWorkflow = {}, isStarting = false
       : [];
   const stages = buildAgentStages(stageEvents, agentWorkflow, isStarting);
   const runningAgent = stages.find((stage) => stage.status === "running")?.agent || "";
+  const visibleStages = agentWorkflow?.runId || isStarting ? stages : stages.slice(0, 4);
+  const hiddenCount = Math.max(0, stages.length - visibleStages.length);
 
   return (
     <section className="agent-work-matrix" aria-label="Agent 工作矩阵" data-testid="agent-work-matrix">
@@ -84,8 +86,9 @@ export default function AgentWorkMatrix({ agentWorkflow = {}, isStarting = false
         </span>
       </div>
       <div className="agent-work-grid">
-        {stages.map((stage) => <AgentStageCard stage={stage} key={stage.agent} />)}
+        {visibleStages.map((stage) => <AgentStageCard stage={stage} key={stage.agent} />)}
       </div>
+      {hiddenCount ? <p className="agent-work-compact-note">其余 {hiddenCount} 个阶段会在真实 run 启动后展开。</p> : null}
     </section>
   );
 }

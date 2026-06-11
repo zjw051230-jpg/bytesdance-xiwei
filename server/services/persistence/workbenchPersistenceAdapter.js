@@ -173,7 +173,7 @@ export function persistAgentDryRun(run = {}, config = {}) {
     }
     for (const change of run.workspace?.changedFiles || []) {
       service.fileChangeRecords.upsert(run.runId, {
-        id: change.id,
+        id: change.id ? `${run.runId}-${change.id}` : undefined,
         snapshotId: baselineSnapshot?.id || run.workspace?.baselineSnapshotId || null,
         filePath: change.filePath,
         status: change.status || "changed",

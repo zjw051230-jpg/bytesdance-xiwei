@@ -4,7 +4,10 @@ export async function listRunChanges(service, runId) {
   const run = service.agentRuns.get(runId);
   if (!run) return errorResult("agent_run_not_found", "Agent run not found", { runId }, 404);
   const snapshot = service.workspaceSnapshots.getBaseline(runId);
-  const changes = service.fileChangeRecords.listByRun(runId);
+  let changes = service.fileChangeRecords.listByRun(runId);
+  if (snapshot && changes.length === 0) {
+    changes = await hydrateMissingChangeRecords(service, runId, snapshot);
+  }
   const rollbacks = service.rollbackOperations.listByRun(runId);
   return {
     ok: true,
@@ -217,6 +220,32 @@ function activityFor(run, type, message, payloadJson = {}) {
 function adapterFor(snapshot, options = {}) {
   if (options.workspaceAdapter) return options.workspaceAdapter;
   return new CopyWorkspaceAdapter({ runsRoot: options.runsRoot || "runs", adapterType: snapshot.adapterType });
+}
+
+async function hydrateMissingChangeRecords(service, runId, snapshot) {
+  const adapter = adapterFor(snapshot);
+  const scannedChanges = await adapter.getChangedFiles({
+    workspacePath: snapshot.workspacePath,
+    baselinePath: snapshot.baselinePath
+  }).catch(() => []);
+  if (!scannedChanges.length) return [];
+
+  const reviewByPath = new Map(service.reviewItems.listByRun(runId).map((item) => [item.filePath, item]));
+  for (const change of scannedChanges) {
+    const review = reviewByPath.get(change.filePath);
+    service.fileChangeRecords.upsert(runId, {
+      id: change.id ? `${runId}-${change.id}` : undefined,
+      snapshotId: snapshot.id,
+      filePath: change.filePath,
+      status: change.status || "changed",
+      changeType: change.changeType || "modified",
+      changeSummary: change.changeSummary || review?.changeSummary || `${change.changeType || "modified"} ${change.filePath}`,
+      diffStat: change.diffStat || {},
+      beforeHash: change.beforeHash || "",
+      afterHash: change.afterHash || ""
+    });
+  }
+  return service.fileChangeRecords.listByRun(runId);
 }
 
 function workspaceMissing(runId) {

@@ -92,7 +92,7 @@ export default function DesignPlanningWorkbench({
           projectId: activeProject?.id,
           projectName: activeProject?.name,
           requirementId: activeRequirement?.id,
-          boundary: targetRepoPath ? "dry-run preview target selected" : "dry-run preview blocked: missing project localPath",
+          boundary: targetRepoPath ? "real agent target selected" : "real agent run blocked: missing project localPath",
           targetRepoPath: targetRepoPath || "not_set",
           agent1EntryPoints: readiness.entrypoints
         },
@@ -111,7 +111,7 @@ export default function DesignPlanningWorkbench({
     setPlanError("");
     const targetRepoPath = resolveProjectLocalPath(activeProject);
     if (!targetRepoPath) {
-      const message = "缺少项目路径，暂时不能生成 Agent dry-run 计划。";
+      const message = "缺少项目路径，暂时不能启动真实 Agent run。";
       setPlanError(message);
       onAgentWorkflowChange?.((current) => ({
         ...current,
@@ -125,7 +125,7 @@ export default function DesignPlanningWorkbench({
     onAgentWorkflowChange?.((current) => ({
       ...current,
       status: "running",
-      latestReturn: "正在生成 Agent dry-run 预览，不会写入业务仓库。",
+      latestReturn: "正在启动真实 Agent run，将在隔离 workspace 中执行修改。",
       error: null
     }));
     try {
@@ -134,7 +134,7 @@ export default function DesignPlanningWorkbench({
         requirementId: activeRequirement?.id,
         requirementDsl: buildAgentRequirementDsl(activeRequirement, designPlan, planningTasks),
         taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
-        dryRun: true,
+        dryRun: false,
         agentProvider: "agent2",
         targetRepoPath
       });
@@ -161,7 +161,11 @@ export default function DesignPlanningWorkbench({
         artifacts,
         outputDir: runFromApi.outputDir || run.outputDir,
         relativeOutputDir: runFromApi.relativeOutputDir || run.relativeOutputDir,
-        dryRun: runFromApi.dryRun ?? run.dryRun ?? true,
+        workspace: runFromApi.workspace || run.workspace || current.workspace || null,
+        workspacePath: runFromApi.workspacePath || runFromApi.workspace?.workspacePath || run.workspacePath || run.workspace?.workspacePath || current.workspacePath || "",
+        sourceRepoPath: runFromApi.sourceRepoPath || runFromApi.workspace?.sourceRepoPath || run.sourceRepoPath || run.workspace?.sourceRepoPath || current.sourceRepoPath || targetRepoPath,
+        targetRepoPath: runFromApi.targetRepoPath || runFromApi.workspacePath || runFromApi.workspace?.workspacePath || run.targetRepoPath || run.workspacePath || run.workspace?.workspacePath || current.targetRepoPath || "",
+        dryRun: runFromApi.dryRun ?? run.dryRun ?? false,
         realWritePerformed: runFromApi.realWritePerformed ?? run.realWritePerformed ?? false,
         executionResult: runFromApi.executionResult || run.executionResult || extractExecutionResultFromArtifacts(artifacts),
         reviewResult: runFromApi.reviewResult || run.reviewResult || null,
@@ -171,14 +175,14 @@ export default function DesignPlanningWorkbench({
         artifactError: artifactsFromApi.error || null,
         error: null
       }));
-      onToast?.(`Agent dry-run 计划已生成：${runFromApi.runId || run.runId}`);
+      onToast?.(`真实 Agent run 已完成：${runFromApi.runId || run.runId}`);
     } catch (error) {
       const message = error.message || "Agent API request failed";
-      setPlanError(`Agent dry-run 计划生成失败：${message}`);
+      setPlanError(`真实 Agent run 启动失败：${message}`);
       onAgentWorkflowChange?.((current) => ({
         ...current,
         status: "blocked",
-        latestReturn: "Agent dry-run 计划生成失败。",
+        latestReturn: "真实 Agent run 启动失败。",
         error: message
       }));
     } finally {
@@ -194,7 +198,7 @@ export default function DesignPlanningWorkbench({
         <header className="planning-page-heading">
           <div>
             <h1>设计规划</h1>
-            <p>把 RequirementDSL 后半段编排成可审阅的 Agent dry-run 预览链路。</p>
+            <p>把 RequirementDSL 后半段编排成可审阅的真实 Agent 执行链路。</p>
           </div>
           <span>{activeProject?.name ?? "Codex Workbench"}</span>
         </header>
@@ -215,6 +219,8 @@ export default function DesignPlanningWorkbench({
             tasks={planningTasks}
             agentWorkflow={agentWorkflow}
             isAgentRunStarting={isAgentRunStarting}
+            hasTargetRepoPath={hasTargetRepoPath}
+            onPlanPreview={handlePlanPreview}
             onStatusChange={handleTaskStatusChange}
           />
         </section>
@@ -394,12 +400,30 @@ function MilestonePanel({ plan, tasks, agentWorkflow = {}, isAgentRunStarting = 
   );
 }
 
-function TaskBreakdownPanel({ tasks, agentWorkflow = {}, isAgentRunStarting = false, onStatusChange }) {
+function TaskBreakdownPanel({
+  tasks,
+  agentWorkflow = {},
+  isAgentRunStarting = false,
+  hasTargetRepoPath = false,
+  onPlanPreview,
+  onStatusChange
+}) {
   return (
     <section className="planning-card task-breakdown-panel" aria-label="任务拆解清单">
       <div className="planning-card-header">
-        <h2>任务拆解清单 / Agent 工作矩阵</h2>
-        <button type="button" aria-label="全部状态">全部状态</button>
+        <div>
+          <h2>任务拆解清单 / Agent 工作矩阵</h2>
+          <p>真实执行入口已前置；矩阵只保留关键阶段摘要。</p>
+        </div>
+        <button
+          type="button"
+          className="agent-primary-run-button"
+          onClick={onPlanPreview}
+          disabled={isAgentRunStarting || !hasTargetRepoPath}
+        >
+          {isAgentRunStarting ? <ClipboardList size={15} /> : <Play size={15} />}
+          {isAgentRunStarting ? "正在启动" : hasTargetRepoPath ? "Start real Agent run" : "先绑定项目路径"}
+        </button>
       </div>
       <AgentWorkMatrix agentWorkflow={agentWorkflow} isStarting={isAgentRunStarting} />
       <div className="task-breakdown-table">
@@ -461,14 +485,13 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
   const latestStage = latestAgentStage(stageEvents);
   const latestSummary = latestAgentSummary(agentWorkflow, latestStage);
   const visibleArtifacts = buildAgentArtifactTags(agentWorkflow, artifacts);
-  const dryRunValue = agentWorkflow.runId ? String(agentWorkflow.dryRun !== false) : "等待生成";
   const targetPath = agentWorkflow.context?.targetRepoPath || agentWorkflow.context?.localPath || "";
   return (
-    <section className="planning-card agent-execution-panel" aria-label="Agent dry-run 预览控制台">
+    <section className="planning-card agent-execution-panel" aria-label="真实 Agent run 控制台">
       <div className="planning-card-header">
         <div>
-          <h2>Agent dry-run 预览控制台</h2>
-          <p>当前只生成执行计划、审阅材料和 PR 草稿，不会直接修改业务仓库。</p>
+          <h2>真实 Agent run 控制台</h2>
+          <p>启动 Agent(2) 真实执行，在 Workbench 创建的隔离 workspace 中写入修改。</p>
         </div>
         <span className={`agent-status ${statusInfo.className}`}>{statusInfo.label}</span>
       </div>
@@ -484,10 +507,10 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
         <section className="agent-safety-boundary" aria-label="安全边界">
           <span>安全边界</span>
           <ul>
-            <li>dryRun：{dryRunValue}</li>
-            <li>realWritePerformed: false</li>
-            <li>不会直接修改业务仓库</li>
-            <li>{targetPath && targetPath !== "not_set" ? "项目路径仅用于生成预览上下文" : "缺少项目路径时会阻止生成计划"}</li>
+            <li>executionMode: real</li>
+            <li>realWritePerformed: {String(agentWorkflow.realWritePerformed === true)}</li>
+            <li>不直接修改原始业务仓库</li>
+            <li>{targetPath && targetPath !== "not_set" ? "项目路径用于创建 isolated run workspace" : "缺少项目路径时会阻止真实执行"}</li>
           </ul>
         </section>
       </div>
@@ -514,7 +537,7 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
         <button type="button" onClick={onContextPreview}><Eye size={15} />查看 Agent 输入 Context</button>
         <button type="button" onClick={onPlanPreview} disabled={isStarting || !hasTargetRepoPath}>
           {isStarting ? <ClipboardList size={15} /> : <Play size={15} />}
-          {isStarting ? "正在生成 dry-run 计划" : hasTargetRepoPath ? "生成 Agent dry-run 计划" : "先绑定项目路径"}
+          {isStarting ? "正在启动真实 Agent run" : hasTargetRepoPath ? "Start real Agent run" : "先绑定项目路径"}
         </button>
         <button type="button" onClick={onOpenReview}><FileText size={15} />打开审阅页面</button>
         <button type="button" onClick={onOpenPr}><ClipboardList size={15} />打开 PR 页面</button>
@@ -534,7 +557,7 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
           </div>
         ) : null
       ) : (
-        <p className="monitor-empty-state">暂未启动 Agent dry-run。生成计划后，这里会展示真实阶段活动和产物。</p>
+        <p className="monitor-empty-state">暂未启动真实 Agent run。启动后这里会展示真实阶段活动和产物。</p>
       )}
     </section>
   );
@@ -545,39 +568,39 @@ function resolveAgentPanelStatus(agentWorkflow = {}, isStarting = false, hasTarg
     return {
       className: "blocked",
       label: "缺少项目路径",
-      title: "还不能生成 Agent dry-run",
-      description: "需要先为项目绑定 localPath，之后才能准备 Agent 输入和预览计划。"
+      title: "还不能启动真实 Agent run",
+      description: "需要先为项目绑定 localPath，之后才能创建 isolated workspace 并启动 Agent。"
     };
   }
   if (isStarting || agentWorkflow.status === "running") {
     return {
       className: "active",
-      label: "生成中",
-      title: "正在生成 Agent dry-run 预览",
-      description: "系统正在准备计划、审阅材料和 PR 草稿，不会写入业务仓库。"
+      label: "运行中",
+      title: "正在执行真实 Agent run",
+      description: "系统正在隔离 workspace 中运行 Agent(2)，完成后会同步审阅材料和 PR 草稿。"
     };
   }
   if (agentWorkflow.error || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed") {
     return {
       className: "blocked",
       label: "需要处理",
-      title: "Agent dry-run 暂未完成",
-      description: "请查看最近一次返回或错误详情，处理后可重新生成 dry-run 计划。"
+      title: "真实 Agent run 暂未完成",
+      description: "请查看最近一次返回或错误详情，处理后可重新启动真实 run。"
     };
   }
   if (agentWorkflow.runId) {
     return {
       className: "completed",
-      label: "已有预览",
-      title: "已生成 Agent dry-run 预览",
-      description: "可以继续审阅产物，或进入 PR 页面检查草稿。"
+      label: "已完成",
+      title: "真实 Agent run 已完成",
+      description: "可以继续审阅 workspace 变更，或进入 PR 页面检查草稿。"
     };
   }
   return {
     className: "ready",
-    label: "可生成",
-    title: "当前可以生成 Agent dry-run 预览",
-    description: "将生成计划、审阅材料和 PR 草稿，不会直接写入业务仓库。"
+    label: "可运行",
+    title: "当前可以启动真实 Agent run",
+    description: "将创建 isolated workspace，并让 Agent(2) 在该 workspace 中真实执行修改。"
   };
 }
 
@@ -588,8 +611,8 @@ function latestAgentStage(stageEvents = []) {
 function latestAgentSummary(agentWorkflow = {}, latestStage = null) {
   if (!agentWorkflow.runId && !agentWorkflow.latestReturn) {
     return {
-      title: "暂未启动 Agent dry-run",
-      detail: "点击“生成 Agent dry-run 计划”后，这里会展示最近一次 Agent 做了什么。"
+      title: "暂未启动真实 Agent run",
+      detail: "点击“Start real Agent run”后，这里会展示最近一次 Agent 做了什么。"
     };
   }
   if (agentWorkflow.error) {
@@ -605,8 +628,8 @@ function latestAgentSummary(agentWorkflow = {}, latestStage = null) {
     };
   }
   return {
-    title: agentWorkflow.runId ? "已记录 Agent dry-run" : "Agent 输入已准备",
-    detail: agentWorkflow.latestReturn || "等待生成 dry-run 计划。"
+    title: agentWorkflow.runId ? "已记录真实 Agent run" : "Agent 输入已准备",
+    detail: agentWorkflow.latestReturn || "等待启动真实 Agent run。"
   };
 }
 
@@ -735,7 +758,7 @@ function buildMilestones(plan, tasks) {
     },
     {
       name: "待审阅",
-      description: "Agent dry-run 审阅入口保持人工确认。",
+      description: "真实 Agent run 审阅入口保持人工确认。",
       date: "-",
       status: hasReview ? "active" : allDone ? "completed" : "pending",
       label: hasReview ? "待审阅" : "等待任务"
@@ -769,8 +792,8 @@ function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = fals
     {
       key: "runtime",
       index: 3,
-      title: "Dry-run preview",
-      detail: isRunning ? "Agent dry-run preview is being generated." : hasRun ? `Run recorded: ${agentWorkflow.runId}` : "Preview not started.",
+      title: "Real Agent run",
+      detail: isRunning ? "Agent(2) is running in the isolated workspace." : hasRun ? `Run recorded: ${agentWorkflow.runId}` : "Run not started.",
       status: isRunning ? "active" : hasRun ? "completed" : hasError ? "blocked" : "pending"
     },
     {

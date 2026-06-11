@@ -379,6 +379,28 @@ class RealRepoAdapter(BaseRepoAdapter):
                 "error": str(exc),
             }
 
+        content_text = str(content or "")
+        if operation in {"create_file", "replace_file", "append_text"} and not content_text.strip():
+            return {
+                "ok": False,
+                "operation": operation,
+                "path": path,
+                "file": path,
+                "resolved_path": str(resolved),
+                "applied": False,
+                "real_write": False,
+                "dry_run": False,
+                "preview": False,
+                "approval_required": False,
+                "mode": "real_repo_apply",
+                "would_write": False,
+                "content_preview": "",
+                "before_exists": resolved.exists(),
+                "after_exists": resolved.exists(),
+                "bytes_written": 0,
+                "error": f"{operation} requires non-empty content",
+            }
+
         before_exists = resolved.exists()
         error = None
         if operation == "create_file" and before_exists and not overwrite:
@@ -405,12 +427,12 @@ class RealRepoAdapter(BaseRepoAdapter):
 
         resolved.parent.mkdir(parents=True, exist_ok=True)
         if operation in {"create_file", "replace_file"}:
-            resolved.write_text(str(content or ""), encoding="utf-8")
+            resolved.write_text(content_text, encoding="utf-8")
         elif operation == "append_text":
             with resolved.open("a", encoding="utf-8") as handle:
-                handle.write(str(content or ""))
+                handle.write(content_text)
 
-        bytes_written = len(str(content or "").encode("utf-8"))
+        bytes_written = len(content_text.encode("utf-8"))
         result = self._operation_result(
             operation=operation,
             path=path,

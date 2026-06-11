@@ -3,8 +3,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getPreviewStatus, startProjectPreview } from "../api/previewClient.js";
 import {
   getAgentRunChangeDiff,
+  getPersistentAgentRun,
   getPrDraft,
   listAgentRunChanges,
+  listProjectActivity,
   listReviewItems,
   resetAgentRunWorkspace,
   revertAgentRunFile,
@@ -59,11 +61,16 @@ export default function ReviewCheckWorkbench({
   const [previewState, setPreviewState] = useState(initialPreviewState);
   const [viewport, setViewport] = useState("desktop");
   const [previewKey, setPreviewKey] = useState(0);
+  const [rollbackRefreshKey, setRollbackRefreshKey] = useState(0);
   const [confirmAction, setConfirmAction] = useState(null);
   const [rollbackMessage, setRollbackMessage] = useState("");
   const workflowReview = agentWorkflow.review || null;
   const projectId = activeProject?.id || "active-project";
-  const localPath = typeof activeProject?.localPath === "string" ? activeProject.localPath.trim() : "";
+  const projectLocalPath = typeof activeProject?.localPath === "string" ? activeProject.localPath.trim() : "";
+  const workspacePreviewPath = resolveWorkflowWorkspacePath(agentWorkflow);
+  const previewDependencyPath = workspacePreviewPath ? resolveWorkflowSourcePath(agentWorkflow, activeProject) : "";
+  const localPath = workspacePreviewPath || projectLocalPath;
+  const previewProjectId = workspacePreviewPath ? `${projectId}:run:${runId || agentWorkflow.runId || "workspace"}` : projectId;
   const requestSequence = useRef(0);
 
   useEffect(() => {
@@ -75,17 +82,25 @@ export default function ReviewCheckWorkbench({
     if (runId || !activeRequirement?.id) return () => {
       active = false;
     };
-    getPrDraft(activeRequirement.id)
-      .then((draft) => {
+    resolveLatestReviewRun({ projectId, requirementId: activeRequirement.id })
+      .then((latestRun) => {
         if (!active) return;
-        setRunId(draft.runId || "");
-        onAgentWorkflowChange?.((current) => ({ ...current, runId: current.runId || draft.runId || "", prDraft: current.prDraft || draft }));
+        if (latestRun?.runId) {
+          setRunId(latestRun.runId);
+          onAgentWorkflowChange?.((current) => mergePersistentRunIntoWorkflow(current, latestRun));
+          return;
+        }
+        return getPrDraft(activeRequirement.id).then((draft) => {
+          if (!active) return;
+          setRunId(draft.runId || "");
+          onAgentWorkflowChange?.((current) => ({ ...current, runId: current.runId || draft.runId || "", prDraft: current.prDraft || draft }));
+        });
       })
       .catch(() => {});
     return () => {
       active = false;
     };
-  }, [activeRequirement?.id, runId, onAgentWorkflowChange]);
+  }, [activeRequirement?.id, projectId, runId, onAgentWorkflowChange]);
 
   const reloadChanges = useCallback(async () => {
     if (!runId) {
@@ -162,7 +177,7 @@ export default function ReviewCheckWorkbench({
     return () => {
       active = false;
     };
-  }, [runId, selectedChangeId]);
+  }, [runId, selectedChangeId, rollbackRefreshKey]);
 
   const handleHumanStatusChange = async (itemId, humanStatus) => {
     setReviewItems((current) => current.map((item) => item.id === itemId ? { ...item, humanStatus } : item));
@@ -190,6 +205,8 @@ export default function ReviewCheckWorkbench({
       await reloadChanges();
       const items = await listReviewItems(runId).catch(() => null);
       if (Array.isArray(items)) setReviewItems(items);
+      setRollbackRefreshKey((current) => current + 1);
+      setPreviewKey((current) => current + 1);
     } catch (error) {
       setRollbackMessage(`回退失败：${error.message || "Persistence API request failed"}`);
     }
@@ -230,7 +247,12 @@ export default function ReviewCheckWorkbench({
       return;
     }
 
-    const requestPayload = { projectId, localPath };
+    const requestPayload = { projectId: previewProjectId, localPath };
+    if (previewDependencyPath) {
+      requestPayload.dependencyPath = previewDependencyPath;
+      requestPayload.allowPortFallback = true;
+      requestPayload.previewMode = "audit_workspace";
+    }
     setPreviewState((current) => ({
       ...current,
       loading: true,
@@ -242,7 +264,7 @@ export default function ReviewCheckWorkbench({
 
     try {
       const statusResult = await getPreviewStatus(requestPayload);
-      const startResult = !statusResult.available && shouldStartPreview(statusResult.status)
+      const startResult = !statusResult.available && shouldStartPreview(statusResult.status, Boolean(previewDependencyPath))
         ? await startProjectPreview(requestPayload)
         : statusResult;
       if (requestSequence.current !== sequence) return;
@@ -258,7 +280,7 @@ export default function ReviewCheckWorkbench({
         message: error?.payload?.error?.message || error?.message || "Preview API request failed."
       });
     }
-  }, [localPath, projectId]);
+  }, [localPath, previewDependencyPath, previewProjectId]);
 
   useEffect(() => {
     loadPreview();
@@ -283,6 +305,7 @@ export default function ReviewCheckWorkbench({
         <PreviewToolbar
           auditModel={auditModel}
           localPath={localPath}
+          projectLocalPath={projectLocalPath}
           previewState={previewState}
           viewport={viewport}
           onViewportChange={setViewport}
@@ -522,9 +545,10 @@ function ReviewFileCard({ file, onHumanStatusChange }) {
   );
 }
 
-function PreviewToolbar({ auditModel, localPath, previewState, viewport, onViewportChange, onRefresh, onOpenPreview }) {
+function PreviewToolbar({ auditModel, localPath, projectLocalPath, previewState, viewport, onViewportChange, onRefresh, onOpenPreview }) {
   const boundPath = previewState.requestedProjectRoot || previewState.projectRoot || localPath || "未绑定本地路径";
   const previewLine = auditModel.previewUrl || "预览 URL 待返回";
+  const userPreviewLine = projectLocalPath ? "用户 Conduit: http://127.0.0.1:3000" : "";
   const runningLine = previewState.runningProjectRoot
     ? `运行路径：${previewState.runningProjectRoot}${previewState.owner === "external_verified" ? "（外部可信复用）" : ""}`
     : previewState.owner === "external"
@@ -534,6 +558,7 @@ function PreviewToolbar({ auditModel, localPath, previewState, viewport, onViewp
     <header className="audit-preview-toolbar">
       <div className="preview-toolbar-lines">
         <span>{auditModel.previewTitle}</span>
+        {userPreviewLine ? <code title={projectLocalPath}>{userPreviewLine}</code> : null}
         <code title={boundPath}>绑定路径：{boundPath}</code>
         <code title={previewLine}>{previewState.loading ? "正在准备预览..." : `预览 URL：${previewLine}`}</code>
         <code title={runningLine}>{runningLine}</code>
@@ -577,6 +602,74 @@ function normalizeWorkflowReviewItems(items) {
     humanStatus: file.humanStatus || "pending",
     testStatus: file.testStatus || "pending"
   }));
+}
+
+function resolveWorkflowWorkspacePath(workflow = {}) {
+  const candidates = [
+    workflow.workspacePath,
+    workflow.workspace?.workspacePath,
+    workflow.context?.workspacePath,
+    workflow.context?.executionBoundary?.isolatedWorkspacePath
+  ];
+  return candidates
+    .map((value) => typeof value === "string" ? value.trim() : "")
+    .find(Boolean) || "";
+}
+
+function resolveWorkflowSourcePath(workflow = {}, project = {}) {
+  const candidates = [
+    workflow.sourceRepoPath,
+    workflow.workspace?.sourceRepoPath,
+    workflow.context?.sourceRepoPath,
+    workflow.context?.executionBoundary?.sourceRepoPath,
+    project.localPath
+  ];
+  return candidates
+    .map((value) => typeof value === "string" ? value.trim() : "")
+    .find(Boolean) || "";
+}
+
+async function resolveLatestReviewRun({ projectId, requirementId }) {
+  const activity = await listProjectActivity(projectId).catch(() => []);
+  const latestRunId = (Array.isArray(activity) ? activity : [])
+    .filter((item) => item.requirementId === requirementId && item.runId)
+    .find((item) => item.type === "WORKSPACE_SNAPSHOT_CREATED" || item.payloadJson?.workspacePath || item.type === "agent_dry_run_completed")
+    ?.runId;
+  if (!latestRunId) return null;
+  const run = await getPersistentAgentRun(latestRunId).catch(() => null);
+  if (!run) return { runId: latestRunId };
+  return {
+    runId: run.id || latestRunId,
+    status: run.status,
+    dryRun: run.dryRun,
+    realWritePerformed: run.realWritePerformed,
+    latestReturn: run.resultSummary,
+    workspacePath: run.workspacePath,
+    sourceRepoPath: run.sourceRepoPath,
+    targetRepoPath: run.targetRepoPath,
+    context: run.contextSnapshot || {}
+  };
+}
+
+function mergePersistentRunIntoWorkflow(current = {}, run = {}) {
+  return {
+    ...current,
+    status: run.status || current.status,
+    runId: run.runId || current.runId || "",
+    latestReturn: run.latestReturn || current.latestReturn,
+    dryRun: run.dryRun ?? current.dryRun,
+    realWritePerformed: run.realWritePerformed ?? current.realWritePerformed,
+    workspacePath: run.workspacePath || current.workspacePath || "",
+    sourceRepoPath: run.sourceRepoPath || current.sourceRepoPath || "",
+    targetRepoPath: run.targetRepoPath || current.targetRepoPath || "",
+    context: {
+      ...(current.context || {}),
+      ...(run.context || {}),
+      workspacePath: run.workspacePath || run.context?.workspacePath || current.context?.workspacePath || "",
+      sourceRepoPath: run.sourceRepoPath || run.context?.sourceRepoPath || current.context?.sourceRepoPath || "",
+      targetRepoPath: run.targetRepoPath || run.context?.targetRepoPath || current.context?.targetRepoPath || ""
+    }
+  };
 }
 
 function reviewItemToAuditFile(item) {
@@ -628,7 +721,8 @@ function buildAuditModel(review, previewUrl) {
   };
 }
 
-function shouldStartPreview(status) {
+function shouldStartPreview(status, allowPortFallback = false) {
+  if (allowPortFallback && status === "port_in_use_external") return true;
   return !nonStartablePreviewStatuses.has(status);
 }
 

@@ -4,11 +4,13 @@ import net from "node:net";
 import path from "node:path";
 
 const DEFAULT_PREVIEW_PORT = 3000;
+const AUDIT_PREVIEW_PORT_START = 3100;
+const AUDIT_PREVIEW_PORT_END = 3199;
 const DEFAULT_PREVIEW_ROUTE = "#/login";
 const previewProcesses = new Map();
 
 export async function getPreviewStatus(requestBody = {}, config = {}, deps = {}) {
-  const prepared = await preparePreviewContext(requestBody);
+  const prepared = await preparePreviewContext(requestBody, config, deps);
   if (!prepared.ok) return prepared.payload;
 
   const { context } = prepared;
@@ -91,10 +93,10 @@ export async function getPreviewStatus(requestBody = {}, config = {}, deps = {})
 }
 
 export async function startPreview(requestBody = {}, config = {}, deps = {}) {
-  const prepared = await preparePreviewContext(requestBody);
+  const prepared = await preparePreviewContext(requestBody, config, deps);
   if (!prepared.ok) return prepared.payload;
 
-  const { context } = prepared;
+  let { context } = prepared;
   cleanupDeadRecords();
   const existingRecord = getActiveRecord(context.cacheKey);
   if (existingRecord) {
@@ -119,10 +121,17 @@ export async function startPreview(requestBody = {}, config = {}, deps = {}) {
   }
 
   const currentStatus = await getPreviewStatus(requestBody, config, deps);
-  if (currentStatus.data.available || ["port_in_use", "port_in_use_external"].includes(currentStatus.data.status)) {
+  if (currentStatus.data.available) {
     return currentStatus;
   }
+  if (["port_in_use", "port_in_use_external"].includes(currentStatus.data.status)) {
+    if (!requestBody?.allowPortFallback) return currentStatus;
+    const fallbackContext = await contextWithFallbackPort(context, config, deps);
+    if (!fallbackContext) return currentStatus;
+    context = fallbackContext;
+  }
 
+  await ensurePreviewDependencyLinks(context);
   const viteBin = await findViteBinary(context);
   if (!viteBin) {
     return previewPayload(context, {
@@ -152,7 +161,7 @@ export async function startPreview(requestBody = {}, config = {}, deps = {}) {
 }
 
 export async function stopPreview(requestBody = {}, config = {}, deps = {}) {
-  const prepared = await preparePreviewContext(requestBody);
+  const prepared = await preparePreviewContext(requestBody, config, deps);
   if (!prepared.ok) return prepared.payload;
 
   const { context } = prepared;
@@ -247,9 +256,10 @@ async function waitForPortToClose(port, config = {}, deps = {}) {
   return false;
 }
 
-async function preparePreviewContext(requestBody) {
+async function preparePreviewContext(requestBody, config = {}, deps = {}) {
   const projectId = String(requestBody?.projectId || "active-project").trim() || "active-project";
   const localPath = String(requestBody?.localPath || "").trim();
+  const previewMode = requestBody?.previewMode === "audit_workspace" ? "audit_workspace" : "project";
   if (!localPath) {
     return invalidPreviewPayload("project_path_missing", "localPath is required.", {
       projectId,
@@ -291,14 +301,19 @@ async function preparePreviewContext(requestBody) {
     });
   }
 
-  const port = await readPreviewPort(viteConfigPath);
+  const port = previewMode === "audit_workspace"
+    ? await resolveAuditPreviewPort(projectRoot, config, deps)
+    : await readPreviewPort(viteConfigPath);
   const previewUrl = `http://127.0.0.1:${port}/${DEFAULT_PREVIEW_ROUTE}`;
+  const dependencyRoot = await resolveDependencyRoot(requestBody, projectRoot);
   const context = {
     projectId,
     projectRoot,
+    dependencyRoot,
     frontendRoot,
     frontendPackagePath,
     viteConfigPath,
+    previewMode,
     port,
     previewUrl,
     cacheKey: `${projectId}:${projectRoot.toLowerCase()}`
@@ -364,12 +379,100 @@ async function readPreviewPort(viteConfigPath) {
 async function findViteBinary(context) {
   const candidates = [
     path.join(context.projectRoot, "node_modules", "vite", "bin", "vite.js"),
-    path.join(context.frontendRoot, "node_modules", "vite", "bin", "vite.js")
+    path.join(context.frontendRoot, "node_modules", "vite", "bin", "vite.js"),
+    context.dependencyRoot ? path.join(context.dependencyRoot, "node_modules", "vite", "bin", "vite.js") : "",
+    context.dependencyRoot ? path.join(context.dependencyRoot, "frontend", "node_modules", "vite", "bin", "vite.js") : ""
   ];
   for (const candidate of candidates) {
     if (await exists(candidate)) return candidate;
   }
   return "";
+}
+
+async function contextWithFallbackPort(context, config = {}, deps = {}) {
+  const maxAttempts = Number(config.previewFallbackPortAttempts || 10);
+  const upperBound = context.previewMode === "audit_workspace"
+    ? auditPreviewPortEnd(config)
+    : Math.min(65_535, context.port + maxAttempts);
+  const fallbackLimit = context.previewMode === "audit_workspace" ? upperBound : Math.min(upperBound, context.port + maxAttempts);
+  for (let candidate = context.port + 1; candidate <= fallbackLimit; candidate += 1) {
+    if (candidate > 65_535) break;
+    const probe = await probePreviewPort(candidate, config, deps);
+    if (!probe.available && !probe.occupied) {
+      return {
+        ...context,
+        port: candidate,
+        previewUrl: `http://127.0.0.1:${candidate}/${DEFAULT_PREVIEW_ROUTE}`,
+        cacheKey: `${context.cacheKey}:fallback:${candidate}`
+      };
+    }
+  }
+  return null;
+}
+
+async function resolveAuditPreviewPort(projectRoot, config = {}, deps = {}) {
+  const start = auditPreviewPortStart(config);
+  const end = auditPreviewPortEnd(config);
+  const activeRecord = findActiveRecordByProject(projectRoot, start, end);
+  if (activeRecord) return activeRecord.port;
+
+  for (let port = start; port <= end; port += 1) {
+    const trustedExternal = await resolveTrustedExternalPreview({ port, projectRoot }, config, deps);
+    if (trustedExternal) return port;
+  }
+  for (let port = start; port <= end; port += 1) {
+    const probe = await probePreviewPort(port, config, deps);
+    if (!probe.available && !probe.occupied) return port;
+  }
+  return start;
+}
+
+function auditPreviewPortStart(config = {}) {
+  const value = Number(config.auditPreviewPortStart || process.env.AUDIT_PREVIEW_PORT_START || AUDIT_PREVIEW_PORT_START);
+  return Number.isInteger(value) && value > 0 && value <= 65_535 ? value : AUDIT_PREVIEW_PORT_START;
+}
+
+function auditPreviewPortEnd(config = {}) {
+  const start = auditPreviewPortStart(config);
+  const value = Number(config.auditPreviewPortEnd || process.env.AUDIT_PREVIEW_PORT_END || AUDIT_PREVIEW_PORT_END);
+  return Number.isInteger(value) && value >= start && value <= 65_535 ? value : AUDIT_PREVIEW_PORT_END;
+}
+
+async function ensurePreviewDependencyLinks(context) {
+  if (!context.dependencyRoot || context.dependencyRoot === context.projectRoot) return;
+  await ensureDirectoryLink(
+    path.join(context.dependencyRoot, "node_modules"),
+    path.join(context.projectRoot, "node_modules")
+  );
+  await ensureDirectoryLink(
+    path.join(context.dependencyRoot, "frontend", "node_modules"),
+    path.join(context.frontendRoot, "node_modules")
+  );
+}
+
+async function ensureDirectoryLink(sourcePath, linkPath) {
+  const sourceStat = await fs.stat(sourcePath).catch(() => null);
+  if (!sourceStat?.isDirectory?.()) return;
+  const existing = await fs.lstat(linkPath).catch(() => null);
+  if (existing) return;
+  await fs.mkdir(path.dirname(linkPath), { recursive: true });
+  try {
+    await fs.symlink(sourcePath, linkPath, process.platform === "win32" ? "junction" : "dir");
+  } catch {
+    // Preview can still try to start with dependencyRoot's Vite binary.
+  }
+}
+
+async function resolveDependencyRoot(requestBody, projectRoot) {
+  const raw = String(requestBody?.dependencyPath || requestBody?.sourceRepoPath || "").trim();
+  if (!raw || !path.isAbsolute(raw)) return "";
+  const dependencyRoot = path.resolve(raw);
+  if (dependencyRoot === projectRoot) return "";
+  const stats = await fs.stat(dependencyRoot).catch(() => null);
+  if (!stats?.isDirectory?.()) return "";
+  const frontendRoot = path.join(dependencyRoot, "frontend");
+  const supported = await exists(path.join(frontendRoot, "package.json")) || await exists(path.join(frontendRoot, "vite.config.js"));
+  return supported ? dependencyRoot : "";
 }
 
 function createProcessRecord(context, child) {
@@ -412,6 +515,16 @@ function findActiveRecordByPort(port) {
   cleanupDeadRecords();
   for (const record of previewProcesses.values()) {
     if (record.port === port && isProcessAlive(record)) return record;
+  }
+  return null;
+}
+
+function findActiveRecordByProject(projectRoot, minPort = 0, maxPort = 65_535) {
+  cleanupDeadRecords();
+  const normalizedRoot = normalizePathForComparison(projectRoot);
+  for (const record of previewProcesses.values()) {
+    if (record.port < minPort || record.port > maxPort || !isProcessAlive(record)) continue;
+    if (normalizePathForComparison(record.localPath) === normalizedRoot) return record;
   }
   return null;
 }
