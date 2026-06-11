@@ -42,7 +42,7 @@ export default function ProjectRail({
             <div className="rail-header">
               <div className="rail-brand">
                 <span className="rail-codex-mark" aria-hidden="true"><span /><span /></span>
-                <span>Codex Workbench</span>
+                <span>XiWei</span>
               </div>
               <button className="rail-icon-button" type="button" aria-label="收起项目切换栏" onClick={onToggle}>
                 <PanelLeftClose size={18} />

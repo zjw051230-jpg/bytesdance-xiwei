@@ -6,7 +6,7 @@ export default function TopBar({ mode, onModeChange, activeWorkspacePage, onWork
     <header className="topbar">
       <div className="brand">
         <span className="codex-mark" aria-hidden="true"><span /><span /></span>
-        <span>Codex Workbench</span>
+        <span>XiWei</span>
       </div>
       {mode === "workbench" ? (
         <div className="workspace-nav-cluster">

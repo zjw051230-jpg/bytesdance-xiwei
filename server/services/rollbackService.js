@@ -9,6 +9,7 @@ export async function listRunChanges(service, runId) {
     changes = await hydrateMissingChangeRecords(service, runId, snapshot);
   }
   const rollbacks = service.rollbackOperations.listByRun(runId);
+  const sourceState = buildSourceApplyState(service, runId, run, rollbacks);
   return {
     ok: true,
     data: {
@@ -19,6 +20,9 @@ export async function listRunChanges(service, runId) {
       sourceRepoPath: run.sourceRepoPath || "",
       workspacePath: run.workspacePath || "",
       baselineSnapshot: snapshot,
+      sourceState,
+      canApplyToSource: Boolean(snapshot?.workspacePath && run.sourceRepoPath),
+      canRollbackSource: Boolean(sourceState.sourceBaselineSnapshot),
       changes: changes.map((change) => ({
         ...change,
         canRevert: Boolean(snapshot) && ["changed", "needs_change", "approved"].includes(change.status)
@@ -46,6 +50,7 @@ export async function getRunChangeDiff(service, runId, changeId, options = {}) {
 }
 
 export async function revertRunFile(service, runId, body = {}, options = {}) {
+  if (body?.target === "source") return revertSourceFile(service, runId, body, options);
   const prepared = getRollbackContext(service, runId, body.changeId);
   if (!prepared.ok) return prepared;
   const { run, snapshot, change } = prepared.data;
@@ -104,6 +109,7 @@ export async function revertRunFile(service, runId, body = {}, options = {}) {
 }
 
 export async function resetRunWorkspace(service, runId, body = {}, options = {}) {
+  if (body?.target === "source") return resetSourceRepo(service, runId, body, options);
   const run = service.agentRuns.get(runId);
   if (!run) return errorResult("agent_run_not_found", "Agent run not found", { runId }, 404);
   const snapshot = service.workspaceSnapshots.getBaseline(runId);
@@ -196,6 +202,110 @@ function getRollbackContext(service, runId, changeId) {
   return { ok: true, data: { run, snapshot, change }, error: null };
 }
 
+function getSourceRollbackContext(service, runId, changeId = "") {
+  const run = service.agentRuns.get(runId);
+  if (!run) return errorResult("agent_run_not_found", "Agent run not found", { runId }, 404);
+  const sourceSnapshot = latestSourceApplySnapshot(service, runId);
+  if (!sourceSnapshot) {
+    return errorResult("source_baseline_missing", "This run has not been applied to source repo, or no source baseline snapshot is available.", { runId }, 409);
+  }
+  const change = changeId ? service.fileChangeRecords.get(changeId) : null;
+  if (changeId && (!change || change.runId !== runId)) {
+    return errorResult("change_not_found", "File change record not found for this run.", { runId, changeId }, 404);
+  }
+  return { ok: true, data: { run, sourceSnapshot, change }, error: null };
+}
+
+async function revertSourceFile(service, runId, body = {}, options = {}) {
+  const prepared = getSourceRollbackContext(service, runId, body.changeId);
+  if (!prepared.ok) return prepared;
+  const { run, sourceSnapshot, change } = prepared.data;
+  const adapter = adapterFor(sourceSnapshot, options);
+  try {
+    const reverted = await adapter.revertFile({
+      workspacePath: sourceSnapshot.sourceRepoPath,
+      baselinePath: sourceSnapshot.baselinePath,
+      filePath: change.filePath
+    });
+    const updatedChange = service.fileChangeRecords.update(change.id, { status: "reverted" });
+    for (const item of service.reviewItems.listByRun(runId).filter((review) => review.filePath === change.filePath)) {
+      service.reviewItems.update(item.id, {
+        humanStatus: "reverted",
+        humanComment: body.reason || "Source file reverted to pre-apply baseline."
+      });
+    }
+    const operation = service.rollbackOperations.create(runId, {
+      changeId: change.id,
+      operationType: "source_file_revert",
+      reason: body.reason || "",
+      files: [change.filePath]
+    });
+    invalidateVerification(service, run, "PATCH_SOURCE_FILE_REVERTED", `Reverted source file ${change.filePath} to pre-apply baseline.`, {
+      operationId: operation.id,
+      filePath: change.filePath,
+      reverted
+    });
+    return { ok: true, data: { runId, change: updatedChange, operation, verificationStatus: "stale" }, error: null };
+  } catch (error) {
+    const operation = service.rollbackOperations.create(runId, {
+      changeId: change.id,
+      operationType: "source_file_revert",
+      status: "failed",
+      reason: body.reason || "",
+      files: [change.filePath],
+      errorMessage: String(error.message || error)
+    });
+    return errorResult(error.code || "source_rollback_failed", "Source file rollback failed.", {
+      operationId: operation.id,
+      reason: String(error.message || error)
+    }, 400);
+  }
+}
+
+async function resetSourceRepo(service, runId, body = {}, options = {}) {
+  const prepared = getSourceRollbackContext(service, runId);
+  if (!prepared.ok) return prepared;
+  const { run, sourceSnapshot } = prepared.data;
+  const changes = service.fileChangeRecords.listByRun(runId);
+  const adapter = adapterFor(sourceSnapshot, options);
+  try {
+    const reset = await adapter.resetSourceRepo({
+      sourceRepoPath: sourceSnapshot.sourceRepoPath,
+      baselinePath: sourceSnapshot.baselinePath
+    });
+    const updatedChanges = service.fileChangeRecords.markRunReset(runId);
+    for (const item of service.reviewItems.listByRun(runId)) {
+      service.reviewItems.update(item.id, {
+        humanStatus: "reverted",
+        humanComment: body.reason || "Source repo reset to pre-apply baseline."
+      });
+    }
+    const operation = service.rollbackOperations.create(runId, {
+      operationType: "source_run_reset",
+      reason: body.reason || "",
+      files: changes.map((change) => change.filePath)
+    });
+    invalidateVerification(service, run, "PATCH_SOURCE_RUN_RESET", "Source repo reset to pre-apply baseline.", {
+      operationId: operation.id,
+      files: changes.map((change) => change.filePath),
+      reset
+    });
+    return { ok: true, data: { runId, changes: updatedChanges, operation, verificationStatus: "stale" }, error: null };
+  } catch (error) {
+    const operation = service.rollbackOperations.create(runId, {
+      operationType: "source_run_reset",
+      status: "failed",
+      reason: body.reason || "",
+      files: changes.map((change) => change.filePath),
+      errorMessage: String(error.message || error)
+    });
+    return errorResult(error.code || "source_reset_failed", "Source repo reset failed.", {
+      operationId: operation.id,
+      reason: String(error.message || error)
+    }, 400);
+  }
+}
+
 function invalidateVerification(service, run, eventType, message, payloadJson = {}) {
   service.agentRuns.update(run.id, { verificationStatus: "stale" });
   service.activity.create(activityFor(run, eventType, message, payloadJson));
@@ -217,9 +327,108 @@ function activityFor(run, type, message, payloadJson = {}) {
   };
 }
 
+async function ensureChangeRecords(service, runId, snapshot) {
+  let changes = service.fileChangeRecords.listByRun(runId);
+  if (snapshot && changes.length === 0) {
+    changes = await hydrateMissingChangeRecords(service, runId, snapshot);
+  }
+  return changes;
+}
+
+function latestSourceApplySnapshot(service, runId) {
+  const snapshots = service.workspaceSnapshots.listByRun(runId)
+    .filter((snapshot) => snapshot.snapshotType === "source_apply_baseline");
+  return snapshots.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))[0] || null;
+}
+
+function buildSourceApplyState(service, runId, run, rollbacks = []) {
+  const sourceBaselineSnapshot = latestSourceApplySnapshot(service, runId);
+  const latestSourceOperation = rollbacks.find((operation) => String(operation.operationType || "").startsWith("source_")) || null;
+  let status = sourceBaselineSnapshot ? "applied" : "not_applied";
+  if (latestSourceOperation?.operationType === "source_run_reset") status = "reset";
+  if (latestSourceOperation?.operationType === "source_file_revert") status = "partially_reverted";
+  if (latestSourceOperation?.operationType === "source_apply") status = "applied";
+  return {
+    status,
+    sourceRepoPath: run.sourceRepoPath || sourceBaselineSnapshot?.sourceRepoPath || "",
+    sourceBaselineSnapshot,
+    latestOperation: latestSourceOperation,
+    previewSourceRepo: Boolean(sourceBaselineSnapshot)
+  };
+}
+
 function adapterFor(snapshot, options = {}) {
   if (options.workspaceAdapter) return options.workspaceAdapter;
   return new CopyWorkspaceAdapter({ runsRoot: options.runsRoot || "runs", adapterType: snapshot.adapterType });
+}
+
+export async function applyRunToSource(service, runId, body = {}, options = {}) {
+  const run = service.agentRuns.get(runId);
+  if (!run) return errorResult("agent_run_not_found", "Agent run not found", { runId }, 404);
+  const snapshot = service.workspaceSnapshots.getBaseline(runId);
+  if (!snapshot) return workspaceMissing(runId);
+  if (!run.sourceRepoPath) {
+    return errorResult("source_repo_missing", "This run does not record a source repo path.", { runId }, 409);
+  }
+  const adapter = adapterFor(snapshot, options);
+  const changes = await ensureChangeRecords(service, runId, snapshot);
+  try {
+    const sourceSnapshot = await adapter.createSourceSnapshot({
+      runId,
+      sourceRepoPath: run.sourceRepoPath,
+      label: "before-source-apply"
+    });
+    const sourceSnapshotRecord = service.workspaceSnapshots.create(runId, {
+      id: `source-baseline-${runId}-${Date.now()}`,
+      snapshotType: "source_apply_baseline",
+      sourceRepoPath: run.sourceRepoPath,
+      workspacePath: snapshot.workspacePath,
+      baselinePath: sourceSnapshot.snapshotPath,
+      adapterType: snapshot.adapterType,
+      metadataJson: { reason: body.reason || "", source: "review_confirm_apply" }
+    });
+    const applied = await adapter.applyWorkspaceToSource({
+      workspacePath: snapshot.workspacePath,
+      sourceRepoPath: run.sourceRepoPath
+    });
+    const operation = service.rollbackOperations.create(runId, {
+      operationType: "source_apply",
+      reason: body.reason || "Confirmed from Review Check page.",
+      files: changes.map((change) => change.filePath)
+    });
+    service.agentRuns.update(run.id, { verificationStatus: "source_applied" });
+    service.activity.create(activityFor(run, "PATCH_SOURCE_APPLIED", "Run workspace applied to source repo.", {
+      operationId: operation.id,
+      sourceSnapshotId: sourceSnapshotRecord.id,
+      sourceRepoPath: run.sourceRepoPath,
+      workspacePath: snapshot.workspacePath,
+      applied
+    }));
+    return {
+      ok: true,
+      data: {
+        runId,
+        operation,
+        sourceBaselineSnapshot: sourceSnapshotRecord,
+        sourceRepoPath: run.sourceRepoPath,
+        workspacePath: snapshot.workspacePath,
+        verificationStatus: "source_applied"
+      },
+      error: null
+    };
+  } catch (error) {
+    const operation = service.rollbackOperations.create(runId, {
+      operationType: "source_apply",
+      status: "failed",
+      reason: body.reason || "",
+      files: changes.map((change) => change.filePath),
+      errorMessage: String(error.message || error)
+    });
+    return errorResult(error.code || "source_apply_failed", "Could not apply run workspace to source repo.", {
+      operationId: operation.id,
+      reason: String(error.message || error)
+    }, 400);
+  }
 }
 
 async function hydrateMissingChangeRecords(service, runId, snapshot) {

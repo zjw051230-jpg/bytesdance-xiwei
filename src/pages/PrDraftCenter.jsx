@@ -3,35 +3,26 @@ import {
   CheckCircle2,
   Clipboard,
   Copy,
+  Eye,
   FileCode2,
   GitPullRequest,
   RefreshCw,
   Save,
-  ShieldAlert
+  ShieldAlert,
+  X
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { loadPrDraftCenterContext, normalizeContext, patchPrDraft, regeneratePrDraft, savePrDraft } from "../api/prDraftClient.js";
-
-const evidenceSections = [
-  ["requirement", "Requirement"],
-  ["dsl", "DSL Readiness"],
-  ["agent", "Agent Run"],
-  ["files", "Changed Files"],
-  ["review", "Review Items"],
-  ["tests", "Tests"],
-  ["risks", "Risks"],
-  ["artifacts", "Artifacts"],
-  ["activity", "Activity"]
-];
+import { buildPrDraftTaskSkillView } from "../adapters/prDraftTaskSkills.js";
+import { loadPrDraftCenterContext, patchPrDraft, regeneratePrDraft, savePrDraft } from "../api/prDraftClient.js";
 
 const gateLabels = {
-  dsl: "DSL Gate",
-  agent: "Agent Run Gate",
-  review: "Review Gate",
-  tests: "Test Gate",
-  risks: "Risk Gate",
-  artifacts: "Artifact Gate",
-  checklist: "Checklist Gate"
+  dsl: "Requirement / DSL",
+  agent: "Agent Run",
+  review: "Review",
+  tests: "Tests",
+  risks: "Risks",
+  artifacts: "Artifacts",
+  checklist: "Checklist"
 };
 
 export default function PrDraftCenter({
@@ -42,61 +33,79 @@ export default function PrDraftCenter({
   agentWorkflow = {},
   onAgentWorkflowChange
 }) {
-  const resolvedRequirementId = requirementId || activeRequirement?.id || agentWorkflow.prDraft?.requirementId || "";
-  const resolvedProjectId = projectId || activeProject?.id || activeRequirement?.projectId || "codex-workbench";
-  const initialLocalContext = !resolvedRequirementId ? createLocalPrContext({ activeRequirement, resolvedProjectId, agentWorkflow }) : null;
-  const [loadState, setLoadState] = useState({ loading: !initialLocalContext, error: null });
-  const [context, setContext] = useState(initialLocalContext);
-  const [draft, setDraft] = useState(initialLocalContext?.prDraft || null);
-  const [mode, setMode] = useState("edit");
+  const resolvedRequirementId = requirementId || activeRequirement?.id || "";
+  const resolvedProjectId = projectId || activeProject?.id || activeRequirement?.projectId || "";
+  const [loadState, setLoadState] = useState({ state: "loading", error: null, reason: null });
+  const [context, setContext] = useState(null);
+  const [draft, setDraft] = useState(null);
+  const [detailId, setDetailId] = useState(null);
   const [toast, setToast] = useState("");
-  const contentRef = useRef(null);
+  const dialogRef = useRef(null);
 
   useEffect(() => {
     let mounted = true;
-    setLoadState({ loading: true, error: null });
-    if (!resolvedRequirementId) {
-      const localContext = createLocalPrContext({ activeRequirement, resolvedProjectId, agentWorkflow });
-      setContext(localContext);
-      setDraft(localContext.prDraft);
-      setLoadState({ loading: false, error: null });
-      return () => {
-        mounted = false;
-      };
-    }
+    setLoadState({ state: "loading", error: null, reason: null });
+    setContext(null);
+    setDraft(null);
+
     loadPrDraftCenterContext({
       projectId: resolvedProjectId,
       requirementId: resolvedRequirementId,
       runId: agentWorkflow.runId
-    })
-      .then((nextContext) => {
-        if (!mounted) return;
-        const requirement = activeRequirement?.id ? { ...nextContext.requirement, ...activeRequirement } : nextContext.requirement;
-        const workflowDraft = agentWorkflow.prDraft ? normalizeWorkflowDraft(agentWorkflow.prDraft, agentWorkflow.runId) : null;
-        const mergedDraft = workflowDraft ? { ...nextContext.prDraft, ...workflowDraft } : nextContext.prDraft;
-        const mergedContext = { ...nextContext, requirement, prDraft: mergedDraft };
-        setContext(mergedContext);
-        setDraft(mergedContext.prDraft);
-        setLoadState({ loading: false, error: null });
-        onAgentWorkflowChange?.((current) => ({ ...current, runId: current.runId || mergedContext.prDraft.runId, prDraft: mergedContext.prDraft }));
-      })
-      .catch((error) => {
-        if (!mounted) return;
-        setLoadState({ loading: false, error: error.payload?.error || { code: "validation_failed", message: error.message || "PR draft load failed" } });
-      });
+    }).then((result) => {
+      if (!mounted) return;
+      if (result.state !== "success") {
+        setLoadState({ state: result.state, error: result.error || null, reason: result.reason || null });
+        return;
+      }
+      setContext(result.context);
+      setDraft(result.context.prDraft);
+      setLoadState({ state: "success", error: null, reason: null });
+      onAgentWorkflowChange?.((current) => ({ ...current, runId: current.runId || result.context.prDraft.runId, prDraft: result.context.prDraft }));
+    });
+
     return () => {
       mounted = false;
     };
-  }, [resolvedProjectId, resolvedRequirementId, agentWorkflow.runId, activeRequirement?.id, onAgentWorkflowChange]);
+  }, [resolvedProjectId, resolvedRequirementId, agentWorkflow.runId, onAgentWorkflowChange]);
 
   const readiness = useMemo(() => context && draft ? evaluateReadiness({ ...context, prDraft: draft }) : null, [context, draft]);
   const markdown = useMemo(() => context && draft ? buildPrMarkdown({ ...context, prDraft: draft }, readiness) : "", [context, draft, readiness]);
+  const taskView = useMemo(() => context && readiness ? buildPrDraftTaskSkillView({ ...context, prDraft: draft }, readiness) : null, [context, draft, readiness]);
 
-  if (loadState.loading) {
-    return <main className="pr-draft-center pr-draft-loading" data-testid="pr-draft-center"><GitPullRequest /><span>Loading PR Draft Center...</span></main>;
+  const openDetail = (id) => {
+    setDetailId(id);
+    if (typeof dialogRef.current?.showModal !== "function") {
+      dialogRef.current?.setAttribute("open", "");
+    }
+    const schedule = typeof window.requestAnimationFrame === "function" ? window.requestAnimationFrame : (callback) => setTimeout(callback, 0);
+    schedule(() => {
+      if (typeof dialogRef.current?.showModal === "function") dialogRef.current.showModal();
+      else dialogRef.current?.setAttribute("open", "");
+    });
+  };
+
+  const closeDetail = () => {
+    if (typeof dialogRef.current?.close === "function") dialogRef.current.close();
+    else {
+      dialogRef.current?.removeAttribute("open");
+      setDetailId(null);
+    }
+  };
+
+  if (loadState.state === "loading") {
+    return <main className="pr-draft-center pr-state-page" data-testid="pr-draft-center"><span data-testid="pr-workbench" hidden /><GitPullRequest /><span>Loading PR Draft Center...</span></main>;
   }
 
-  if (loadState.error) {
+  if (loadState.state === "empty") {
+    return <EmptyState reason={loadState.reason} requirementId={resolvedRequirementId} />;
+  }
+
+  if (loadState.state === "unavailable") {
+    return <UnavailableState error={loadState.error || loadState.reason} />;
+  }
+
+  if (loadState.state === "error") {
     return <ErrorState error={loadState.error} />;
   }
 
@@ -116,306 +125,145 @@ export default function PrDraftCenter({
   };
 
   const regenerate = async () => {
-    if (!window.confirm("Regenerate PR draft from latest Agent Run and Review data? Manual edits may be overwritten.")) return;
-    const nextDraft = await regeneratePrDraft(resolvedRequirementId, { runId: draft.runId || context.agentRun.runId });
-    setDraft(nextDraft);
-    setToast("Draft regenerated from latest evidence.");
+    try {
+      const nextDraft = await regeneratePrDraft(resolvedRequirementId, { runId: draft.runId || context.agentRun.runId });
+      setDraft(nextDraft);
+      setToast("Draft regenerated from live API.");
+    } catch (error) {
+      setToast(`Regenerate unavailable: ${error.payload?.error?.message || error.message}`);
+    }
   };
 
   const copyDescription = async () => {
     if (readiness.status === "blocked" && !window.confirm("Current PR Draft still has unresolved blockers. Copy anyway?")) return;
     try {
       await writeClipboard(markdown);
-      setToast("PR description copied.");
       const copiedAt = new Date().toISOString();
-      setDraft((current) => ({ ...current, status: "copied", copiedAt }));
-      try {
-        await patchPrDraft(draft.id || "mock-pr-draft", { status: "copied", copiedAt });
-      } catch (error) {
-        setToast(`PR description copied. Save failed: ${error.payload?.error?.message || error.message}`);
+      if (!draft.id) {
+        setToast("PR description copied. Save failed: prDraft id is unavailable.");
+        return;
       }
+      const patched = await patchPrDraft(draft.id, { status: "copied", copiedAt });
+      setDraft((current) => ({ ...current, ...patched, status: "copied", copiedAt }));
+      setToast(readiness.status === "blocked" ? "Blocked PR description copied with warning." : "PR description copied.");
     } catch (error) {
-      setToast(`Copy failed: ${error.message || "Clipboard unavailable"}`);
+      setToast(`Copy failed: ${error.payload?.error?.message || error.message || "Clipboard unavailable"}`);
     }
-  };
-
-  const scrollTo = (sectionId) => {
-    contentRef.current?.querySelector(`[data-pr-section="${sectionId}"]`)?.scrollIntoView({ block: "start", behavior: "smooth" });
   };
 
   return (
     <main className="pr-draft-center" data-testid="pr-draft-center">
       <span data-testid="pr-workbench" hidden />
-      <PrDraftHeader context={context} draft={draft} readiness={readiness} usedMockFallback={context.usedMockFallback} />
-      <div className="pr-draft-grid">
-        <PrEvidenceNavigator context={{ ...context, prDraft: draft }} readiness={readiness} onSelect={scrollTo} />
-        <section className="pr-draft-workspace" ref={contentRef}>
-          {toast ? <p className="pr-toast" role="status">{toast}</p> : null}
-          <EditorToolbar mode={mode} onMode={setMode} onSave={save} onRegenerate={regenerate} onCopy={copyDescription} readiness={readiness} />
-          {mode === "edit" ? (
-            <PrDraftEditor context={{ ...context, prDraft: draft }} draft={draft} onDraftChange={updateDraft} />
-          ) : (
-            <PrMarkdownPreview markdown={markdown} />
-          )}
-          <PrActivityPanel context={context} />
-        </section>
-        <PrReadinessInspector readiness={readiness} draft={draft} onCopy={copyDescription} />
-      </div>
+      <PRHeader context={context} draft={draft} readiness={readiness} />
+      {toast ? <p className="pr-toast" role="status">{toast}</p> : null}
+      <section className="pr-main-overview" aria-label="PR readiness overview">
+        <PRDraftEditor draft={draft} onDraftChange={updateDraft} />
+        <PRReadinessOverview readiness={readiness} taskView={taskView} onDetail={openDetail} />
+        <PRActionBar readiness={readiness} onSave={save} onRegenerate={regenerate} onCopy={copyDescription} onPreview={() => openDetail("markdown")} />
+      </section>
+      <section className="pr-lower-grid">
+        <ReadinessInspector readiness={readiness} copiedAt={draft.copiedAt} />
+        <DetailLaunchPanel taskView={taskView} onDetail={openDetail} />
+        <ActivitySummary context={context} copiedAt={draft.copiedAt} onDetail={openDetail} />
+      </section>
+      <PRDetailDialog
+        dialogRef={dialogRef}
+        detailId={detailId}
+        context={{ ...context, prDraft: draft }}
+        markdown={markdown}
+        taskView={taskView}
+        onDraftChange={updateDraft}
+        onRequestClose={closeDetail}
+        onClosed={() => setDetailId(null)}
+      />
     </main>
   );
 }
 
-function normalizeWorkflowDraft(input = {}, runId = "") {
-  return {
-    id: input.id || "",
-    requirementId: input.requirementId || "",
-    runId: input.runId || input.sourceRun || runId || "",
-    title: input.title || "",
-    summary: Array.isArray(input.summary) ? input.summary : String(input.summary || "").split(/\r?\n/).filter(Boolean),
-    changedFiles: (input.changedFiles || []).map((file, index) => typeof file === "string"
-      ? { id: `workflow-file-${index}`, path: file, changeSummary: "Changed file recorded by current Agent workflow.", why: "Mapped from current workflow.", requirementPoint: "Current workflow", risk: "Not documented", testStatus: "pending", reviewStatus: "pending" }
-      : file),
-    tests: input.tests || [],
-    risks: (input.risks || []).map((risk, index) => typeof risk === "string" ? { id: `workflow-risk-${index}`, level: "medium", message: risk, mitigation: "Review before ready.", acknowledged: false } : risk),
-    checklist: (input.checklist || input.checklistJson || []).map((item, index) => typeof item === "string" ? { id: `workflow-check-${index}`, label: item, checked: false, blocking: false, system: false } : item),
-    notes: input.notes || input.body || "",
-    status: input.status || "draft",
-    copiedAt: input.copiedAt || null
-  };
-}
-
-function PrDraftHeader({ context, draft, readiness, usedMockFallback }) {
+function PRHeader({ context, draft, readiness }) {
   return (
     <header className="pr-draft-header">
       <div className="pr-draft-title-block">
         <span className="pr-route-label">PR Draft Center</span>
-        <h1>PR Draft Center</h1>
-        <p>{context.requirement.title}</p>
+        <h1>{draft.title || "Untitled PR draft"}</h1>
+        <p>{context.requirement.title || "Field unavailable"} · {draft.runId || "run unavailable"}</p>
       </div>
       <div className="pr-header-actions">
-        {usedMockFallback ? <span className="pr-fallback-badge">mock fallback</span> : null}
-        <StatusBadge status={readiness.status} />
-        <span className="pr-run-chip">{draft.runId || "no run"}</span>
+        <StatusBadge status="live">Live API</StatusBadge>
+        <StatusBadge status={readiness.status}>{readiness.status}</StatusBadge>
       </div>
     </header>
   );
 }
 
-function PrEvidenceNavigator({ context, readiness, onSelect }) {
-  const statuses = evidenceStatus(context, readiness);
+function PRDraftEditor({ draft, onDraftChange }) {
+  const updateSummary = (index, value) => {
+    onDraftChange({ summary: draft.summary.map((item, itemIndex) => itemIndex === index ? value : item) });
+  };
   return (
-    <aside className="pr-evidence-nav" aria-label="PR evidence navigator">
-      <div>
-        <span className="pr-panel-kicker">Evidence</span>
-        <h2>Navigator</h2>
+    <article className="pr-editor-card">
+      <div className="panel-title">
+        <h2>Draft editor</h2>
+        <span>editable delivery note</span>
       </div>
-      <nav>
-        {evidenceSections.map(([id, label]) => (
-          <button key={id} type="button" onClick={() => onSelect(id)}>
-            <span>{label}</span>
-            <ReadinessBadge status={statuses[id]} />
+      <label className="pr-field-label" htmlFor="pr-title">PR title</label>
+      <input id="pr-title" value={draft.title} onChange={(event) => onDraftChange({ title: event.target.value })} placeholder="Field unavailable" />
+      <label className="pr-field-label" htmlFor="pr-summary-0">Summary</label>
+      <div className="pr-summary-editor compact">
+        {draft.summary.length ? draft.summary.map((item, index) => (
+          <input key={`summary-${index}`} id={index === 0 ? "pr-summary-0" : undefined} aria-label={`Summary item ${index + 1}`} value={item} onChange={(event) => updateSummary(index, event.target.value)} />
+        )) : <FieldUnavailable label="Summary" />}
+        <button type="button" onClick={() => onDraftChange({ summary: [...draft.summary, ""] })}>Add summary item</button>
+      </div>
+      <label className="pr-field-label" htmlFor="pr-notes">Notes</label>
+      <textarea id="pr-notes" value={draft.notes} onChange={(event) => onDraftChange({ notes: event.target.value })} rows={3} placeholder="Field unavailable" />
+    </article>
+  );
+}
+
+function PRReadinessOverview({ readiness, taskView, onDetail }) {
+  return (
+    <section className="pr-overview-card">
+      <div className="panel-title">
+        <h2>Gate overview</h2>
+        <span>overview first</span>
+      </div>
+      <div className="pr-gate-card-grid">
+        {taskView.overviewCards.map((card) => (
+          <button key={card.id} type="button" className={`pr-gate-card ${card.status}`} onClick={() => onDetail(card.detailId)}>
+            <span>{card.title}</span>
+            <StatusBadge status={card.status}>{card.status}</StatusBadge>
+            <strong>{card.value}</strong>
+            <small>{card.message}</small>
           </button>
         ))}
-      </nav>
-    </aside>
-  );
-}
-
-function EditorToolbar({ mode, onMode, onSave, onRegenerate, onCopy, readiness }) {
-  return (
-    <div className="pr-editor-toolbar">
-      <div className="pr-segmented" role="group" aria-label="PR draft view mode">
-        <button type="button" className={mode === "edit" ? "selected" : ""} onClick={() => onMode("edit")}>Edit</button>
-        <button type="button" className={mode === "preview" ? "selected" : ""} onClick={() => onMode("preview")}>Preview Markdown</button>
       </div>
-      <div className="pr-toolbar-actions">
-        <button type="button" aria-label="保存 PR 草稿" onClick={onSave}><Save size={15} />Save Draft</button>
-        <button type="button" onClick={onRegenerate}><RefreshCw size={15} />Regenerate Draft</button>
-        <button type="button" data-testid="copy-pr-description-toolbar" className={readiness.status === "blocked" ? "warn" : "primary"} onClick={onCopy}><Copy size={15} />Copy PR Description</button>
-        <button type="button" disabled={readiness.status !== "ready"} title={readiness.status !== "ready" ? "Ready is disabled until every gate passes." : "All gates pass."}>Ready</button>
-      </div>
-    </div>
-  );
-}
-
-function PrDraftEditor({ context, draft, onDraftChange }) {
-  const updateSummary = (index, value) => {
-    const next = draft.summary.map((item, itemIndex) => itemIndex === index ? value : item);
-    onDraftChange({ summary: next });
-  };
-  const removeSummary = (index) => onDraftChange({ summary: draft.summary.filter((_, itemIndex) => itemIndex !== index) });
-  const addSummary = () => onDraftChange({ summary: [...draft.summary, ""] });
-  const toggleChecklist = (id) => onDraftChange({
-    checklist: draft.checklist.map((item) => item.id === id && !item.system ? { ...item, checked: !item.checked } : item)
-  });
-  const acknowledgeRisk = (id) => onDraftChange({
-    risks: draft.risks.map((item) => item.id === id ? { ...item, acknowledged: !item.acknowledged } : item)
-  });
-
-  return (
-    <div className="pr-editor-stack">
-      <section className="pr-editor-section" data-pr-section="requirement">
-        <label className="pr-field-label" htmlFor="pr-title">Title</label>
-        <strong className="pr-current-title">{draft.title || "Untitled PR Draft"}</strong>
-        <input id="pr-title" aria-label="PR 标题" value={draft.title} onChange={(event) => onDraftChange({ title: event.target.value })} placeholder="PR title" />
-      </section>
-      <section className="pr-editor-section" data-pr-section="dsl">
-        <h2>Requirement Mapping</h2>
-        <div className="pr-mapping-grid">
-          <InfoCell label="Requirement" value={context.requirement.title} />
-          <InfoCell label="Goal" value={context.requirement.goal} />
-          <InfoCell label="DSL readiness" value={context.requirement.dslReadiness} />
-          <InfoCell label="Handoff decision" value={context.requirement.handoffDecision} />
-        </div>
-        <ul className="pr-compact-list">{context.requirement.points.map((point) => <li key={point}>{point}</li>)}</ul>
-      </section>
-      <section className="pr-editor-section" data-pr-section="agent">
-        <h2>Agent Run</h2>
-        <div className="pr-mapping-grid">
-          <InfoCell label="Run" value={context.agentRun.runId || "missing"} />
-          <InfoCell label="Status" value={context.agentRun.status} />
-          <InfoCell label="Completed" value={context.agentRun.completedAt || "not recorded"} />
-        </div>
-        <p>{context.agentRun.summary || "No agent run summary was recorded."}</p>
-      </section>
-      <section className="pr-editor-section" data-pr-section="files">
-        <h2>Changed Files</h2>
-        <ChangedFilesSection files={draft.changedFiles} />
-      </section>
-      <section className="pr-editor-section">
-        <h2>Summary</h2>
-        <div className="pr-summary-editor">
-          {draft.summary.map((item, index) => (
-            <div key={`summary-${index}`}>
-              <input aria-label={`Summary item ${index + 1}`} value={item} onChange={(event) => updateSummary(index, event.target.value)} />
-              <button type="button" onClick={() => removeSummary(index)}>Remove</button>
-            </div>
-          ))}
-          <button type="button" onClick={addSummary}>Add summary item</button>
-        </div>
-      </section>
-      <section className="pr-editor-section" data-pr-section="review">
-        <h2>Review Items</h2>
-        <ReviewItemsSection items={context.reviewItems} />
-      </section>
-      <section className="pr-editor-section" data-pr-section="tests">
-        <h2>Tests</h2>
-        <TestsSection tests={draft.tests} />
-      </section>
-      <section className="pr-editor-section" data-pr-section="risks">
-        <h2>Risks</h2>
-        <RisksSection risks={draft.risks} onAcknowledge={acknowledgeRisk} />
-      </section>
-      <section className="pr-editor-section" data-pr-section="artifacts">
-        <h2>Artifacts</h2>
-        <ArtifactsSection artifacts={context.artifacts} />
-      </section>
-      <section className="pr-editor-section" data-pr-section="checklist">
-        <h2>Checklist</h2>
-        <ChecklistSection checklist={draft.checklist} onToggle={toggleChecklist} />
-      </section>
-      <section className="pr-editor-section">
-        <h2>Notes</h2>
-        <textarea value={draft.notes} onChange={(event) => onDraftChange({ notes: event.target.value })} rows={4} aria-label="PR notes" />
-      </section>
-    </div>
-  );
-}
-
-function ChangedFilesSection({ files }) {
-  if (!files.length) return <p className="pr-muted">No changed files are recorded. Readiness is blocked.</p>;
-  return <div className="pr-file-grid">{files.map((file) => (
-    <article key={file.id} className="pr-file-card">
-      <code>{file.path}</code>
-      <p>{file.changeSummary}</p>
-      <dl>
-        <InfoPair label="Why" value={file.why} />
-        <InfoPair label="Requirement" value={file.requirementPoint} />
-        <InfoPair label="Risk" value={file.risk} />
-        <InfoPair label="Test" value={file.testStatus} />
-        <InfoPair label="Review" value={file.reviewStatus} />
-      </dl>
-    </article>
-  ))}</div>;
-}
-
-function ReviewItemsSection({ items }) {
-  if (!items.length) return <p className="pr-muted">No review items are recorded.</p>;
-  return <div className="pr-list-cards">{items.map((item) => (
-    <article key={item.id}>
-      <div><code>{item.filePath}</code><StatusBadge status={item.status} /></div>
-      <p>{item.message}</p>
-      <small>{item.required ? "required" : "optional"}</small>
-    </article>
-  ))}</div>;
-}
-
-function TestsSection({ tests }) {
-  if (!tests.length) return <p className="pr-warning-line">Required test result is missing.</p>;
-  return <div className="pr-list-cards">{tests.map((test) => (
-    <article key={test.id}>
-      <div><strong>{test.name}</strong><StatusBadge status={test.status} /></div>
-      <p>{test.source}</p>
-      {test.errorSummary ? <small>{test.errorSummary}</small> : null}
-      {test.required ? <small>required</small> : null}
-    </article>
-  ))}</div>;
-}
-
-function RisksSection({ risks, onAcknowledge }) {
-  if (!risks.length) return <p className="pr-muted">No risks recorded.</p>;
-  return <div className="pr-list-cards">{risks.map((risk) => (
-    <article key={risk.id}>
-      <div><strong>{risk.level}</strong><StatusBadge status={risk.acknowledged ? "acknowledged" : "warning"} /></div>
-      <p>{risk.message}</p>
-      <small>{risk.mitigation}</small>
-      <label className="pr-check-row">
-        <input type="checkbox" checked={risk.acknowledged} onChange={() => onAcknowledge(risk.id)} />
-        acknowledged
-      </label>
-    </article>
-  ))}</div>;
-}
-
-function ArtifactsSection({ artifacts }) {
-  if (!artifacts.length) return <p className="pr-warning-line">artifact_missing: No artifact references were found.</p>;
-  return <div className="pr-list-cards">{artifacts.map((artifact) => (
-    <article key={artifact.id}>
-      <div><strong>{artifact.name}</strong><StatusBadge status={artifact.redactionState} /></div>
-      <small>{artifact.type} · {artifact.createdAt || "no timestamp"}</small>
-      <p>{isUnsafeArtifact(artifact) ? "secret_redacted: sensitive artifact preview is withheld." : artifact.contentPreview}</p>
-    </article>
-  ))}</div>;
-}
-
-function ChecklistSection({ checklist, onToggle }) {
-  if (!checklist.length) return <p className="pr-warning-line">暂无 checklist</p>;
-  return <div className="pr-checklist">{checklist.map((item) => (
-    <label key={item.id} className={item.system ? "system" : ""}>
-      <input type="checkbox" aria-label={item.label} checked={item.checked} disabled={item.system} onChange={() => onToggle(item.id)} />
-      <span>{item.label}</span>
-      {item.blocking ? <em>blocking</em> : <em>optional</em>}
-    </label>
-  ))}</div>;
-}
-
-function PrMarkdownPreview({ markdown }) {
-  return (
-    <section className="pr-markdown-preview" data-pr-section="preview">
-      <div><Clipboard size={18} /><h2>Markdown Preview</h2></div>
-      <pre>{markdown}</pre>
+      <meter min="0" max={Object.keys(readiness.gates).length} value={Object.values(readiness.gates).filter((gate) => gate.status === "passed").length}>
+        readiness
+      </meter>
     </section>
   );
 }
 
-function PrReadinessInspector({ readiness, draft, onCopy }) {
-  const collapsed = readiness.status !== "blocked";
+function PRActionBar({ readiness, onSave, onRegenerate, onCopy, onPreview }) {
   return (
-    <aside className={`pr-readiness-inspector ${collapsed ? "compact" : ""}`}>
+    <div className="pr-action-bar">
+      <button type="button" onClick={onSave}><Save size={15} />Save Draft</button>
+      <button type="button" onClick={onRegenerate}><RefreshCw size={15} />Regenerate Draft</button>
+      <button type="button" onClick={onPreview}><Eye size={15} />View Markdown Preview</button>
+      <button type="button" data-testid="copy-pr-description-toolbar" className={readiness.status === "blocked" ? "warn" : "primary"} onClick={onCopy}><Copy size={15} />Copy PR Description</button>
+      <button type="button" disabled={!readiness.canReady}>Ready</button>
+    </div>
+  );
+}
+
+function ReadinessInspector({ readiness, copiedAt }) {
+  return (
+    <aside className="pr-readiness-inspector">
       <div className="pr-inspector-heading">
-        <span className="pr-panel-kicker">Readiness</span>
+        <span className="pr-panel-kicker">Readiness Inspector</span>
         <h2>{readiness.status}</h2>
-        {draft.copiedAt ? <small>copied at {draft.copiedAt}</small> : null}
+        {copiedAt ? <small>copied at <time dateTime={copiedAt}>{copiedAt}</time></small> : null}
       </div>
       <p>{readiness.summary}</p>
       <BlockingReasonsPanel reasons={readiness.blockingReasons} />
@@ -427,9 +275,207 @@ function PrReadinessInspector({ readiness, draft, onCopy }) {
           </div>
         ))}
       </div>
-      <button type="button" className={readiness.status === "blocked" ? "warn" : "primary"} onClick={onCopy}><Copy size={15} />Copy PR Description</button>
     </aside>
   );
+}
+
+function DetailLaunchPanel({ taskView, onDetail }) {
+  return (
+    <section className="pr-detail-launcher">
+      <div className="panel-title">
+        <h2>Details on demand</h2>
+        <span>native dialog / details</span>
+      </div>
+      <div className="pr-detail-buttons">
+        {taskView.details.map((detail) => (
+          <button key={detail.id} type="button" onClick={() => onDetail(detail.id)}>
+            <span>{detail.title}</span>
+            <small>{detail.surface}</small>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ActivitySummary({ context, copiedAt, onDetail }) {
+  return (
+    <details className="pr-activity-panel">
+      <summary>Activity / copy history</summary>
+      <div>
+        <p><strong>copiedAt</strong> {copiedAt || "Field unavailable"}</p>
+        <p><strong>activity</strong> {context.activity.length ? `${context.activity.length} events` : "EmptyState"}</p>
+        <button type="button" onClick={() => onDetail("activity")}>Open activity detail</button>
+      </div>
+    </details>
+  );
+}
+
+function PRDetailDialog({ dialogRef, detailId, context, markdown, taskView, onDraftChange, onRequestClose, onClosed }) {
+  const detail = taskView?.details.find((item) => item.id === detailId);
+  return (
+    <dialog className="pr-detail-dialog" ref={dialogRef} aria-modal="true" onClose={onClosed}>
+      {detail ? (
+        <>
+          <header>
+            <div>
+              <span className="pr-panel-kicker">{detail.surface}</span>
+              <h2>{detail.title}</h2>
+            </div>
+            <button type="button" onClick={onRequestClose} aria-label="Close detail"><X size={16} /></button>
+          </header>
+          <p className="pr-detail-contract">TaskSkills: {detail.contract}</p>
+          {renderDetail(detailId, context, markdown, onDraftChange)}
+        </>
+      ) : null}
+    </dialog>
+  );
+}
+
+function renderDetail(detailId, context, markdown, onDraftChange) {
+  switch (detailId) {
+    case "requirement":
+      return <RequirementDetail context={context} />;
+    case "files":
+      return <ChangedFilesDetail files={context.prDraft.changedFiles} />;
+    case "review":
+      return <ReviewDetail items={context.reviewItems} />;
+    case "tests":
+      return <TestsDetail tests={context.prDraft.tests} />;
+    case "risks":
+      return <RisksDetail risks={context.prDraft.risks} onDraftChange={onDraftChange} />;
+    case "artifacts":
+      return <ArtifactsDetail artifacts={context.artifacts} />;
+    case "checklist":
+      return <ChecklistDetail checklist={context.prDraft.checklist} onDraftChange={onDraftChange} />;
+    case "markdown":
+      return <MarkdownDetail markdown={markdown} />;
+    case "activity":
+      return <ActivityDetail activity={context.activity} copiedAt={context.prDraft.copiedAt} />;
+    default:
+      return <EmptyInline message="Detail unavailable." />;
+  }
+}
+
+function RequirementDetail({ context }) {
+  return (
+    <details open>
+      <summary>Requirement and DSL readiness</summary>
+      <table>
+        <tbody>
+          <InfoRow label="Requirement" value={context.requirement.title} />
+          <InfoRow label="Goal" value={context.requirement.goal} />
+          <InfoRow label="DSL readiness" value={context.requirement.dslReadiness} />
+          <InfoRow label="Handoff decision" value={context.requirement.handoffDecision} />
+          <InfoRow label="Agent run" value={context.agentRun.runId} />
+          <InfoRow label="Agent status" value={context.agentRun.status} />
+        </tbody>
+      </table>
+      {context.requirement.points.length ? <ul>{context.requirement.points.map((point) => <li key={point}>{point}</li>)}</ul> : <EmptyInline message="No requirement points returned." />}
+    </details>
+  );
+}
+
+function ChangedFilesDetail({ files }) {
+  if (!files.length) return <EmptyInline message="No changed files returned by the PR draft API." />;
+  return <DataTable rows={files} columns={["path", "changeSummary", "why", "requirementPoint", "risk", "testStatus", "reviewStatus"]} />;
+}
+
+function ReviewDetail({ items }) {
+  if (!items.length) return <EmptyInline message="No review items returned." />;
+  return <DataTable rows={items} columns={["filePath", "status", "required", "message"]} />;
+}
+
+function TestsDetail({ tests }) {
+  if (!tests.length) return <EmptyInline message="No test records returned." />;
+  return <DataTable rows={tests} columns={["name", "status", "source", "required", "errorSummary"]} />;
+}
+
+function RisksDetail({ risks, onDraftChange }) {
+  if (!risks.length) return <EmptyInline message="No risks returned." />;
+  return (
+    <div className="pr-list-cards">
+      {risks.map((risk) => (
+        <article key={risk.id}>
+          <div><strong>{risk.level || "Field unavailable"}</strong><StatusBadge status={risk.acknowledged ? "acknowledged" : "warning"} /></div>
+          <p>{risk.message || "Field unavailable"}</p>
+          <small>{risk.mitigation || "Field unavailable"}</small>
+          <label className="pr-check-row">
+            <input type="checkbox" checked={risk.acknowledged} onChange={() => onDraftChange({ risks: risks.map((item) => item.id === risk.id ? { ...item, acknowledged: !item.acknowledged } : item) })} />
+            acknowledged
+          </label>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function ArtifactsDetail({ artifacts }) {
+  if (!artifacts.length) return <EmptyInline message="No artifacts returned." />;
+  return <DataTable rows={artifacts} columns={["name", "type", "redactionState", "createdAt", "contentPreview"]} />;
+}
+
+function ChecklistDetail({ checklist, onDraftChange }) {
+  if (!checklist.length) return <EmptyInline message="No checklist returned." />;
+  return (
+    <div className="pr-checklist">
+      {checklist.map((item) => (
+        <label key={item.id} className={item.system ? "system" : ""}>
+          <input type="checkbox" checked={item.checked} disabled={item.system} onChange={() => onDraftChange({ checklist: checklist.map((row) => row.id === item.id ? { ...row, checked: !row.checked } : row) })} />
+          <span>{item.label || "Field unavailable"}</span>
+          <em>{item.blocking ? "blocking" : "optional"}</em>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function MarkdownDetail({ markdown }) {
+  return (
+    <section className="pr-markdown-preview">
+      <div><Clipboard size={18} /><h2>Markdown Preview</h2></div>
+      <pre>{markdown}</pre>
+    </section>
+  );
+}
+
+function ActivityDetail({ activity, copiedAt }) {
+  return (
+    <details open>
+      <summary>Recent activity</summary>
+      <p>copiedAt: {copiedAt || "Field unavailable"}</p>
+      {activity.length ? <DataTable rows={activity} columns={["actor", "action", "createdAt"]} /> : <EmptyInline message="No project activity returned." />}
+    </details>
+  );
+}
+
+function DataTable({ rows, columns }) {
+  return (
+    <table>
+      <thead>
+        <tr>{columns.map((column) => <th key={column}>{column}</th>)}</tr>
+      </thead>
+      <tbody>
+        {rows.map((row, index) => (
+          <tr key={row.id || index}>
+            {columns.map((column) => <td key={column}>{formatCell(row[column])}</td>)}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function InfoRow({ label, value }) {
+  return <tr><th>{label}</th><td>{formatCell(value)}</td></tr>;
+}
+
+function FieldUnavailable({ label }) {
+  return <p className="pr-field-unavailable">{label}: Field unavailable</p>;
+}
+
+function EmptyInline({ message }) {
+  return <p className="pr-empty-inline">{message}</p>;
 }
 
 function BlockingReasonsPanel({ reasons }) {
@@ -442,25 +488,35 @@ function BlockingReasonsPanel({ reasons }) {
   );
 }
 
-function PrActivityPanel({ context }) {
+function EmptyState({ reason, requirementId }) {
   return (
-    <details className="pr-activity-panel" data-pr-section="activity" open>
-      <summary>Activity / artifact references</summary>
-      <div>
-        {context.activity.map((item) => <p key={item.id}><strong>{item.actor}</strong> {item.action} <time>{item.createdAt}</time></p>)}
-        {context.artifacts.map((artifact) => <code key={artifact.id}>{artifact.name}</code>)}
-      </div>
-    </details>
+    <main className="pr-draft-center pr-state-page" data-testid="pr-draft-empty">
+      <span data-testid="pr-workbench" hidden />
+      <FileCode2 />
+      <h1>PR Draft Center</h1>
+      <p><strong>EmptyState</strong>: {reason?.message || `No PR draft exists for ${requirementId || "this requirement"}.`}</p>
+    </main>
+  );
+}
+
+function UnavailableState({ error }) {
+  return (
+    <main className="pr-draft-center pr-state-page" data-testid="pr-draft-unavailable">
+      <span data-testid="pr-workbench" hidden />
+      <AlertTriangle />
+      <h1>PR Draft Center unavailable</h1>
+      <p><code>{error?.code || "unavailable"}</code>: {error?.message || "A required live API is unavailable."}</p>
+    </main>
   );
 }
 
 function ErrorState({ error }) {
   return (
-    <main className="pr-draft-center pr-error-state" data-testid="pr-draft-error">
+    <main className="pr-draft-center pr-state-page pr-error-state" data-testid="pr-draft-error">
+      <span data-testid="pr-workbench" hidden />
       <AlertTriangle />
       <h1>PR Draft Center error</h1>
-      <p><code>{error.code}</code>: {error.message}</p>
-      <p>Supported API error codes: dsl_not_ready, review_blocked, pr_not_ready, artifact_missing, secret_redacted, not_found, validation_failed.</p>
+      <p><code>{error?.code || "error"}</code>: {error?.message || "PR draft API request failed."}</p>
     </main>
   );
 }
@@ -470,51 +526,13 @@ function toApiDraftPayload(draft) {
     ...draft,
     checklistJson: draft.checklist.map((item) => ({
       text: item.label,
-      checked: item.checked
+      checked: item.checked,
+      blocking: item.blocking
     }))
   };
 }
 
-function createLocalPrContext({ activeRequirement, resolvedProjectId, agentWorkflow }) {
-  return normalizeContext({
-    requirement: activeRequirement || {
-      id: "",
-      projectId: resolvedProjectId,
-      title: "PR draft has not been generated",
-      goal: "Run an agent workflow or select a requirement to create PR draft evidence.",
-      dslReadiness: "missing",
-      handoffDecision: "not_recorded",
-      points: []
-    },
-    agentRun: { runId: agentWorkflow.runId || "", status: agentWorkflow.runId ? "completed" : "missing" },
-    prDraft: agentWorkflow.prDraft || {
-      id: "",
-      requirementId: "",
-      runId: agentWorkflow.runId || "",
-      title: "PR 草稿未生成",
-      summary: [],
-      changedFiles: [],
-      tests: [],
-      risks: [],
-      checklist: [],
-      status: "draft"
-    },
-    reviewItems: [],
-    artifacts: [],
-    activity: [],
-    usedMockFallback: false
-  });
-}
-
-function InfoCell({ label, value }) {
-  return <div className="pr-info-cell"><small>{label}</small><strong>{value}</strong></div>;
-}
-
-function InfoPair({ label, value }) {
-  return <><dt>{label}</dt><dd>{value}</dd></>;
-}
-
-export function evaluateReadiness({ requirement, agentRun, prDraft, reviewItems, artifacts, changeRecords }) {
+export function evaluateReadiness({ requirement = {}, agentRun = {}, prDraft = {}, reviewItems = [], artifacts = [], changeRecords = {} }) {
   const blockingReasons = [];
   const gates = {};
   const readiness = requirement.dslReadiness || requirement.readiness;
@@ -526,38 +544,42 @@ export function evaluateReadiness({ requirement, agentRun, prDraft, reviewItems,
   gates.agent = gate(agentPass, agentPass ? "Agent run completed." : "Agent run is not completed.");
   if (!agentPass) blockingReasons.push("Agent run is not completed.");
 
-  const verificationStale = agentRun.verificationStatus === "stale" || changeRecords?.verificationStatus === "stale";
-  if (verificationStale) blockingReasons.push("verification_stale_after_rollback");
+  if (agentRun.verificationStatus === "stale" || changeRecords?.verificationStatus === "stale") {
+    blockingReasons.push("verification_stale_after_rollback");
+  }
 
-  const hasFiles = prDraft.changedFiles.length > 0;
-  if (!hasFiles) blockingReasons.push("Changed files are missing.");
+  const changedFiles = Array.isArray(prDraft.changedFiles) ? prDraft.changedFiles : [];
+  if (!changedFiles.length) blockingReasons.push("Changed files are missing.");
   if (Array.isArray(changeRecords?.changes) && changeRecords.changes.length > 0 && changeRecords.changes.every((change) => ["reverted", "reset"].includes(change.status))) {
     blockingReasons.push("all_changes_reverted");
   }
 
   const blockingReview = reviewItems.find((item) => ["blocked", "changes_requested"].includes(item.status) || (item.required && item.status === "pending"));
-  gates.review = gate(!blockingReview, blockingReview ? `Review item for ${blockingReview.filePath} is ${blockingReview.status}.` : "Review gate is clear.");
-  if (blockingReview) blockingReasons.push(`Review item for ${blockingReview.filePath} is ${blockingReview.status}.`);
+  gates.review = gate(!blockingReview, blockingReview ? `Review item for ${blockingReview.filePath || "general"} is ${blockingReview.status}.` : "Review gate is clear.");
+  if (blockingReview) blockingReasons.push(`Review item for ${blockingReview.filePath || "general"} is ${blockingReview.status}.`);
 
-  const requiredTests = prDraft.tests.filter((test) => test.required);
-  const missingTest = requiredTests.length === 0 || requiredTests.find((test) => ["missing", "failed", "error"].includes(test.status));
+  const tests = Array.isArray(prDraft.tests) ? prDraft.tests : [];
+  const requiredTests = tests.filter((test) => test.required);
+  const missingTest = requiredTests.length === 0 || requiredTests.find((test) => ["", "missing", "failed", "error"].includes(test.status));
   gates.tests = gate(!missingTest, missingTest ? "Required test result is missing." : "Required tests are present.");
   if (missingTest) blockingReasons.push("Required test result is missing.");
 
-  const unacknowledgedHighRisk = prDraft.risks.find((risk) => ["high", "critical", "p0"].includes(String(risk.level).toLowerCase()) && !risk.acknowledged);
+  const risks = Array.isArray(prDraft.risks) ? prDraft.risks : [];
+  const unacknowledgedHighRisk = risks.find((risk) => ["high", "critical", "p0"].includes(String(risk.level).toLowerCase()) && !risk.acknowledged);
   gates.risks = gate(!unacknowledgedHighRisk, unacknowledgedHighRisk ? "High risk is not acknowledged." : "High risks are acknowledged or documented.");
   if (unacknowledgedHighRisk) blockingReasons.push("High risk is not acknowledged.");
 
-  const unsafeArtifact = artifacts.find((artifact) => ["unsafe"].includes(artifact.redactionState));
+  const unsafeArtifact = artifacts.find((artifact) => ["unsafe", "secret_redacted"].includes(artifact.redactionState));
   const artifactPass = artifacts.length > 0 && !unsafeArtifact;
   gates.artifacts = gate(artifactPass, artifactPass ? "Artifact redaction state is safe." : unsafeArtifact ? "Artifact redaction state is unsafe." : "artifact_missing: artifact reference is missing.");
   if (!artifactPass) blockingReasons.push(unsafeArtifact ? "Artifact redaction state is unsafe." : "artifact_missing: artifact reference is missing.");
 
-  const unresolvedChecklist = prDraft.checklist.find((item) => item.blocking && !item.checked);
+  const checklist = Array.isArray(prDraft.checklist) ? prDraft.checklist : [];
+  const unresolvedChecklist = checklist.find((item) => item.blocking && !item.checked);
   gates.checklist = gate(!unresolvedChecklist, unresolvedChecklist ? "Checklist blocking item is unresolved." : "Checklist blocking items are resolved.");
   if (unresolvedChecklist) blockingReasons.push("Checklist blocking item is unresolved.");
 
-  const canReady = blockingReasons.length === 0 && hasFiles;
+  const canReady = blockingReasons.length === 0 && changedFiles.length > 0;
   const status = prDraft.status === "copied" ? "copied" : canReady ? "ready" : "blocked";
   return {
     status,
@@ -572,20 +594,6 @@ function gate(pass, message) {
   return { status: pass ? "passed" : "blocked", message };
 }
 
-function evidenceStatus(context, readiness) {
-  return {
-    requirement: context.requirement.id ? "passed" : "missing",
-    dsl: readiness.gates.dsl.status,
-    agent: readiness.gates.agent.status,
-    files: context.prDraft.changedFiles.length ? "passed" : "missing",
-    review: readiness.gates.review.status,
-    tests: readiness.gates.tests.status === "passed" ? "passed" : "warning",
-    risks: readiness.gates.risks.status,
-    artifacts: readiness.gates.artifacts.status,
-    activity: context.activity.length ? "passed" : "missing"
-  };
-}
-
 export function buildPrMarkdown(context, readiness = evaluateReadiness(context)) {
   const { prDraft, requirement } = context;
   const lines = [];
@@ -593,36 +601,39 @@ export function buildPrMarkdown(context, readiness = evaluateReadiness(context))
     lines.push("> Warning: This PR draft still has unresolved blockers.", "");
   }
   lines.push(`# ${prDraft.title || "Untitled PR Draft"}`, "", "## Summary");
-  lines.push(...(prDraft.summary.length ? prDraft.summary.map((item) => `* ${item}`) : ["* No summary recorded."]));
-  lines.push("", "## Requirement Mapping", `* Requirement: ${requirement.title}`, `* DSL readiness: ${requirement.dslReadiness}`, `* Handoff decision: ${requirement.handoffDecision}`);
+  lines.push(...(prDraft.summary?.length ? prDraft.summary.map((item) => `* ${item}`) : ["* Field unavailable."]));
+  lines.push("", "## Requirement Mapping", `* Requirement: ${requirement.title || "Field unavailable"}`, `* DSL readiness: ${requirement.dslReadiness || "Field unavailable"}`, `* Handoff decision: ${requirement.handoffDecision || "Field unavailable"}`);
   lines.push("", "## Changed Files");
-  if (prDraft.changedFiles.length) {
+  if (prDraft.changedFiles?.length) {
     prDraft.changedFiles.forEach((file) => {
-      lines.push(`* \`${file.path}\``, "", `  * Summary: ${file.changeSummary}`, `  * Requirement: ${file.requirementPoint}`, `  * Risk: ${file.risk}`, `  * Review: ${file.reviewStatus}`);
+      lines.push(`* \`${file.path || "Field unavailable"}\``, `  * Summary: ${file.changeSummary || "Field unavailable"}`, `  * Requirement: ${file.requirementPoint || "Field unavailable"}`, `  * Risk: ${file.risk || "Field unavailable"}`, `  * Review: ${file.reviewStatus || "Field unavailable"}`);
     });
   } else {
     lines.push("* No changed files recorded.");
   }
   lines.push("", "## Tests");
-  lines.push(...(prDraft.tests.length ? prDraft.tests.map((test) => `* ${test.name}: ${test.status} (${test.source})${test.errorSummary ? ` - ${test.errorSummary}` : ""}`) : ["* Required test result is missing."]));
+  lines.push(...(prDraft.tests?.length ? prDraft.tests.map((test) => `* ${test.name}: ${test.status || "Field unavailable"} (${test.source || "Field unavailable"})${test.errorSummary ? ` - ${test.errorSummary}` : ""}`) : ["* Required test result is missing."]));
   lines.push("", "## Risks");
-  lines.push(...(prDraft.risks.length ? prDraft.risks.map((risk) => `* ${risk.level}: ${risk.message} Mitigation: ${risk.mitigation} Acknowledged: ${risk.acknowledged ? "yes" : "no"}`) : ["* No risks recorded."]));
+  lines.push(...(prDraft.risks?.length ? prDraft.risks.map((risk) => `* ${risk.level || "Field unavailable"}: ${risk.message || "Field unavailable"} Mitigation: ${risk.mitigation || "Field unavailable"} Acknowledged: ${risk.acknowledged ? "yes" : "no"}`) : ["* No risks recorded."]));
   lines.push("", "## Checklist");
-  lines.push(...(prDraft.checklist.length ? prDraft.checklist.map((item) => `* [${item.checked ? "x" : " "}] ${item.label}`) : ["* [ ] No checklist recorded."]));
+  lines.push(...(prDraft.checklist?.length ? prDraft.checklist.map((item) => `* [${item.checked ? "x" : " "}] ${item.label || "Field unavailable"}`) : ["* [ ] No checklist recorded."]));
   if (prDraft.notes) lines.push("", "## Notes", prDraft.notes);
   return lines.join("\n");
 }
 
-function StatusBadge({ status }) {
-  return <span className={`pr-status-badge ${status}`}>{status}</span>;
+function StatusBadge({ status, children }) {
+  return <span className={`pr-status-badge ${status}`}>{children || status}</span>;
 }
 
 function ReadinessBadge({ status }) {
   return <span className={`pr-readiness-badge ${status}`}>{status}</span>;
 }
 
-function isUnsafeArtifact(artifact) {
-  return ["redacted", "unsafe", "secret_redacted"].includes(artifact.redactionState);
+function formatCell(value) {
+  if (value === true) return "yes";
+  if (value === false) return "no";
+  if (value === null || value === undefined || value === "") return "Field unavailable";
+  return String(value);
 }
 
 async function writeClipboard(text) {

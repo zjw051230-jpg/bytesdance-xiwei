@@ -260,6 +260,7 @@ async function preparePreviewContext(requestBody, config = {}, deps = {}) {
   const projectId = String(requestBody?.projectId || "active-project").trim() || "active-project";
   const localPath = String(requestBody?.localPath || "").trim();
   const previewMode = requestBody?.previewMode === "audit_workspace" ? "audit_workspace" : "project";
+  const previewSessionId = sanitizePreviewSessionId(requestBody?.previewSessionId || "");
   if (!localPath) {
     return invalidPreviewPayload("project_path_missing", "localPath is required.", {
       projectId,
@@ -302,7 +303,7 @@ async function preparePreviewContext(requestBody, config = {}, deps = {}) {
   }
 
   const port = previewMode === "audit_workspace"
-    ? await resolveAuditPreviewPort(projectRoot, config, deps)
+    ? await resolveAuditPreviewPort({ projectRoot, previewSessionId }, config, deps)
     : await readPreviewPort(viteConfigPath);
   const previewUrl = `http://127.0.0.1:${port}/${DEFAULT_PREVIEW_ROUTE}`;
   const dependencyRoot = await resolveDependencyRoot(requestBody, projectRoot);
@@ -314,9 +315,12 @@ async function preparePreviewContext(requestBody, config = {}, deps = {}) {
     frontendPackagePath,
     viteConfigPath,
     previewMode,
+    previewSessionId,
+    requirementId: String(requestBody?.requirementId || ""),
+    runId: String(requestBody?.runId || ""),
     port,
     previewUrl,
-    cacheKey: `${projectId}:${projectRoot.toLowerCase()}`
+    cacheKey: previewSessionId || `${projectId}:${projectRoot.toLowerCase()}`
   };
   return { ok: true, context };
 }
@@ -354,6 +358,9 @@ function previewPayload(context, overrides) {
       port: context.port,
       projectRoot: context.projectRoot,
       requestedProjectRoot: context.projectRoot,
+      previewSessionId: context.previewSessionId || "",
+      requestedRunId: context.runId || "",
+      requestedRequirementId: context.requirementId || "",
       runningProjectRoot: overrides.runningProjectRoot || "",
       owner: overrides.owner || "none",
       canRestart: Boolean(overrides.canRestart),
@@ -362,6 +369,12 @@ function previewPayload(context, overrides) {
     },
     error: null
   };
+}
+
+function sanitizePreviewSessionId(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  return text.replace(/[^\w:.-]/g, "_").slice(0, 240);
 }
 
 async function readPreviewPort(viteConfigPath) {
@@ -403,17 +416,21 @@ async function contextWithFallbackPort(context, config = {}, deps = {}) {
         ...context,
         port: candidate,
         previewUrl: `http://127.0.0.1:${candidate}/${DEFAULT_PREVIEW_ROUTE}`,
-        cacheKey: `${context.cacheKey}:fallback:${candidate}`
+        cacheKey: context.cacheKey
       };
     }
   }
   return null;
 }
 
-async function resolveAuditPreviewPort(projectRoot, config = {}, deps = {}) {
+async function resolveAuditPreviewPort(input, config = {}, deps = {}) {
+  const projectRoot = typeof input === "string" ? input : input?.projectRoot;
+  const previewSessionId = typeof input === "object" ? input.previewSessionId || "" : "";
   const start = auditPreviewPortStart(config);
   const end = auditPreviewPortEnd(config);
-  const activeRecord = findActiveRecordByProject(projectRoot, start, end);
+  const activeRecord = previewSessionId
+    ? getActiveRecord(previewSessionId)
+    : findActiveRecordByProject(projectRoot, start, end);
   if (activeRecord) return activeRecord.port;
 
   for (let port = start; port <= end; port += 1) {

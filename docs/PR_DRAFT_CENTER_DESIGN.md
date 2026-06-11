@@ -1,126 +1,73 @@
 # PR Draft Center Design
 
-## Page position
+## Page Position
 
-PR Draft Center is the Codex Workbench delivery review page. It generates, saves, edits, inspects, previews, and copies PR draft descriptions. It does not create a GitHub PR, call GitHub APIs, invoke a real LLM, or write to a target repository.
+PR Draft Center is the delivery review page for one requirement. It reviews requirement readiness, agent run evidence, review items, changed files, tests, risks, artifacts, checklist state, and the editable PR markdown draft.
+
+It does not call GitHub APIs, create a remote PR, call a real LLM, write to a repository, or change backend contracts.
 
 Route:
 
 `/projects/:projectId/requirements/:requirementId/pr-draft`
 
-The existing Workbench PR tab also opens the same page through `src/components/PRWorkbench.jsx`.
+The Workbench PR tab still renders the same page through `src/components/PRWorkbench.jsx`.
 
-## Component structure
+## Structure
 
-- `src/pages/PrDraftCenter.jsx`
-- `PrDraftHeader`
-- `PrEvidenceNavigator`
-- `PrDraftEditor`
-- `PrMarkdownPreview`
-- `PrReadinessInspector`
-- `ChangedFilesSection`
-- `TestsSection`
-- `RisksSection`
-- `ChecklistSection`
-- `PrActivityPanel`
-- `BlockingReasonsPanel`
-- `StatusBadge`
-- `ReadinessBadge`
+Implemented in `src/pages/PrDraftCenter.jsx`.
 
-The layout is a dark Codex-like workbench:
+- `PRHeader`: live source and readiness status.
+- `PRDraftEditor`: editable title, summary, and notes.
+- `PRReadinessOverview`: compact gate cards.
+- `PRActionBar`: save, regenerate, preview, copy, ready.
+- `ReadinessInspector`: blocking reasons and gate list.
+- `DetailLaunchPanel`: detail entry points.
+- `PRDetailDialog`: requirement, changed files, review, tests, risks, artifacts, checklist, markdown, and activity details.
 
-- Left: evidence navigator.
-- Center: editor or markdown preview.
-- Right: readiness inspector.
-- Bottom: collapsible activity and artifact references.
+The main page is overview first. Long lists, tables, markdown preview, activity, and checklist detail are opened with native `dialog` or `details`.
 
-## API integration
+## TaskSkills Role
 
-API access is centralized in `src/api/prDraftClient.js`.
+`src/adapters/prDraftTaskSkills.js` is declarative only. It describes:
 
-Supported endpoints:
+- Which cards belong in the overview.
+- Which detail surfaces exist.
+- Whether a detail belongs in a dialog or details disclosure.
+- Which gates participate in readiness.
+- Which live source supports each card.
 
-- `GET /api/requirements/:requirementId/pr-draft`
-- `POST /api/requirements/:requirementId/pr-draft`
-- `PATCH /api/pr-drafts/:prDraftId`
-- `GET /api/requirements/:requirementId`
-- `GET /api/agent/runs/:runId`
-- `GET /api/agent/runs/:runId/review`
-- `GET /api/agent/runs/:runId/artifacts`
-- `GET /api/projects/:projectId/activity`
+It does not fetch APIs, operate on DOM, call `showModal`, or create mock data.
 
-The client parses the standard envelope:
+## Native UI
 
-```json
-{ "ok": true, "data": {}, "error": null }
-```
+The page uses native browser capabilities:
 
-and raises envelope errors for:
+- `dialog` for details on demand.
+- `details` / `summary` for activity and structured detail sections.
+- `table` for changed files, reviews, tests, artifacts, and activity.
+- `meter` for readiness progress.
+- `time` for copied and activity timestamps.
+- `button`, `input`, and `textarea` for actions and editing.
 
-- `dsl_not_ready`
-- `review_blocked`
-- `pr_not_ready`
-- `artifact_missing`
-- `secret_redacted`
-- `not_found`
-- `validation_failed`
+## Readiness Gate
 
-## Readiness gate rules
+Implemented by `evaluateReadiness` in `src/pages/PrDraftCenter.jsx`.
 
-Implemented in `evaluateReadiness` inside `src/pages/PrDraftCenter.jsx`.
+PR can be ready only when:
 
-Ready is allowed only when:
-
-- Requirement readiness is `ready_for_agent` or stronger.
-- Agent run is completed or passed.
+- Requirement readiness is `ready_for_agent`, `handoff_to_agent`, `ready`, or `strong`.
+- Agent run status is `completed` or `passed`.
 - Changed files are present.
 - No review item is `blocked`.
 - No review item is `changes_requested`.
-- No required review item is pending.
-- Required tests are present and passing.
-- High risks are acknowledged or documented.
-- Artifact redaction state is safe.
-- Checklist blocking items are resolved.
+- No required review item is `pending`.
+- Required tests exist and are not missing, failed, or errored.
+- High, critical, or p0 risks are acknowledged.
+- Artifacts exist and no artifact redaction state is unsafe.
+- Blocking checklist items are checked.
 
-Blocked drafts may still be copied, but the UI requires explicit confirmation.
+If any gate fails, status is `blocked`, ready is disabled, and the inspector lists blocking reasons. Copy remains available after confirmation.
 
-## Mock fallback
+## Visual Direction
 
-Mock data lives in `src/mocks/prDraftMock.js`.
-
-Cases:
-
-- ready
-- blocked by review
-- blocked by tests
-- copied
-- empty draft
-
-The API client uses fallback for unavailable backend, `not_found`, `pr_draft_not_found`, and missing artifact style failures. Validation errors are surfaced in the page error state.
-
-## Copy markdown format
-
-Implemented in `buildPrMarkdown` inside `src/pages/PrDraftCenter.jsx`.
-
-Sections:
-
-- Summary
-- Requirement Mapping
-- Changed Files
-- Tests
-- Risks
-- Checklist
-- Notes
-
-When blocked, the markdown begins with:
-
-```markdown
-> Warning: This PR draft still has unresolved blockers.
-```
-
-## Current non-goals
-
-- GitHub remote PR creation.
-- Real LLM PR generation.
-- Real repo write.
-- Full permission system.
+The page keeps the dark Codex-like engineering workbench style. The visual hierarchy favors compact gate status, clear blocked/unavailable states, and dense detail tables only after opening a detail surface. Blocked and unavailable states are red or amber and never styled as success.

@@ -1405,6 +1405,35 @@ describe("DSL backend API", () => {
     expect(JSON.stringify(finished)).not.toMatch(/pm_dsl_runner|runner_missing|F:\\dsl-v2|api_key|Authorization|Bearer|sk-/i);
   });
 
+  it("does not input-gate full DSL artifacts when a short PM answer replies to clarification context", async () => {
+    const baseUrl = await startTestServer({
+      runnerMode: "real",
+      artifactModelClient: fakeStandaloneArtifactModel
+    });
+
+    const startResponse = await fetch(`${baseUrl}/api/dsl/runs/start`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        projectId: "conduit-realworld-example-app",
+        pmMessages: [
+          { role: "pm", content: "Conduit home page theme should change to a black and red visual style." },
+          { role: "system_clarification", content: "Which route should this apply to?" },
+          { role: "pm", content: "1" }
+        ]
+      })
+    });
+    const started = await startResponse.json();
+
+    expect(startResponse.status).toBe(202);
+    expect(started.ok).toBe(true);
+
+    const finished = await waitForJob(baseUrl, started.data.runId);
+
+    expect(finished.status).toBe("passed");
+    expect(finished.fullArtifacts["12_final_dsl.json"].exists).toBe(true);
+  });
+
   it("returns standalone_artifact_failed details instead of legacy runner_missing when standalone generation fails", async () => {
     const failingModel = async () => {
       throw new Error("standalone test failure");

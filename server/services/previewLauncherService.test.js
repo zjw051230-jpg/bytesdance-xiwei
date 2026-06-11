@@ -144,6 +144,69 @@ describe("previewLauncherService", () => {
     );
   });
 
+  it("isolates audit workspace previews by previewSessionId", async () => {
+    const projectRoot = await createConduitFixture({ port: 3000 });
+    const firstChild = createMockChild();
+    const secondChild = createMockChild();
+    const activePorts = new Set();
+    const spawnImpl = vi.fn((command, args) => {
+      activePorts.add(Number(args[args.indexOf("--port") + 1]));
+      return activePorts.size === 1 ? firstChild : secondChild;
+    });
+    const fetchImpl = vi.fn(async (url) => {
+      const port = Number(new URL(url).port);
+      if (activePorts.has(port)) return htmlResponse();
+      throw new Error("closed");
+    });
+    const portProcessResolver = vi.fn(async () => []);
+
+    const first = await startPreview(
+      {
+        projectId: "audit-project",
+        requirementId: "REQ-1",
+        runId: "RUN-1",
+        previewSessionId: "audit:a:REQ-1:RUN-1:path",
+        previewMode: "audit_workspace",
+        allowPortFallback: true,
+        localPath: projectRoot
+      },
+      { auditPreviewPortStart: 3100, auditPreviewPortEnd: 3102, previewStartupTimeoutMs: 100, previewPollIntervalMs: 1 },
+      { fetchImpl, portCheckImpl: async (port) => activePorts.has(port), portProcessResolver, spawnImpl }
+    );
+    const second = await startPreview(
+      {
+        projectId: "audit-project",
+        requirementId: "REQ-2",
+        runId: "RUN-2",
+        previewSessionId: "audit:b:REQ-2:RUN-2:path",
+        previewMode: "audit_workspace",
+        allowPortFallback: true,
+        localPath: projectRoot
+      },
+      { auditPreviewPortStart: 3100, auditPreviewPortEnd: 3102, previewStartupTimeoutMs: 100, previewPollIntervalMs: 1 },
+      { fetchImpl, portCheckImpl: async (port) => activePorts.has(port), portProcessResolver, spawnImpl }
+    );
+    const reused = await getPreviewStatus(
+      {
+        projectId: "audit-project",
+        requirementId: "REQ-1",
+        runId: "RUN-1",
+        previewSessionId: "audit:a:REQ-1:RUN-1:path",
+        previewMode: "audit_workspace",
+        allowPortFallback: true,
+        localPath: projectRoot
+      },
+      { auditPreviewPortStart: 3100, auditPreviewPortEnd: 3102 },
+      { fetchImpl, portCheckImpl: async (port) => activePorts.has(port), portProcessResolver }
+    );
+
+    expect(first.data.previewUrl).toBe("http://127.0.0.1:3100/#/login");
+    expect(second.data.previewUrl).toBe("http://127.0.0.1:3101/#/login");
+    expect(reused.data.previewUrl).toBe("http://127.0.0.1:3100/#/login");
+    expect(reused.data.previewSessionId).toBe("audit:a:REQ-1:RUN-1:path");
+    expect(spawnImpl).toHaveBeenCalledTimes(2);
+  });
+
   it("stops a different Workbench-owned project on the same port before starting the requested path", async () => {
     const firstProjectRoot = await createConduitFixture({ port: 3444 });
     const secondProjectRoot = await createConduitFixture({ port: 3444 });

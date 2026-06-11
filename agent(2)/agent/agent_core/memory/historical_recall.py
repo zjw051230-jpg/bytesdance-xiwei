@@ -69,6 +69,9 @@ def build_recall_query(requirement_dsl: Optional[Dict[str, Any]], matched_skill:
 
 
 def _states_dir() -> Path:
+    override = os.getenv("AGENT_STATE_DIR")
+    if override:
+        return Path(override).expanduser().resolve()
     return Path(__file__).resolve().parents[1] / "storage" / "states"
 
 

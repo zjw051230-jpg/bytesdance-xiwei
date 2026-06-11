@@ -5,6 +5,8 @@ const validHumanStatuses = new Set(["pending", "approved", "needs_change", "bloc
 const validPrStatuses = new Set(["draft", "ready", "blocked", "merged", "cancelled"]);
 const validArtifactTypes = new Set(["dsl", "context", "report", "patch", "test_log", "screenshot", "pr_summary"]);
 const validChangeStatuses = new Set(["changed", "reverted", "reset", "approved", "needs_change"]);
+const validSnapshotTypes = new Set(["baseline", "checkpoint", "source_apply_baseline"]);
+const validRollbackTypes = new Set(["file_revert", "run_reset", "source_apply", "source_file_revert", "source_run_reset"]);
 
 export function createPersistenceService(database) {
   return {
@@ -934,7 +936,7 @@ function normalizeArtifactType(value) {
 }
 
 function normalizeSnapshotType(value) {
-  return value === "checkpoint" ? "checkpoint" : "baseline";
+  return validSnapshotTypes.has(value) ? value : "baseline";
 }
 
 function normalizeChangeStatus(value) {
@@ -942,5 +944,5 @@ function normalizeChangeStatus(value) {
 }
 
 function normalizeRollbackType(value) {
-  return value === "run_reset" ? "run_reset" : "file_revert";
+  return validRollbackTypes.has(value) ? value : "file_revert";
 }

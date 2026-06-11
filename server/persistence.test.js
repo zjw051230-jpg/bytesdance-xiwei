@@ -509,6 +509,55 @@ describe("persistent workbench database", () => {
     expect(changes.payload.data.changes.every((change) => change.status === "reset")).toBe(true);
   });
 
+  it("applies a reviewed run workspace to the source repo and resets the real source to the pre-apply snapshot", async () => {
+    const dbName = "source-apply-reset-api";
+    const targetRepoPath = path.join(testRoot, `${dbName}-target`);
+    await fs.mkdir(path.join(targetRepoPath, "src"), { recursive: true });
+    await fs.writeFile(path.join(targetRepoPath, "src", "App.jsx"), "original source\n", "utf8");
+    const agent2Runner = async ({ env }) => {
+      await fs.writeFile(path.join(env.AGENT_REPO_ROOT, "src", "App.jsx"), "workspace patch\n", "utf8");
+      return fakeAgent2Stdout({ file: "src/App.jsx" });
+    };
+    const baseUrl = await startServer(dbName, { agent2Runner, workspaceAdapterType: "copy" });
+    const { payload: runPayload } = await requestJson(baseUrl, "/api/agent/run", {
+      method: "POST",
+      body: JSON.stringify({
+        projectId: `${dbName}-project`,
+        taskTitle: "Apply to source test",
+        dryRun: false,
+        agentProvider: "agent2",
+        targetRepoPath
+      })
+    });
+    const runId = runPayload.data.runId;
+    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("original source\n");
+
+    const apply = await requestJson(baseUrl, `/api/agent/runs/${runId}/apply`, {
+      method: "POST",
+      body: JSON.stringify({ reason: "accept patch" })
+    });
+    expect(apply.response.status).toBe(200);
+    expectOkEnvelope(apply.response, apply.payload);
+    expect(apply.payload.data.sourceBaselineSnapshot.snapshotType).toBe("source_apply_baseline");
+    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("workspace patch\n");
+
+    const appliedChanges = await requestJson(baseUrl, `/api/agent/runs/${runId}/changes`);
+    expect(appliedChanges.payload.data.sourceState.status).toBe("applied");
+    expect(appliedChanges.payload.data.canRollbackSource).toBe(true);
+
+    const reset = await requestJson(baseUrl, `/api/agent/runs/${runId}/rollback`, {
+      method: "POST",
+      body: JSON.stringify({ target: "source", reason: "reject after apply" })
+    });
+    expect(reset.response.status).toBe(200);
+    expectOkEnvelope(reset.response, reset.payload);
+    expect(await fs.readFile(path.join(targetRepoPath, "src", "App.jsx"), "utf8")).toBe("original source\n");
+
+    const after = await requestJson(baseUrl, `/api/agent/runs/${runId}/changes`);
+    expect(after.payload.data.sourceState.status).toBe("reset");
+    expect(after.payload.data.rollbackHistory[0].operationType).toBe("source_run_reset");
+  });
+
   it("returns workspace_not_initialized for old runs without baseline snapshots", async () => {
     const dbName = "rollback-old-run";
     const { runId } = await createDirectPersistenceFixture(dbName);

@@ -6,6 +6,9 @@ import { loadMonitorConsoleData } from "../api/monitorClient.js";
 import { createProject as createPersistedProject, deleteProject as deletePersistedProject, listProjects, updateProject } from "../api/persistenceClient.js";
 import { buildMonitorConsoleModel } from "../adapters/monitorConsoleAdapter.js";
 
+const WORKBENCH_SESSION_KEY = "codex-workbench-session";
+const workspacePages = new Set(["picker", "dsl", "design", "review", "pr"]);
+
 const initialProjects = import.meta.env.MODE === "test" ? [
   {
     id: "persistence-project",
@@ -47,13 +50,14 @@ const initialProjects = import.meta.env.MODE === "test" ? [
 
 export default function AppShell() {
   const directPrRoute = parsePrDraftRoute();
-  const [mode, setMode] = useState(directPrRoute ? "workbench" : "monitor");
+  const initialSession = directPrRoute ? {} : readWorkbenchSession();
+  const [mode, setMode] = useState(directPrRoute ? "workbench" : initialSession.mode || "monitor");
   const [projectList, setProjectList] = useState(initialProjects);
-  const [activeProjectId, setActiveProjectId] = useState(directPrRoute?.projectId || initialProjects[0]?.id);
+  const [activeProjectId, setActiveProjectId] = useState(directPrRoute?.projectId || initialSession.activeProjectId || initialProjects[0]?.id);
   const [projectLoadState, setProjectLoadState] = useState({ loading: true, error: "" });
   const [monitorLoadState, setMonitorLoadState] = useState({ loading: true, error: "" });
   const [monitorData, setMonitorData] = useState({});
-  const [workspacePage, setWorkspacePage] = useState(directPrRoute ? "pr" : "picker");
+  const [workspacePage, setWorkspacePage] = useState(directPrRoute ? "pr" : initialSession.workspacePage || "picker");
   const [workspaceToast, setWorkspaceToast] = useState("");
 
   useEffect(() => {
@@ -77,7 +81,7 @@ export default function AppShell() {
         setProjectList(projects);
         setActiveProjectId((current) => {
           const currentProject = projects.find((project) => project.id === current);
-          if (currentProject?.localPath) return currentProject.id;
+          if (currentProject) return currentProject.id;
           return projects[0]?.id || currentProject?.id;
         });
         setProjectLoadState({ loading: false, error: "" });
@@ -92,6 +96,11 @@ export default function AppShell() {
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (directPrRoute) return;
+    writeWorkbenchSession({ mode, workspacePage, activeProjectId });
+  }, [activeProjectId, directPrRoute, mode, workspacePage]);
 
   useEffect(() => {
     let active = true;
@@ -220,7 +229,7 @@ export default function AppShell() {
           onProjectCreate={createProject}
           onProjectDelete={deleteProject}
           workspacePage={workspacePage}
-          onWorkspacePageChange={setWorkspacePage}
+          onWorkspacePageChange={handleWorkspacePageChange}
           toast={workspaceToast}
           onToast={setWorkspaceToast}
           projectLoadState={projectLoadState}
@@ -240,6 +249,32 @@ function parsePrDraftRoute() {
     projectId: decodeURIComponent(match[1]),
     requirementId: decodeURIComponent(match[2])
   };
+}
+
+function readWorkbenchSession() {
+  if (typeof window === "undefined") return {};
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(WORKBENCH_SESSION_KEY) || "{}");
+    const mode = parsed.mode === "workbench" || parsed.mode === "monitor" ? parsed.mode : "";
+    const workspacePage = workspacePages.has(parsed.workspacePage) ? parsed.workspacePage : "";
+    const activeProjectId = typeof parsed.activeProjectId === "string" ? parsed.activeProjectId : "";
+    return { mode, workspacePage, activeProjectId };
+  } catch {
+    return {};
+  }
+}
+
+function writeWorkbenchSession(session) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(WORKBENCH_SESSION_KEY, JSON.stringify({
+      mode: session.mode === "workbench" ? "workbench" : "monitor",
+      workspacePage: workspacePages.has(session.workspacePage) ? session.workspacePage : "picker",
+      activeProjectId: session.activeProjectId || ""
+    }));
+  } catch {
+    // Ignore storage failures; refresh persistence is a convenience, not a hard dependency.
+  }
 }
 
 function logDevDuration(label, startedAt) {

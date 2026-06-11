@@ -1,72 +1,88 @@
-import { getMockPrDraftContext, regenerateMockPrDraft } from "../mocks/prDraftMock.js";
-
-const FALLBACK_CODES = new Set(["network_error", "not_found", "pr_draft_not_found", "artifact_missing"]);
-
 export async function loadPrDraftCenterContext({ projectId, requirementId, runId } = {}) {
-  const targetRequirementId = requirementId || "req-pr-draft-center";
-  try {
-    const [prDraft, requirement] = await Promise.all([
-      requestEnvelope(`/api/requirements/${encodeURIComponent(targetRequirementId)}/pr-draft`),
-      requestEnvelope(`/api/requirements/${encodeURIComponent(targetRequirementId)}`)
-    ]);
-    const effectiveRunId = runId || prDraft?.runId || prDraft?.sourceRun || requirement?.runId;
-    const [agentRun, reviewItems, artifacts, activity] = await Promise.all([
-      effectiveRunId ? requestEnvelope(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}`) : Promise.resolve(null),
-      effectiveRunId ? requestEnvelope(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}/review`) : Promise.resolve([]),
-      effectiveRunId ? requestEnvelope(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}/artifacts`) : Promise.resolve([]),
-      projectId ? requestEnvelope(`/api/projects/${encodeURIComponent(projectId)}/activity`) : Promise.resolve([])
-    ]);
-    const changeRecords = effectiveRunId
-      ? await requestEnvelope(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}/changes`).catch((error) => ({
-        unavailable: true,
-        errorCode: error.payload?.error?.code || "changes_unavailable",
-        changes: [],
-        verificationStatus: agentRun?.verificationStatus || "unknown"
-      }))
-      : null;
-    return normalizeContext({ requirement, prDraft, agentRun, reviewItems, artifacts, activity, changeRecords, usedMockFallback: false });
-  } catch (error) {
-    if (!shouldUseFallback(error)) throw error;
-    return normalizeContext({ ...getMockPrDraftContext(targetRequirementId), usedMockFallback: true, fallbackReason: error.payload?.error || { code: "network_error", message: error.message } });
+  if (!requirementId) {
+    return {
+      state: "empty",
+      reason: { code: "requirement_missing", message: "Select a requirement to review a PR draft." },
+      context: null
+    };
   }
+
+  const requirementResult = await requestEnvelopeResult(`/api/requirements/${encodeURIComponent(requirementId)}`);
+  if (requirementResult.state !== "success") return emptyAwareResult(requirementResult, "requirement");
+
+  const draftResult = await requestEnvelopeResult(`/api/requirements/${encodeURIComponent(requirementId)}/pr-draft`);
+  if (draftResult.state !== "success") return emptyAwareResult(draftResult, "prDraft");
+
+  const prDraft = draftResult.data;
+  const effectiveRunId = runId || prDraft?.runId || prDraft?.sourceRun || requirementResult.data?.runId || "";
+
+  const [agentRunResult, reviewResult, artifactResult, activityResult, changesResult] = await Promise.all([
+    effectiveRunId ? requestEnvelopeResult(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}`) : unavailableResult("agent_run_missing", "No agent run id was returned for this PR draft."),
+    effectiveRunId ? requestEnvelopeResult(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}/review`) : unavailableResult("review_unavailable", "Review data needs an agent run id."),
+    effectiveRunId ? requestEnvelopeResult(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}/artifacts`) : unavailableResult("artifacts_unavailable", "Artifact data needs an agent run id."),
+    projectId ? requestEnvelopeResult(`/api/projects/${encodeURIComponent(projectId)}/activity`) : unavailableResult("activity_unavailable", "Project id is required for activity."),
+    effectiveRunId ? requestEnvelopeResult(`/api/agent/runs/${encodeURIComponent(effectiveRunId)}/changes`) : unavailableResult("changes_unavailable", "Changed-file records need an agent run id.")
+  ]);
+
+  return {
+    state: "success",
+    context: normalizeContext({
+      requirement: requirementResult.data,
+      prDraft,
+      agentRun: dataOrNull(agentRunResult),
+      reviewItems: dataOrEmptyArray(reviewResult),
+      artifacts: dataOrEmptyArray(artifactResult),
+      activity: dataOrEmptyArray(activityResult),
+      changeRecords: dataOrNull(changesResult),
+      sources: {
+        requirement: requirementResult,
+        prDraft: draftResult,
+        agentRun: agentRunResult,
+        review: reviewResult,
+        artifacts: artifactResult,
+        activity: activityResult,
+        changes: changesResult
+      }
+    })
+  };
 }
 
 export async function savePrDraft(requirementId, payload) {
-  try {
-    return normalizePrDraft(await requestEnvelope(`/api/requirements/${encodeURIComponent(requirementId)}/pr-draft`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload)
-    }));
-  } catch (error) {
-    if (!shouldUseFallback(error)) throw error;
-    return normalizePrDraft({ ...payload, id: payload.id || `mock-saved-${Date.now()}`, requirementId, updatedAt: new Date().toISOString() });
-  }
+  return normalizePrDraft(await requestEnvelope(`/api/requirements/${encodeURIComponent(requirementId)}/pr-draft`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload)
+  }));
 }
 
 export async function patchPrDraft(prDraftId, payload) {
-  try {
-    return normalizePrDraft(await requestEnvelope(`/api/pr-drafts/${encodeURIComponent(prDraftId)}`, {
-      method: "PATCH",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(payload)
-    }));
-  } catch (error) {
-    if (!shouldUseFallback(error)) throw error;
-    return normalizePrDraft({ ...payload, id: prDraftId, updatedAt: new Date().toISOString() });
-  }
+  return normalizePrDraft(await requestEnvelope(`/api/pr-drafts/${encodeURIComponent(prDraftId)}`, {
+    method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload)
+  }));
 }
 
 export async function regeneratePrDraft(requirementId, { runId } = {}) {
+  return normalizePrDraft(await requestEnvelope(`/api/requirements/${encodeURIComponent(requirementId)}/pr-draft`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ runId, regenerate: true })
+  }));
+}
+
+export async function requestEnvelopeResult(url, options) {
   try {
-    return normalizePrDraft(await requestEnvelope(`/api/requirements/${encodeURIComponent(requirementId)}/pr-draft`, {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ runId, regenerate: true })
-    }));
+    const data = await requestEnvelope(url, options);
+    return { state: "success", data, error: null };
   } catch (error) {
-    if (!shouldUseFallback(error)) throw error;
-    return normalizePrDraft(regenerateMockPrDraft(requirementId, runId));
+    const payload = error.payload || {};
+    const code = payload.error?.code || "network_error";
+    return {
+      state: classifyError(code),
+      data: null,
+      error: payload.error || { code, message: error.message || "API request failed.", details: {} }
+    };
   }
 }
 
@@ -123,8 +139,7 @@ export function normalizeContext(input = {}) {
     artifacts,
     activity,
     changeRecords,
-    usedMockFallback: Boolean(input.usedMockFallback),
-    fallbackReason: input.fallbackReason || null
+    sources: input.sources || {}
   };
 }
 
@@ -147,16 +162,16 @@ export function normalizePrDraft(input = {}) {
 }
 
 function normalizeRequirement(input, fallbackId = "") {
-  const readiness = input.readiness || input.dslReadiness || input.status || "missing";
+  const readiness = input.readiness || input.dslReadiness || input.status || "";
   return {
-    id: input.id || fallbackId || "req-pr-draft-center",
+    id: input.id || fallbackId || "",
     projectId: input.projectId || "",
-    title: input.title || input.name || "Untitled requirement",
-    goal: input.goal || input.description || input.user_story || "No requirement goal was provided.",
+    title: input.title || input.name || "",
+    goal: input.goal || input.description || input.user_story || "",
     readiness,
     dslReadiness: input.dslReadiness || readiness,
-    handoffDecision: input.handoffDecision || input.handoff_decision || "not_recorded",
-    points: input.points || input.requirementPoints || input.acceptanceCriteria || []
+    handoffDecision: input.handoffDecision || input.handoff_decision || "",
+    points: normalizeArray(input.points || input.requirementPoints || input.acceptanceCriteria)
   };
 }
 
@@ -164,39 +179,39 @@ function normalizeAgentRun(input, fallbackRunId = "") {
   return {
     id: input.id || input.runId || fallbackRunId || "",
     runId: input.runId || input.id || fallbackRunId || "",
-    status: input.status || "missing",
+    status: input.status || "",
     summary: input.summary || input.latestReturn || "",
     completedAt: input.completedAt || input.updatedAt || "",
-    verificationStatus: input.verificationStatus || "unknown"
+    verificationStatus: input.verificationStatus || ""
   };
 }
 
 function normalizeChangedFiles(files) {
-  return files.map((file, index) => {
+  return normalizeArray(files).map((file, index) => {
     if (typeof file === "string") {
-      return { id: `file-${index}`, path: file, changeSummary: "Changed file recorded by agent run.", why: "Mapped from draft evidence.", requirementPoint: "Unmapped", risk: "Not documented", testStatus: "missing", reviewStatus: "pending" };
+      return { id: `file-${index}`, path: file, changeSummary: "", why: "", requirementPoint: "", risk: "", testStatus: "", reviewStatus: "" };
     }
     return {
       id: file.id || `file-${index}`,
-      path: file.path || file.file || file.filePath || "unknown-file",
-      changeSummary: file.changeSummary || file.summary || "No change summary recorded.",
-      why: file.why || "No rationale recorded.",
-      requirementPoint: file.requirementPoint || file.requirement || "Unmapped",
-      risk: file.risk || "No risk recorded.",
-      testStatus: file.testStatus || file.test || "missing",
-      reviewStatus: file.reviewStatus || file.review || file.status || "pending"
+      path: file.path || file.file || file.filePath || "",
+      changeSummary: file.changeSummary || file.summary || "",
+      why: file.why || "",
+      requirementPoint: file.requirementPoint || file.requirement || "",
+      risk: file.risk || "",
+      testStatus: file.testStatus || file.test || "",
+      reviewStatus: file.reviewStatus || file.review || file.status || ""
     };
   });
 }
 
 function normalizeTests(tests) {
-  return tests.map((test, index) => {
-    if (typeof test === "string") return { id: `test-${index}`, name: test, status: "planned", source: "manual", required: true, errorSummary: "" };
+  return normalizeArray(tests).map((test, index) => {
+    if (typeof test === "string") return { id: `test-${index}`, name: test, status: "", source: "", required: true, errorSummary: "" };
     return {
       id: test.id || `test-${index}`,
       name: test.name || test.command || `Test ${index + 1}`,
-      status: test.status || "missing",
-      source: test.source || test.command || "unknown",
+      status: test.status || "",
+      source: test.source || test.command || "",
       required: test.required !== false,
       errorSummary: test.errorSummary || test.error || ""
     };
@@ -204,24 +219,24 @@ function normalizeTests(tests) {
 }
 
 function normalizeRisks(risks) {
-  return risks.map((risk, index) => {
-    if (typeof risk === "string") return { id: `risk-${index}`, level: "medium", message: risk, mitigation: "Document before ready.", acknowledged: false };
+  return normalizeArray(risks).map((risk, index) => {
+    if (typeof risk === "string") return { id: `risk-${index}`, level: "", message: risk, mitigation: "", acknowledged: false };
     return {
       id: risk.id || `risk-${index}`,
-      level: risk.level || risk.priority || "medium",
-      message: risk.message || risk.description || "No risk message recorded.",
-      mitigation: risk.mitigation || "No mitigation recorded.",
+      level: risk.level || risk.priority || "",
+      message: risk.message || risk.description || "",
+      mitigation: risk.mitigation || "",
       acknowledged: Boolean(risk.acknowledged)
     };
   });
 }
 
 function normalizeChecklist(items) {
-  return items.map((item, index) => {
+  return normalizeArray(items).map((item, index) => {
     if (typeof item === "string") return { id: `check-${index}`, label: item, checked: false, blocking: false, system: false };
     return {
       id: item.id || `check-${index}`,
-      label: item.label || item.text || "Checklist item",
+      label: item.label || item.text || "",
       checked: Boolean(item.checked),
       blocking: Boolean(item.blocking),
       system: Boolean(item.system)
@@ -235,62 +250,84 @@ function normalizeSummary(summary) {
 }
 
 function normalizeReviewItems(items) {
-  if (!Array.isArray(items)) return [];
-  return items.map((item, index) => ({
+  return normalizeArray(items).map((item, index) => ({
     id: item.id || `review-${index}`,
-    filePath: item.filePath || item.file || item.path || "general",
-    status: item.status || item.humanStatus || "pending",
+    filePath: item.filePath || item.file || item.path || "",
+    status: item.status || item.humanStatus || "",
     required: Boolean(item.required),
-    message: item.message || item.summary || "No review detail recorded."
+    message: item.message || item.summary || ""
   }));
 }
 
 function normalizeArtifacts(items) {
-  const list = Array.isArray(items) ? items : Object.entries(items).map(([name, value]) => ({ name, ...(value || {}) }));
+  const list = Array.isArray(items) ? items : Array.isArray(items?.artifactList) ? items.artifactList : [];
   return list.map((item, index) => ({
     id: item.id || `artifact-${index}`,
-    type: item.type || "artifact",
-    name: item.name || `artifact-${index}`,
-    contentPreview: isUnsafeArtifact(item) ? "[redacted preview withheld]" : (item.contentPreview || item.preview || item.text || "No preview recorded."),
-    redactionState: item.redactionState || item.redaction || "safe",
+    type: item.type || "",
+    name: item.name || item.fileName || `artifact-${index}`,
+    contentPreview: isUnsafeArtifact(item) ? "[redacted preview withheld]" : (item.contentPreview || item.preview || item.text || ""),
+    redactionState: item.redactionState || item.redaction || "",
     createdAt: item.createdAt || ""
   }));
 }
 
 function normalizeActivity(items) {
-  if (!Array.isArray(items)) return [];
-  return items.map((item, index) => ({
+  return normalizeArray(items).map((item, index) => ({
     id: item.id || `activity-${index}`,
-    actor: item.actor || item.source || "System",
-    action: item.action || item.message || item.title || "Activity recorded",
+    actor: item.actor || item.source || "",
+    action: item.action || item.message || item.title || "",
     createdAt: item.createdAt || item.timestamp || ""
   }));
 }
 
 function normalizeChangeRecords(input) {
-  const changes = Array.isArray(input.changes) ? input.changes : [];
+  const changes = Array.isArray(input?.changes) ? input.changes : [];
   return {
-    available: input.available !== false && !input.unavailable,
-    errorCode: input.errorCode || "",
-    verificationStatus: input.verificationStatus || "unknown",
+    available: input?.available !== false && !input?.unavailable,
+    errorCode: input?.errorCode || "",
+    verificationStatus: input?.verificationStatus || "",
     changes: changes.map((change, index) => ({
       id: change.id || `change-${index}`,
-      filePath: change.filePath || change.path || change.file || "unknown-file",
-      status: change.status || "changed",
-      changeType: change.changeType || "modified"
+      filePath: change.filePath || change.path || change.file || "",
+      status: change.status || "",
+      changeType: change.changeType || ""
     }))
   };
 }
 
-function isUnsafeArtifact(item = {}) {
-  const state = item.redactionState || item.redaction;
-  const name = String(item.name || "").toLowerCase();
-  return ["redacted", "unsafe", "secret_redacted"].includes(state) || name.includes(".env") || name.includes("token") || name.includes("secret") || name.includes("full_sandbox_log") || name.includes("full_patch_diff");
+function normalizeArray(value) {
+  return Array.isArray(value) ? value : [];
 }
 
-function shouldUseFallback(error) {
-  const code = error?.payload?.error?.code;
-  return !code || FALLBACK_CODES.has(code) || code === "network_error" || String(code).endsWith("_not_found");
+function dataOrEmptyArray(result) {
+  return result.state === "success" ? result.data : [];
+}
+
+function dataOrNull(result) {
+  return result.state === "success" ? result.data : null;
+}
+
+function unavailableResult(code, message) {
+  return { state: "unavailable", data: null, error: { code, message, details: {} } };
+}
+
+function emptyAwareResult(result, resource) {
+  if (result.state === "empty") {
+    return { state: "empty", reason: result.error, resource, context: null };
+  }
+  return { state: result.state, error: result.error, resource, context: null };
+}
+
+function classifyError(code) {
+  if (code === "pr_draft_not_found") return "empty";
+  if (code === "network_error" || code === "not_found" || String(code).endsWith("_not_found")) return "unavailable";
+  return "error";
+}
+
+function isUnsafeArtifact(item = {}) {
+  const state = item.redactionState || item.redaction;
+  const name = String(item.name || item.fileName || "").toLowerCase();
+  return ["redacted", "unsafe", "secret_redacted"].includes(state) || name.includes(".env") || name.includes("token") || name.includes("secret") || name.includes("full_sandbox_log") || name.includes("full_patch_diff");
 }
 
 function envelopeError(payload) {

@@ -141,7 +141,7 @@ CREATE TABLE IF NOT EXISTS activity_logs (
 CREATE TABLE IF NOT EXISTS workspace_snapshots (
   id TEXT PRIMARY KEY,
   run_id TEXT NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
-  snapshot_type TEXT NOT NULL DEFAULT 'baseline' CHECK (snapshot_type IN ('baseline', 'checkpoint')),
+  snapshot_type TEXT NOT NULL DEFAULT 'baseline' CHECK (snapshot_type IN ('baseline', 'checkpoint', 'source_apply_baseline')),
   source_repo_path TEXT NOT NULL DEFAULT '',
   workspace_path TEXT NOT NULL DEFAULT '',
   baseline_path TEXT NOT NULL DEFAULT '',
@@ -170,7 +170,7 @@ CREATE TABLE IF NOT EXISTS rollback_operations (
   id TEXT PRIMARY KEY,
   run_id TEXT NOT NULL REFERENCES agent_runs(id) ON DELETE CASCADE,
   change_id TEXT REFERENCES file_change_records(id) ON DELETE SET NULL,
-  operation_type TEXT NOT NULL CHECK (operation_type IN ('file_revert', 'run_reset')),
+  operation_type TEXT NOT NULL CHECK (operation_type IN ('file_revert', 'run_reset', 'source_apply', 'source_file_revert', 'source_run_reset')),
   status TEXT NOT NULL DEFAULT 'completed' CHECK (status IN ('completed', 'failed')),
   requested_by TEXT NOT NULL DEFAULT 'human',
   reason TEXT NOT NULL DEFAULT '',

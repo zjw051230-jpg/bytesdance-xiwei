@@ -16,7 +16,16 @@ const excludedNames = new Set([
   ".pytest_cache",
   ".vite"
 ]);
-const resetPreservedRelativePaths = new Set([".git", "node_modules", "frontend/node_modules"]);
+const resetPreservedRelativePaths = new Set([
+  ".git",
+  ".env",
+  ".env.local",
+  ".ai-runs",
+  "node_modules",
+  "frontend/.env",
+  "frontend/.env.local",
+  "frontend/node_modules"
+]);
 
 export class WorkspaceAdapter {
   async createRunWorkspace() {
@@ -41,6 +50,18 @@ export class WorkspaceAdapter {
 
   async createCheckpoint() {
     throw new Error("createCheckpoint is not implemented");
+  }
+
+  async createSourceSnapshot() {
+    throw new Error("createSourceSnapshot is not implemented");
+  }
+
+  async applyWorkspaceToSource() {
+    throw new Error("applyWorkspaceToSource is not implemented");
+  }
+
+  async resetSourceRepo() {
+    throw new Error("resetSourceRepo is not implemented");
   }
 
   async cleanupWorkspace() {
@@ -120,6 +141,38 @@ export class CopyWorkspaceAdapter extends WorkspaceAdapter {
     const checkpointPath = path.join(this.runsRoot, "workspaces", safeSegment(runId), "checkpoints", `${Date.now()}-${safeSegment(label)}`);
     await copyTree(workspaceRoot, checkpointPath);
     return { runId, checkpointPath, label, createdAt: new Date().toISOString() };
+  }
+
+  async createSourceSnapshot({ runId, sourceRepoPath, label = "source-before-apply" }) {
+    const sourceRoot = path.resolve(sourceRepoPath || "");
+    assertUsableRoot(sourceRoot, "source");
+    const sourceStat = await fs.stat(sourceRoot).catch(() => null);
+    if (!sourceStat?.isDirectory?.()) {
+      throw Object.assign(new Error("source repo path must be an existing directory"), { code: "source_repo_invalid" });
+    }
+    const snapshotPath = path.join(this.runsRoot, "workspaces", safeSegment(runId), "source-snapshots", `${Date.now()}-${safeSegment(label)}`);
+    await copyTree(sourceRoot, snapshotPath);
+    return { runId, sourceRepoPath: sourceRoot, snapshotPath, label, createdAt: new Date().toISOString() };
+  }
+
+  async applyWorkspaceToSource({ workspacePath, sourceRepoPath }) {
+    const workspaceRoot = path.resolve(workspacePath || "");
+    const sourceRoot = path.resolve(sourceRepoPath || "");
+    assertUsableRoot(workspaceRoot, "workspace");
+    assertUsableRoot(sourceRoot, "source");
+    await pruneWorkspaceForReset(sourceRoot, sourceRoot);
+    await copyTree(workspaceRoot, sourceRoot);
+    return { workspacePath: workspaceRoot, sourceRepoPath: sourceRoot, appliedAt: new Date().toISOString() };
+  }
+
+  async resetSourceRepo({ sourceRepoPath, baselinePath }) {
+    const sourceRoot = path.resolve(sourceRepoPath || "");
+    const baselineRoot = path.resolve(baselinePath || "");
+    assertUsableRoot(sourceRoot, "source");
+    assertUsableRoot(baselineRoot, "source baseline");
+    await pruneWorkspaceForReset(sourceRoot, sourceRoot);
+    await copyTree(baselineRoot, sourceRoot);
+    return { sourceRepoPath: sourceRoot, baselinePath: baselineRoot, resetAt: new Date().toISOString() };
   }
 
   async cleanupWorkspace({ workspacePath }) {

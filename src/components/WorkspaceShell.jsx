@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DesignPlanningWorkbench from "./DesignPlanningWorkbench.jsx";
 import DSLWorkbench from "./DSLWorkbench.jsx";
 import PRWorkbench from "./PRWorkbench.jsx";
@@ -23,10 +23,21 @@ export default function WorkspaceShell({
   routeProjectId
 }) {
   const [railExpanded, setRailExpanded] = useState(false);
-  const [agentWorkflow, setAgentWorkflow] = useState(initialAgentWorkflowState);
+  const [agentWorkflowByScope, setAgentWorkflowByScope] = useState({});
   const [activeRequirement, setActiveRequirement] = useState(null);
   const [requirementError, setRequirementError] = useState("");
   const activeProject = projects.find((project) => project.id === activeProjectId) ?? projects[0];
+  const activeRequirementForProject = requirementBelongsToProject(activeRequirement, activeProject) ? activeRequirement : null;
+  const workflowScopeKey = buildWorkflowScopeKey(activeProject?.id, activeRequirementForProject?.id);
+  const agentWorkflow = agentWorkflowByScope[workflowScopeKey] || initialAgentWorkflowState;
+  const setScopedAgentWorkflow = useCallback((updater) => {
+    setAgentWorkflowByScope((current) => {
+      const previous = current[workflowScopeKey] || initialAgentWorkflowState;
+      const next = typeof updater === "function" ? updater(previous) : updater;
+      if (Object.is(next, previous)) return current;
+      return { ...current, [workflowScopeKey]: next || initialAgentWorkflowState };
+    });
+  }, [workflowScopeKey]);
 
   useEffect(() => {
     let active = true;
@@ -109,7 +120,7 @@ export default function WorkspaceShell({
         {workspacePage === "dsl" ? (
           <DSLWorkbench
             activeProject={activeProject}
-            activeRequirement={activeRequirement}
+            activeRequirement={activeRequirementForProject}
             onRequirementChange={setActiveRequirement}
             requirementError={requirementError}
             toast={toast}
@@ -120,12 +131,12 @@ export default function WorkspaceShell({
         {workspacePage === "design" ? (
           <DesignPlanningWorkbench
             activeProject={activeProject}
-            activeRequirement={activeRequirement}
+            activeRequirement={activeRequirementForProject}
             requirementError={requirementError}
             toast={toast}
             onToast={onToast}
             agentWorkflow={agentWorkflow}
-            onAgentWorkflowChange={setAgentWorkflow}
+            onAgentWorkflowChange={setScopedAgentWorkflow}
             onOpenReview={() => onWorkspacePageChange("review")}
             onOpenPr={() => onWorkspacePageChange("pr")}
           />
@@ -133,25 +144,35 @@ export default function WorkspaceShell({
         {workspacePage === "review" ? (
           <ReviewCheckWorkbench
             activeProject={activeProject}
-            activeRequirement={activeRequirement}
+            activeRequirement={activeRequirementForProject}
             agentWorkflow={agentWorkflow}
-            onAgentWorkflowChange={setAgentWorkflow}
+            onAgentWorkflowChange={setScopedAgentWorkflow}
             onOpenPr={() => onWorkspacePageChange("pr")}
           />
         ) : null}
         {workspacePage === "pr" ? (
           <PRWorkbench
             activeProject={activeProject}
-            activeRequirement={activeRequirement}
+            activeRequirement={activeRequirementForProject}
             requirementId={routeRequirementId}
             projectId={routeProjectId || activeProject?.id}
             agentWorkflow={agentWorkflow}
-            onAgentWorkflowChange={setAgentWorkflow}
+            onAgentWorkflowChange={setScopedAgentWorkflow}
           />
         ) : null}
       </div>
     </div>
   );
+}
+
+function buildWorkflowScopeKey(projectId, requirementId) {
+  return `${projectId || "no-project"}:${requirementId || "no-requirement"}`;
+}
+
+function requirementBelongsToProject(requirement, project) {
+  if (!requirement) return true;
+  if (!project?.id || !requirement.projectId) return true;
+  return String(requirement.projectId) === String(project.id);
 }
 
 function logDevDuration(label, startedAt) {

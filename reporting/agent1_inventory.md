@@ -1,7 +1,7 @@
 ## Agent(1) Inventory
 
 - type: mixed_python_agent_runtime_and_node_context_service
-- root: F:\字节比赛\最终程序\agent(1)\agent
+- root: C:\Users\www30\Desktop\oka\bytesdance-xiwei\agent(1)\agent
 - file count: 267
 - entrypoints: agent/agent_core/main.py, agent/agent_core/scripts/llm_smoke.py, agent/context-service-handoff/context-service-handoff/code/backend/package.json, agent/context-service-handoff/context-service-handoff/code/backend/src/server.js
 - dependencies: python=true, node=true

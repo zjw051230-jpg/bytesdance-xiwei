@@ -2,6 +2,7 @@ import { ArrowRight, CheckCircle2, ExternalLink, FileCheck2, Monitor, RefreshCw,
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getPreviewStatus, startProjectPreview } from "../api/previewClient.js";
 import {
+  applyAgentRunToSource,
   getAgentRunChangeDiff,
   getPersistentAgentRun,
   getPrDraft,
@@ -51,7 +52,8 @@ export default function ReviewCheckWorkbench({
   onAgentWorkflowChange,
   onOpenPr
 }) {
-  const [runId, setRunId] = useState(agentWorkflow.runId || "");
+  const initialRunId = isWorkflowProjectMismatch(agentWorkflow, activeProject, activeRequirement) ? "" : agentWorkflow.runId || "";
+  const [runId, setRunId] = useState(initialRunId);
   const [reviewItems, setReviewItems] = useState([]);
   const [changesState, setChangesState] = useState({ loading: false, error: "", data: null });
   const [selectedChangeId, setSelectedChangeId] = useState("");
@@ -66,23 +68,47 @@ export default function ReviewCheckWorkbench({
   const [rollbackMessage, setRollbackMessage] = useState("");
   const workflowReview = agentWorkflow.review || null;
   const projectId = activeProject?.id || "active-project";
+  const requirementId = activeRequirement?.id || "";
   const projectLocalPath = typeof activeProject?.localPath === "string" ? activeProject.localPath.trim() : "";
-  const workspacePreviewPath = resolveWorkflowWorkspacePath(agentWorkflow);
-  const previewDependencyPath = workspacePreviewPath ? resolveWorkflowSourcePath(agentWorkflow, activeProject) : "";
-  const localPath = workspacePreviewPath || projectLocalPath;
-  const previewProjectId = workspacePreviewPath ? `${projectId}:run:${runId || agentWorkflow.runId || "workspace"}` : projectId;
+  const workflowProjectMismatch = isWorkflowProjectMismatch(agentWorkflow, activeProject, activeRequirement);
+  const workspacePreviewPath = workflowProjectMismatch ? "" : resolveWorkflowWorkspacePath(agentWorkflow);
+  const sourcePreviewActive = shouldPreviewSourceRepo(changesState.data);
+  const previewDependencyPath = !sourcePreviewActive && workspacePreviewPath ? resolveWorkflowSourcePath(agentWorkflow, activeProject) : "";
+  const activeRunId = workflowProjectMismatch ? "" : (runId || agentWorkflow.runId || "");
+  const localPath = activeRunId ? (sourcePreviewActive ? projectLocalPath : (workspacePreviewPath || projectLocalPath)) : "";
+  const previewProjectId = `${projectId}:review:${activeRunId || "no-run"}:${sourcePreviewActive ? "source" : "workspace"}`;
+  const previewSessionId = buildAuditPreviewSessionId({
+    projectId,
+    requirementId,
+    runId: activeRunId,
+    targetPath: localPath,
+    sourcePreviewActive
+  });
   const requestSequence = useRef(0);
 
   useEffect(() => {
-    setRunId(agentWorkflow.runId || "");
-  }, [agentWorkflow.runId]);
+    setRunId(workflowProjectMismatch ? "" : agentWorkflow.runId || "");
+  }, [agentWorkflow.runId, workflowProjectMismatch]);
+
+  useEffect(() => {
+    setRunId(workflowProjectMismatch ? "" : agentWorkflow.runId || "");
+    setReviewItems([]);
+    setChangesState({ loading: false, error: "", data: null });
+    setSelectedChangeId("");
+    setDiffState({ loading: false, error: "", diff: null });
+    setReviewError("");
+    setPreviewState(initialPreviewState);
+    setPreviewKey((current) => current + 1);
+    setRollbackMessage("");
+    setConfirmAction(null);
+  }, [projectId, requirementId, agentWorkflow.runId, workflowProjectMismatch]);
 
   useEffect(() => {
     let active = true;
     if (runId || !activeRequirement?.id) return () => {
       active = false;
     };
-    resolveLatestReviewRun({ projectId, requirementId: activeRequirement.id })
+    resolveLatestReviewRun({ projectId, requirementId: activeRequirement.id, activeProject })
       .then((latestRun) => {
         if (!active) return;
         if (latestRun?.runId) {
@@ -100,10 +126,10 @@ export default function ReviewCheckWorkbench({
     return () => {
       active = false;
     };
-  }, [activeRequirement?.id, projectId, runId, onAgentWorkflowChange]);
+  }, [activeRequirement?.id, activeProject, projectId, runId, onAgentWorkflowChange]);
 
   const reloadChanges = useCallback(async () => {
-    if (!runId) {
+    if (workflowProjectMismatch || !runId) {
       setChangesState({ loading: false, error: "", data: null });
       return;
     }
@@ -113,10 +139,14 @@ export default function ReviewCheckWorkbench({
       setChangesState({ loading: false, error: "", data });
       const firstActive = data?.changes?.find((change) => change.status !== "reverted" && change.status !== "reset") || data?.changes?.[0];
       setSelectedChangeId((current) => current || firstActive?.id || "");
-      onAgentWorkflowChange?.((current) => ({
-        ...current,
-        verificationStatus: data?.verificationStatus || current.verificationStatus
-      }));
+      onAgentWorkflowChange?.((current) => {
+        const verificationStatus = data?.verificationStatus || current.verificationStatus;
+        if (!verificationStatus || current.verificationStatus === verificationStatus) return current;
+        return {
+          ...current,
+          verificationStatus
+        };
+      });
     } catch (error) {
       const code = error.payload?.error?.code || "";
       setChangesState({
@@ -127,13 +157,13 @@ export default function ReviewCheckWorkbench({
         data: null
       });
     }
-  }, [runId, onAgentWorkflowChange]);
+  }, [runId, workflowProjectMismatch, onAgentWorkflowChange]);
 
   useEffect(() => {
     let active = true;
     setReviewError("");
     setReviewItems([]);
-    if (!runId) return () => {
+    if (workflowProjectMismatch || !runId) return () => {
       active = false;
     };
     setLoadingReview(true);
@@ -152,7 +182,7 @@ export default function ReviewCheckWorkbench({
     return () => {
       active = false;
     };
-  }, [runId]);
+  }, [runId, workflowProjectMismatch]);
 
   useEffect(() => {
     reloadChanges();
@@ -160,7 +190,7 @@ export default function ReviewCheckWorkbench({
 
   useEffect(() => {
     let active = true;
-    if (!runId || !selectedChangeId) {
+    if (workflowProjectMismatch || !runId || !selectedChangeId) {
       setDiffState({ loading: false, error: "", diff: null });
       return () => {
         active = false;
@@ -177,7 +207,7 @@ export default function ReviewCheckWorkbench({
     return () => {
       active = false;
     };
-  }, [runId, selectedChangeId, rollbackRefreshKey]);
+  }, [runId, selectedChangeId, rollbackRefreshKey, workflowProjectMismatch]);
 
   const handleHumanStatusChange = async (itemId, humanStatus) => {
     setReviewItems((current) => current.map((item) => item.id === itemId ? { ...item, humanStatus } : item));
@@ -189,18 +219,33 @@ export default function ReviewCheckWorkbench({
     }
   };
 
-  const performRollback = async () => {
+  const performReviewAction = async () => {
     const action = confirmAction;
     if (!action || !runId) return;
     setRollbackMessage("");
     setConfirmAction(null);
     try {
-      if (action.type === "file") {
-        await revertAgentRunFile(runId, { changeId: action.change.id, reason: "Rejected from Review Check page." });
-        setRollbackMessage(`已回退 ${action.change.filePath}。验证状态已标记为 stale。`);
+      const target = shouldUseSourceRollback(changesState.data) ? "source" : "workspace";
+      if (action.type === "apply") {
+        await applyAgentRunToSource(runId, { reason: "Confirmed from Review Check page." });
+        setRollbackMessage("Confirmed: run workspace has been applied to the real Conduit source repo. Future rollback actions target the real source baseline.");
+      } else if (action.type === "file") {
+        const payload = {
+          changeId: action.change.id,
+          reason: target === "source" ? "Rejected from real source after apply." : "Rejected from Review Check page."
+        };
+        if (target === "source") payload.target = "source";
+        await revertAgentRunFile(runId, payload);
+        setRollbackMessage(`${target === "source" ? "Real source file reverted" : "Workspace file reverted"}: ${action.change.filePath}. Verification is stale.`);
       } else {
-        await resetAgentRunWorkspace(runId, { reason: "Reset from Review Check page." });
-        setRollbackMessage("已重置整个 run workspace。验证状态已标记为 stale。");
+        const payload = {
+          reason: target === "source" ? "Reset real source from Review Check page." : "Reset from Review Check page."
+        };
+        if (target === "source") payload.target = "source";
+        await resetAgentRunWorkspace(runId, payload);
+        setRollbackMessage(target === "source"
+          ? "Real Conduit source repo has been reset to the pre-apply baseline. Verification is stale."
+          : "Run workspace has been reset to baseline. Verification is stale.");
       }
       await reloadChanges();
       const items = await listReviewItems(runId).catch(() => null);
@@ -208,7 +253,7 @@ export default function ReviewCheckWorkbench({
       setRollbackRefreshKey((current) => current + 1);
       setPreviewKey((current) => current + 1);
     } catch (error) {
-      setRollbackMessage(`回退失败：${error.message || "Persistence API request failed"}`);
+      setRollbackMessage(`Operation failed: ${error.message || "Persistence API request failed"}`);
     }
   };
 
@@ -236,6 +281,17 @@ export default function ReviewCheckWorkbench({
     const sequence = requestSequence.current + 1;
     requestSequence.current = sequence;
 
+    if (!activeRunId) {
+      setPreviewState({
+        ...initialPreviewState,
+        status: workflowProjectMismatch ? "run_project_mismatch" : "no_review_run",
+        message: workflowProjectMismatch
+          ? "已阻止旧工程 Agent Run 预览。请先为当前工程执行 Agent。"
+          : "当前工程暂无 Agent Run 审计预览。请先在设计规划页执行 Agent。"
+      });
+      return;
+    }
+
     if (!localPath) {
       setPreviewState({
         ...initialPreviewState,
@@ -247,8 +303,14 @@ export default function ReviewCheckWorkbench({
       return;
     }
 
-    const requestPayload = { projectId: previewProjectId, localPath };
-    if (previewDependencyPath) {
+    const requestPayload = {
+      projectId: previewProjectId,
+      requirementId,
+      runId: activeRunId,
+      previewSessionId,
+      localPath
+    };
+    if (previewDependencyPath || sourcePreviewActive) {
       requestPayload.dependencyPath = previewDependencyPath;
       requestPayload.allowPortFallback = true;
       requestPayload.previewMode = "audit_workspace";
@@ -280,7 +342,7 @@ export default function ReviewCheckWorkbench({
         message: error?.payload?.error?.message || error?.message || "Preview API request failed."
       });
     }
-  }, [localPath, previewDependencyPath, previewProjectId]);
+  }, [activeRunId, localPath, previewDependencyPath, previewProjectId, previewSessionId, requirementId, sourcePreviewActive, workflowProjectMismatch]);
 
   useEffect(() => {
     loadPreview();
@@ -299,6 +361,34 @@ export default function ReviewCheckWorkbench({
     window.open(auditModel.previewUrl, "_blank", "noopener,noreferrer");
   };
 
+  const handleApplyToSource = async () => {
+    if (!runId) return;
+    if (typeof window !== "undefined" && !window.confirm("确认把当前 run workspace 的代码写入真实 Conduit 源仓库？写入前会创建源仓库快照。")) return;
+    setRollbackMessage("");
+    try {
+      await applyAgentRunToSource(runId, { reason: "Confirmed from Review Check page." });
+      setRollbackMessage("Confirmed: run workspace has been applied to the real Conduit source repo.");
+      await reloadChanges();
+      setPreviewKey((current) => current + 1);
+    } catch (error) {
+      setRollbackMessage(`Apply failed: ${error.message || "Persistence API request failed"}`);
+    }
+  };
+
+  const handleResetSource = async () => {
+    if (!runId) return;
+    if (typeof window !== "undefined" && !window.confirm("确认把真实 Conduit 源仓库回退到本次确认写入前的快照？")) return;
+    setRollbackMessage("");
+    try {
+      await resetAgentRunWorkspace(runId, { target: "source", reason: "Reset real source from Review Check page." });
+      setRollbackMessage("Real Conduit source repo has been reset to the pre-apply baseline.");
+      await reloadChanges();
+      setPreviewKey((current) => current + 1);
+    } catch (error) {
+      setRollbackMessage(`Real source reset failed: ${error.message || "Persistence API request failed"}`);
+    }
+  };
+
   return (
     <main className="review-check-workbench" data-testid="review-check-workbench">
       <section className="audit-preview-pane" aria-label="Conduit 页面预览">
@@ -315,7 +405,7 @@ export default function ReviewCheckWorkbench({
         <div className={`audit-browser-frame ${viewport}`} data-testid="audit-preview-frame">
           {previewState.available && auditModel.previewUrl ? (
             <iframe
-              key={`${previewKey}-${viewport}-${auditModel.previewUrl}`}
+              key={`${projectId}-${requirementId || "no-requirement"}-${activeRunId || "no-run"}-${hashString(localPath)}-${previewKey}-${viewport}-${auditModel.previewUrl}`}
               title={auditModel.previewTitle}
               src={auditModel.previewUrl}
               onError={() => setPreviewState((current) => ({
@@ -372,6 +462,14 @@ export default function ReviewCheckWorkbench({
           runId={runId}
           changesState={changesState}
           onReset={() => setConfirmAction({ type: "run" })}
+        />
+
+        <SourceApplyPanel
+          changesState={changesState}
+          runId={runId}
+          sourcePath={projectLocalPath}
+          onApply={handleApplyToSource}
+          onResetSource={handleResetSource}
         />
 
         <section className="audit-section audit-file-section">
@@ -442,7 +540,7 @@ export default function ReviewCheckWorkbench({
             {confirmAction.change ? <code>{confirmAction.change.filePath}</code> : <code>{runId || "no run"}</code>}
             <div>
               <button type="button" onClick={() => setConfirmAction(null)}>取消</button>
-              <button type="button" className="danger" onClick={performRollback}>确认回退</button>
+              <button type="button" className="danger" onClick={performReviewAction}>确认回退</button>
             </div>
           </section>
         </div>
@@ -485,10 +583,42 @@ function RollbackInspector({ runId, changesState, onReset }) {
   );
 }
 
+function SourceApplyPanel({ changesState, runId, sourcePath, onApply, onResetSource }) {
+  const data = changesState.data;
+  const sourceState = data?.sourceState || {};
+  const sourceRollbackActive = shouldUseSourceRollback(data);
+  const sourcePreviewed = shouldPreviewSourceRepo(data);
+  const canApply = Boolean(runId && data?.canApplyToSource && sourcePath && !sourceRollbackActive);
+  const canResetSource = Boolean(runId && data?.canRollbackSource && sourcePath);
+  return (
+    <section className="audit-section source-apply-panel">
+      <h2><ShieldCheck size={16} />真实 Conduit 写入</h2>
+      <p>{sourceRollbackActive
+        ? "当前 run 已确认写入真实 Conduit。回退会恢复到写入前快照。"
+        : sourcePreviewed
+          ? "真实 Conduit 已回退到写入前快照，审计预览正在展示真实源仓库。"
+          : "当前预览仍来自 run workspace。确认后才会写入真实 Conduit 源仓库。"}
+      </p>
+      <dl>
+        <div><dt>source</dt><dd>{sourcePath || "not bound"}</dd></div>
+        <div><dt>state</dt><dd>{sourceState.status || "not_applied"}</dd></div>
+      </dl>
+      <div className="source-apply-actions">
+        <button type="button" disabled={!canApply || changesState.loading} onClick={onApply}>
+          Apply to Real Conduit Source
+        </button>
+        <button type="button" disabled={!canResetSource || changesState.loading} onClick={onResetSource}>
+          Reset Real Conduit Source
+        </button>
+      </div>
+    </section>
+  );
+}
+
 function getRollbackUnavailableReason(runId, changesState) {
   const data = changesState.data;
   if (!runId) return "当前没有关联 Agent Run，无法重置 run workspace。";
-  if (changesState.loading) return "正在加载 run workspace 状态，请稍后再试。";
+  if (changesState.loading && !data) return "正在加载 run workspace 状态，请稍后再试。";
   if (changesState.error) return "回退状态加载失败，请先刷新审计页面或重新进入当前 run。";
   if (!data) return "尚未读取到 run workspace 状态。";
   if (data.available === false && data.reason === "workspace_not_initialized") {
@@ -604,6 +734,55 @@ function normalizeWorkflowReviewItems(items) {
   }));
 }
 
+function shouldPreviewSourceRepo(changesData) {
+  return ["applied", "partially_reverted", "reset"].includes(changesData?.sourceState?.status);
+}
+
+function shouldUseSourceRollback(changesData) {
+  return ["applied", "partially_reverted"].includes(changesData?.sourceState?.status);
+}
+
+function buildAuditPreviewSessionId({ projectId, requirementId, runId, targetPath, sourcePreviewActive }) {
+  const raw = [
+    "audit",
+    projectId || "no-project",
+    requirementId || "no-requirement",
+    runId || "no-run",
+    sourcePreviewActive ? "source" : "workspace",
+    hashString(targetPath || "")
+  ].join(":");
+  return raw.replace(/[^\w:.-]/g, "_");
+}
+
+function hashString(value) {
+  let hash = 0;
+  const text = String(value || "");
+  for (let index = 0; index < text.length; index += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
+
+function normalizeLocalPathForCompare(value) {
+  return String(value || "").trim().replaceAll("\\", "/").replace(/\/+$/, "").toLowerCase();
+}
+
+function isWorkflowProjectMismatch(workflow = {}, activeProject = {}, activeRequirement = {}) {
+  if (!workflow?.runId) return false;
+  const projectPath = normalizeLocalPathForCompare(activeProject?.localPath);
+  const sourcePath = normalizeLocalPathForCompare(resolveWorkflowSourcePath(workflow, {}));
+  if (projectPath && sourcePath && projectPath !== sourcePath) return true;
+
+  const workflowRequirementId = workflow.requirementId || workflow.context?.requirementId || workflow.context?.requirement_id;
+  if (activeRequirement?.id && workflowRequirementId && String(workflowRequirementId) !== String(activeRequirement.id)) return true;
+
+  const projectId = activeProject?.id || "";
+  const workflowProjectId = workflow.projectId || workflow.context?.projectId || workflow.context?.project_id;
+  if (projectId && workflowProjectId && String(workflowProjectId) !== String(projectId)) return true;
+
+  return false;
+}
+
 function resolveWorkflowWorkspacePath(workflow = {}) {
   const candidates = [
     workflow.workspacePath,
@@ -629,17 +808,25 @@ function resolveWorkflowSourcePath(workflow = {}, project = {}) {
     .find(Boolean) || "";
 }
 
-async function resolveLatestReviewRun({ projectId, requirementId }) {
+async function resolveLatestReviewRun({ projectId, requirementId, activeProject }) {
   const activity = await listProjectActivity(projectId).catch(() => []);
-  const latestRunId = (Array.isArray(activity) ? activity : [])
+  const candidates = (Array.isArray(activity) ? activity : [])
     .filter((item) => item.requirementId === requirementId && item.runId)
-    .find((item) => item.type === "WORKSPACE_SNAPSHOT_CREATED" || item.payloadJson?.workspacePath || item.type === "agent_dry_run_completed")
-    ?.runId;
-  if (!latestRunId) return null;
-  const run = await getPersistentAgentRun(latestRunId).catch(() => null);
-  if (!run) return { runId: latestRunId };
+    .filter((item) => item.projectId === projectId || !item.projectId)
+    .filter((item) => item.type === "WORKSPACE_SNAPSHOT_CREATED" || item.payloadJson?.workspacePath || item.type === "agent_dry_run_completed")
+    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  for (const item of candidates) {
+    const run = await getPersistentAgentRun(item.runId).catch(() => null);
+    if (!run) continue;
+    if (!isRunOwnedByCurrentProject(run, activeProject, requirementId)) continue;
+    return normalizePersistentRun(run, item.runId);
+  }
+  return null;
+}
+
+function normalizePersistentRun(run, fallbackRunId = "") {
   return {
-    runId: run.id || latestRunId,
+    runId: run.id || fallbackRunId,
     status: run.status,
     dryRun: run.dryRun,
     realWritePerformed: run.realWritePerformed,
@@ -649,6 +836,17 @@ async function resolveLatestReviewRun({ projectId, requirementId }) {
     targetRepoPath: run.targetRepoPath,
     context: run.contextSnapshot || {}
   };
+}
+
+function isRunOwnedByCurrentProject(run = {}, activeProject = {}, requirementId = "") {
+  if (requirementId && String(run.requirementId || "") !== String(requirementId)) return false;
+  const projectId = activeProject?.id || "";
+  const runProjectId = run.contextSnapshot?.projectId || run.contextSnapshot?.project_id || run.projectId || "";
+  if (projectId && runProjectId && String(runProjectId) !== String(projectId)) return false;
+  const projectPath = normalizeLocalPathForCompare(activeProject?.localPath);
+  const sourcePath = normalizeLocalPathForCompare(run.sourceRepoPath || run.contextSnapshot?.sourceRepoPath || run.contextSnapshot?.source_repo_path);
+  if (projectPath && sourcePath && projectPath !== sourcePath) return false;
+  return Boolean(run.workspacePath || run.contextSnapshot?.workspacePath || run.contextSnapshot?.executionBoundary?.isolatedWorkspacePath);
 }
 
 function mergePersistentRunIntoWorkflow(current = {}, run = {}) {

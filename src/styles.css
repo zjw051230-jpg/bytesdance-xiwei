@@ -796,6 +796,65 @@
   white-space: nowrap;
 }
 
+.source-apply-panel {
+  border-color: rgba(14, 165, 233, 0.18);
+  background: #f8fbff;
+}
+
+.source-apply-panel dl {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+
+.source-apply-panel dl div {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: 8px;
+}
+
+.source-apply-panel dt {
+  color: #64748b;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.source-apply-panel dd {
+  min-width: 0;
+  overflow: hidden;
+  margin: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.source-apply-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+
+.source-apply-actions button {
+  min-height: 30px;
+  border: 1px solid rgba(2, 132, 199, 0.24);
+  border-radius: 8px;
+  color: #075985;
+  background: #ecfeff;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.source-apply-actions button:last-child {
+  border-color: rgba(185, 28, 28, 0.24);
+  color: #991b1b;
+  background: #fff7ed;
+}
+
+.source-apply-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 .rollback-reset-button,
 .rollback-file-button {
   min-height: 30px;

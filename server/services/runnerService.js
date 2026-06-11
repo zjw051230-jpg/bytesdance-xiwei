@@ -600,10 +600,19 @@ function inputGateError(pmMessages) {
   const latest = [...pmMessages].reverse().find((message) => String(message?.role || "pm") === "pm")?.content || "";
   const intent = detectInputIntent(latest);
   if (!shouldGateInputIntent(intent)) return null;
+  if (hasClarificationQuestionContext(pmMessages)) return null;
   return errorPayload("input_gated", buildInputGateReply(intent, latest), {
     intent,
     skipDslGeneration: true,
     artifactRunCreated: false
+  });
+}
+
+function hasClarificationQuestionContext(messages) {
+  return (Array.isArray(messages) ? messages : []).some((message) => {
+    const role = String(message?.role || "");
+    if (!["system", "system_clarification", "assistant"].includes(role)) return false;
+    return Boolean(String(message?.content || message?.text || "").trim());
   });
 }
 

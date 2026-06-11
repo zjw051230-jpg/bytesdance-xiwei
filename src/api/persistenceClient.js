@@ -62,6 +62,10 @@ export async function listPlanningTasks(planId) {
   return requestJson(`/api/design-plans/${encodeURIComponent(planId)}/tasks`);
 }
 
+export async function createPlanningTask(planId, payload) {
+  return postJson(`/api/design-plans/${encodeURIComponent(planId)}/tasks`, payload);
+}
+
 export async function updatePlanningTask(taskId, payload) {
   return patchJson(`/api/planning-tasks/${encodeURIComponent(taskId)}`, payload);
 }
@@ -96,6 +100,10 @@ export async function revertAgentRunFile(runId, payload) {
 
 export async function resetAgentRunWorkspace(runId, payload) {
   return postJson(`/api/agent/runs/${encodeURIComponent(runId)}/rollback`, payload);
+}
+
+export async function applyAgentRunToSource(runId, payload) {
+  return postJson(`/api/agent/runs/${encodeURIComponent(runId)}/apply`, payload);
 }
 
 export async function createAgentRunCheckpoint(runId, payload) {

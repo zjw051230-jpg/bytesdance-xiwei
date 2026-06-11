@@ -4,6 +4,7 @@ import { migrateDatabase } from "../db/migrate.js";
 import { seedWorkbenchDatabase } from "../db/seed.js";
 import { createPersistenceService } from "../services/persistence/persistenceService.js";
 import {
+  applyRunToSource,
   createRunCheckpoint,
   getRunChangeDiff,
   listRunChanges,
@@ -183,6 +184,12 @@ async function routeRequest({ method, url, body, service, config }) {
   match = path.match(/^\/api\/agent\/runs\/([^/]+)\/rollback$/);
   if (match && method === "POST") {
     const result = await resetRunWorkspace(service, match[1], body, config);
+    return unwrapServiceResult(result);
+  }
+
+  match = path.match(/^\/api\/agent\/runs\/([^/]+)\/apply$/);
+  if (match && method === "POST") {
+    const result = await applyRunToSource(service, match[1], body, config);
     return unwrapServiceResult(result);
   }
 

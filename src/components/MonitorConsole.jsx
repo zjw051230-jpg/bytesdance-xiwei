@@ -107,8 +107,8 @@ export default function MonitorConsole({ monitor, onProjectSelect }) {
               </tr>
             </thead>
             <tbody>
-              {taskView.activity.map((item) => (
-                <tr key={item.id}>
+              {taskView.activity.map((item, index) => (
+                <tr key={`${item.id || "activity"}-${index}`}>
                   <td><strong>{item.title}</strong><small>{item.meta}</small></td>
                   <td><StatusBadge status={item.status}>{item.status}</StatusBadge></td>
                   <td>{item.createdAt ? <time dateTime={item.createdAt}>{item.createdAt}</time> : "Field unavailable"}</td>

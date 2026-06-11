@@ -1,16 +1,18 @@
-import { AlertTriangle, Check, CheckCircle2, Circle, ClipboardList, Eye, FileText, Play, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { AlertTriangle, Check, CheckCircle2, Circle, ClipboardList, Eye, FileText, Play, Plus, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { checkAgentReadiness, getAgentArtifacts, getAgentRun, startAgentRun } from "../api/agentClient.js";
-import { getDesignPlan, listPlanningTasks, updatePlanningTask } from "../api/persistenceClient.js";
+import { getDesignPlan, getRequirement, listPlanningTasks, updatePlanningTask, upsertDesignPlan } from "../api/persistenceClient.js";
 import AgentWorkMatrix from "./AgentWorkMatrix.jsx";
 
+const unavailable = "unavailable";
+
 const planningStatusLabels = {
-  todo: "未开始",
-  running: "进行中",
-  blocked: "阻塞",
-  done: "已完成",
-  needs_review: "待审阅",
-  cancelled: "已取消"
+  todo: "Todo",
+  running: "Running",
+  blocked: "Blocked",
+  done: "Done",
+  needs_review: "Needs review",
+  cancelled: "Cancelled"
 };
 
 const statusOptions = Object.entries(planningStatusLabels);
@@ -26,15 +28,18 @@ export default function DesignPlanningWorkbench({
   onOpenReview,
   onOpenPr
 }) {
+  const [requirementRecord, setRequirementRecord] = useState(activeRequirement || null);
   const [designPlan, setDesignPlan] = useState(null);
   const [planningTasks, setPlanningTasks] = useState([]);
   const [planError, setPlanError] = useState("");
   const [isLoadingPlan, setIsLoadingPlan] = useState(false);
+  const [isCreatingPlan, setIsCreatingPlan] = useState(false);
   const [isAgentRunStarting, setIsAgentRunStarting] = useState(false);
   const hasTargetRepoPath = Boolean(resolveProjectLocalPath(activeProject));
 
   useEffect(() => {
     let active = true;
+    setRequirementRecord(activeRequirement || null);
     setDesignPlan(null);
     setPlanningTasks([]);
     setPlanError("");
@@ -43,21 +48,16 @@ export default function DesignPlanningWorkbench({
     };
 
     setIsLoadingPlan(true);
-    getDesignPlan(activeRequirement.id)
-      .then(async (plan) => {
-        const tasks = await listPlanningTasks(plan.id);
+    loadDesignPlanningData(activeRequirement.id, activeRequirement)
+      .then(({ requirement, plan, tasks }) => {
         if (!active) return;
+        setRequirementRecord(requirement);
         setDesignPlan(plan);
-        setPlanningTasks(Array.isArray(tasks) ? tasks : []);
+        setPlanningTasks(tasks);
       })
       .catch((error) => {
         if (!active) return;
-        if (error.payload?.error?.code === "design_plan_not_found") {
-          setDesignPlan(null);
-          setPlanningTasks([]);
-        } else {
-          setPlanError(`设计规划加载失败：${error.message || "Persistence API request failed"}`);
-        }
+        setPlanError(formatApiError("Design planning load failed", error));
       })
       .finally(() => {
         if (active) setIsLoadingPlan(false);
@@ -68,14 +68,42 @@ export default function DesignPlanningWorkbench({
     };
   }, [activeRequirement?.id]);
 
+  const normalizedRequirement = useMemo(() => normalizeRequirement(requirementRecord || activeRequirement || {}), [requirementRecord, activeRequirement]);
+  const normalizedPlan = useMemo(() => normalizePlan(designPlan), [designPlan]);
+  const normalizedTasks = useMemo(() => planningTasks.map(normalizeTask), [planningTasks]);
+  const taskStats = useMemo(() => summarizeTasks(normalizedTasks), [normalizedTasks]);
+
+  const handleCreateDesignPlan = async () => {
+    if (!activeRequirement?.id) return;
+    setIsCreatingPlan(true);
+    setPlanError("");
+    try {
+      const created = await upsertDesignPlan(activeRequirement.id, {
+        title: normalizedRequirement.title !== unavailable ? normalizedRequirement.title : "Design plan"
+      });
+      const tasks = created?.id ? await listPlanningTasks(created.id) : [];
+      setDesignPlan(created || null);
+      setPlanningTasks(Array.isArray(tasks) ? tasks : []);
+      onToast?.("Design plan created");
+    } catch (error) {
+      setPlanError(formatApiError("Create design plan failed", error));
+    } finally {
+      setIsCreatingPlan(false);
+    }
+  };
+
   const handleTaskStatusChange = async (taskId, status) => {
+    if (!taskId) return;
+    const previousTasks = planningTasks;
     setPlanningTasks((current) => current.map((task) => task.id === taskId ? { ...task, status } : task));
+    setPlanError("");
     try {
       const updated = await updatePlanningTask(taskId, { status });
       setPlanningTasks((current) => current.map((task) => task.id === taskId ? updated : task));
-      onToast?.("任务状态已保存");
+      onToast?.("Planning task saved");
     } catch (error) {
-      setPlanError(`任务状态保存失败：${error.message || "Persistence API request failed"}`);
+      setPlanningTasks(previousTasks);
+      setPlanError(formatApiError("Planning task save failed", error));
     }
   };
 
@@ -92,17 +120,17 @@ export default function DesignPlanningWorkbench({
           projectId: activeProject?.id,
           projectName: activeProject?.name,
           requirementId: activeRequirement?.id,
-          boundary: targetRepoPath ? "real agent target selected" : "real agent run blocked: missing project localPath",
+          boundary: targetRepoPath ? "real agent target selected" : "real agent run requires project localPath",
           targetRepoPath: targetRepoPath || "not_set",
           agent1EntryPoints: readiness.entrypoints
         },
-        latestReturn: "Agent 输入 Context 已准备好，当前不会写入业务仓库。",
+        latestReturn: "Agent input context is ready. No repository write has happened yet.",
         error: null
       }));
-      onToast?.("Agent 输入 Context 已准备好");
+      onToast?.("Agent input context is ready");
     } catch (error) {
       const message = error.message || "Agent API request failed";
-      setPlanError(`Agent 输入 Context 准备失败：${message}`);
+      setPlanError(formatApiError("Agent input context failed", error));
       onAgentWorkflowChange?.((current) => ({ ...current, status: "blocked", error: message }));
     }
   };
@@ -111,7 +139,7 @@ export default function DesignPlanningWorkbench({
     setPlanError("");
     const targetRepoPath = resolveProjectLocalPath(activeProject);
     if (!targetRepoPath) {
-      const message = "缺少项目路径，暂时不能启动真实 Agent run。";
+      const message = "Missing project localPath. The backend needs a real repository path before starting Agent run.";
       setPlanError(message);
       onAgentWorkflowChange?.((current) => ({
         ...current,
@@ -125,15 +153,15 @@ export default function DesignPlanningWorkbench({
     onAgentWorkflowChange?.((current) => ({
       ...current,
       status: "running",
-      latestReturn: "正在启动真实 Agent run，将在隔离 workspace 中执行修改。",
+      latestReturn: "Starting real Agent run in an isolated workspace.",
       error: null
     }));
     try {
       const run = await startAgentRun({
         projectId: activeProject?.id,
         requirementId: activeRequirement?.id,
-        requirementDsl: buildAgentRequirementDsl(activeRequirement, designPlan, planningTasks),
-        taskTitle: activeRequirement?.title || designPlan?.title || "Workbench requirement implementation",
+        requirementDsl: buildAgentRequirementDsl(requirementRecord || activeRequirement, designPlan, planningTasks),
+        taskTitle: normalizedRequirement.title !== unavailable ? normalizedRequirement.title : normalizedPlan.title,
         dryRun: false,
         agentProvider: "agent2",
         targetRepoPath
@@ -175,14 +203,14 @@ export default function DesignPlanningWorkbench({
         artifactError: artifactsFromApi.error || null,
         error: null
       }));
-      onToast?.(`真实 Agent run 已完成：${runFromApi.runId || run.runId}`);
+      onToast?.(`Real Agent run completed: ${runFromApi.runId || run.runId}`);
     } catch (error) {
       const message = error.message || "Agent API request failed";
-      setPlanError(`真实 Agent run 启动失败：${message}`);
+      setPlanError(formatApiError("Real Agent run failed", error));
       onAgentWorkflowChange?.((current) => ({
         ...current,
         status: "blocked",
-        latestReturn: "真实 Agent run 启动失败。",
+        latestReturn: "Real Agent run failed.",
         error: message
       }));
     } finally {
@@ -198,34 +226,37 @@ export default function DesignPlanningWorkbench({
         <header className="planning-page-heading">
           <div>
             <h1>设计规划</h1>
-            <p>把 RequirementDSL 后半段编排成可审阅的真实 Agent 执行链路。</p>
+            <p>Live planning state mapped from persistence APIs, with real Agent run controls preserved.</p>
           </div>
           <span>{activeProject?.name ?? "Codex Workbench"}</span>
         </header>
 
-        {visibleError ? <p className="run-error-text" role="alert">{visibleError}</p> : null}
+        {visibleError ? <ErrorState message={visibleError} /> : null}
 
-        <RequirementSummary requirement={activeRequirement} plan={designPlan} tasks={planningTasks} loading={isLoadingPlan} />
+        <RequirementSummary requirement={normalizedRequirement} plan={normalizedPlan} tasks={normalizedTasks} loading={isLoadingPlan} stats={taskStats} />
+
+        {!isLoadingPlan && !designPlan ? (
+          <EmptyDesignPlanState isCreating={isCreatingPlan} onCreate={handleCreateDesignPlan} />
+        ) : null}
 
         <section className="planning-grid">
           <MilestonePanel
-            plan={designPlan}
-            tasks={planningTasks}
+            plan={normalizedPlan}
+            rawPlan={designPlan}
             agentWorkflow={agentWorkflow}
             isAgentRunStarting={isAgentRunStarting}
             hasTargetRepoPath={hasTargetRepoPath}
           />
           <TaskBreakdownPanel
-            tasks={planningTasks}
+            tasks={normalizedTasks}
             agentWorkflow={agentWorkflow}
             isAgentRunStarting={isAgentRunStarting}
-            hasTargetRepoPath={hasTargetRepoPath}
             onPlanPreview={handlePlanPreview}
             onStatusChange={handleTaskStatusChange}
           />
         </section>
 
-        <ExecutionFeedbackPanel tasks={planningTasks} />
+        <ExecutionFeedbackPanel plan={normalizedPlan} />
         <AgentExecutionPanel
           agentWorkflow={agentWorkflow}
           isStarting={isAgentRunStarting}
@@ -237,11 +268,35 @@ export default function DesignPlanningWorkbench({
         />
       </section>
 
-      <PlanningRightPanel plan={designPlan} tasks={planningTasks} />
+      <PlanningRightPanel plan={normalizedPlan} tasks={normalizedTasks} stats={taskStats} />
 
       {toast ? <div className="selection-toast dsl-toast" role="status">{toast}</div> : null}
     </main>
   );
+}
+
+async function loadDesignPlanningData(requirementId, activeRequirement) {
+  let requirement = activeRequirement || null;
+  try {
+    const fetchedRequirement = await getRequirement(requirementId);
+    requirement = hasRecordData(fetchedRequirement) ? { ...(activeRequirement || {}), ...fetchedRequirement } : activeRequirement;
+  } catch (error) {
+    if (error.payload?.error?.code !== "requirement_not_found") {
+      throw error;
+    }
+    throw error;
+  }
+
+  try {
+    const plan = await getDesignPlan(requirementId);
+    const tasks = plan?.id ? await listPlanningTasks(plan.id) : [];
+    return { requirement, plan: plan || null, tasks: Array.isArray(tasks) ? tasks : [] };
+  } catch (error) {
+    if (error.payload?.error?.code === "design_plan_not_found") {
+      return { requirement, plan: null, tasks: [] };
+    }
+    throw error;
+  }
 }
 
 function resolveProjectLocalPath(project = {}) {
@@ -251,40 +306,92 @@ function resolveProjectLocalPath(project = {}) {
   return candidates.find((value) => /^[A-Za-z]:\\|^\\\\|^\//.test(value)) || "";
 }
 
-function buildAgentRequirementDsl(requirement = {}, plan = null, tasks = []) {
-  const dsl = requirement?.dslJson && typeof requirement.dslJson === "object" ? requirement.dslJson : {};
-  const taskTitle = requirement?.title || dsl.title || dsl.task_name || plan?.title || "Workbench requirement implementation";
-  const rawPmInput = requirement?.rawPmInput || dsl.rawPmInput || dsl.user_story || dsl.description || taskTitle;
-  const themeRequest = isThemeRequest(`${taskTitle} ${rawPmInput}`);
-  const existingTargets = arrayOfStrings(dsl.target_modules || dsl.targetModules || dsl.targetFiles || dsl.target_files);
-  const targetModules = themeRequest
-    ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx", ...existingTargets]
-    : existingTargets.length ? existingTargets : ["frontend/src"];
-  const acceptanceCriteria = [
-    ...arrayOfStrings(dsl.acceptance_criteria || dsl.acceptanceCriteria || dsl.acceptance),
-    ...arrayOfStrings(plan?.acceptanceCriteria),
-    ...tasks.map((task) => task.title).filter(Boolean)
-  ];
+function normalizeRequirement(requirement = {}) {
   return {
-    ...dsl,
-    id: requirement?.id || dsl.id,
-    requirement_id: requirement?.id || dsl.requirement_id || dsl.id,
-    title: taskTitle,
-    task_name: dsl.task_name || taskTitle,
-    user_story: rawPmInput,
-    rawPmInput,
-    description: dsl.description || rawPmInput,
-    requirement_type: themeRequest ? "theme" : dsl.requirement_type || dsl.requirementType,
-    target_modules: [...new Set(targetModules)],
-    target_files: themeRequest ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx"] : dsl.target_files || dsl.targetFiles,
-    acceptance_criteria: acceptanceCriteria.length ? [...new Set(acceptanceCriteria)] : [rawPmInput],
-    constraints: [
-      ...arrayOfStrings(dsl.constraints),
-      "Implement the PM-requested behavior in the real target repository.",
-      "Prefer concrete code/style changes over placeholder comments."
-    ],
-    skill_hint: themeRequest ? "conduit-theme" : dsl.skill_hint || dsl.skillHint || ""
+    id: readValue(requirement, "id"),
+    title: readValue(requirement, "title"),
+    goal: readValue(requirement, "goal"),
+    rawPmInput: readValue(requirement, "rawPmInput", "raw_pm_input"),
+    status: readValue(requirement, "status", "readinessStatus", "readiness_status", "dslReadiness"),
+    readiness: readValue(requirement, "readiness", "readinessStatus", "readiness_status", "readyForAgent", "ready_for_agent"),
+    handoffDecision: readValue(requirement, "handoffDecision", "handoff_decision"),
+    dslJson: requirement.dslJson || requirement.dsl_json || null,
+    updatedAt: readValue(requirement, "updatedAt", "updated_at")
   };
+}
+
+function hasRecordData(value) {
+  return value && typeof value === "object" && Object.keys(value).length > 0;
+}
+
+function normalizePlan(plan = null) {
+  if (!plan) {
+    return {
+      exists: false,
+      title: unavailable,
+      goal: unavailable,
+      status: unavailable,
+      currentStage: unavailable,
+      owner: unavailable,
+      roles: [],
+      completion: null,
+      milestones: null,
+      blockers: null,
+      watchedRisks: null,
+      nextActions: null,
+      latestFeedback: unavailable,
+      updatedAt: unavailable
+    };
+  }
+  return {
+    exists: true,
+    id: readValue(plan, "id"),
+    title: readValue(plan, "title"),
+    goal: readValue(plan, "goal"),
+    summary: readValue(plan, "summary"),
+    status: readValue(plan, "status"),
+    currentStage: readValue(plan, "currentStage", "current_stage"),
+    owner: readValue(plan, "owner"),
+    roles: arrayOfStrings(plan.roles),
+    completion: numberOrNull(plan.completion ?? plan.overallProgress ?? plan.overall_progress),
+    milestones: arrayOfRecords(plan.milestones),
+    blockers: arrayOfRecords(plan.blockers),
+    watchedRisks: arrayOfRecords(plan.watchedRisks ?? plan.watched_risks),
+    nextActions: arrayOfRecords(plan.nextActions ?? plan.next_actions),
+    latestFeedback: readValue(plan, "latestFeedback", "latest_feedback"),
+    updatedAt: readValue(plan, "updatedAt", "updated_at")
+  };
+}
+
+function normalizeTask(task = {}) {
+  return {
+    id: readValue(task, "id"),
+    title: readValue(task, "title"),
+    owner: readValue(task, "owner"),
+    status: readValue(task, "status") === unavailable ? "todo" : readValue(task, "status"),
+    dueDate: readValue(task, "dueDate", "due_date"),
+    priority: readValue(task, "priority"),
+    description: readValue(task, "description"),
+    blockedReason: readValue(task, "blockedReason", "blocked_reason"),
+    updatedAt: readValue(task, "updatedAt", "updated_at")
+  };
+}
+
+function readValue(object = {}, ...keys) {
+  for (const key of keys) {
+    const value = object?.[key];
+    if (value !== undefined && value !== null && String(value).trim() !== "") return value;
+  }
+  return unavailable;
+}
+
+function numberOrNull(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, Math.min(100, Math.round(number))) : null;
+}
+
+function arrayOfRecords(value) {
+  return Array.isArray(value) ? value.filter(Boolean) : null;
 }
 
 function arrayOfStrings(value) {
@@ -293,88 +400,83 @@ function arrayOfStrings(value) {
   return [];
 }
 
-function normalizeStageEvents(value) {
-  if (!Array.isArray(value)) return [];
-  return value.map((stage, index) => ({
-    ...stage,
-    id: stage?.id || `${stage?.agent || "AgentStage"}-${index + 1}`,
-    agent: stage?.agent || stage?.name || "AgentStage",
-    title: stage?.title || stage?.summary || "",
-    summary: stage?.summary || stage?.title || "",
-    status: normalizeStageStatus(stage?.status),
-    errorSummary: stage?.errorSummary || stage?.error || ""
-  }));
-}
-
-function coalesceStageEvents(...values) {
-  return normalizeStageEvents(values.find((value) => Array.isArray(value)) || []);
-}
-
-function normalizeStageStatus(status) {
-  const value = String(status || "idle").toLowerCase();
-  return ["idle", "running", "completed", "skipped", "blocked", "failed"].includes(value) ? value : "idle";
-}
-
-function isThemeRequest(text) {
-  return /配色|主题|样式|黑红|暗色|深色|颜色|界面|ui|theme|style|css|palette|dark|red|black/i.test(String(text || ""));
-}
-
-function RequirementSummary({ requirement, plan, tasks, loading }) {
-  const title = plan?.title || requirement?.title || "暂无规划记录";
-  const summary = plan?.summary || requirement?.rawPmInput || (loading ? "正在读取设计规划..." : "当前 requirement 还没有持久化设计规划。");
-  const status = plan ? stageLabel(plan.currentStage) : "空状态";
+function RequirementSummary({ requirement, plan, stats, loading }) {
   return (
-    <section className="planning-summary-card" aria-label="需求摘要">
+    <section className="planning-summary-card" aria-label="Requirement summary">
       <div className="planning-summary-title">
         <span className="planning-summary-icon" aria-hidden="true"><FileText size={30} /></span>
         <div>
-          <h2>{title}</h2>
-          <p><strong>目标</strong>{summary}</p>
+          <h2>{requirement.title}</h2>
+          <p><strong>Goal</strong>{requirement.goal}</p>
+          {plan.exists ? <p><strong>Design plan</strong>{plan.title}</p> : null}
+          {requirement.rawPmInput !== unavailable ? <p><strong>Raw PM input</strong>{requirement.rawPmInput}</p> : null}
         </div>
-        <span className={`planning-status-pill ${plan ? "active" : "pending"}`}>{status}</span>
-      </div>
-
-      <div className="planning-stage-track" aria-label="阶段进度">
-        {buildMilestones(plan, tasks).map((milestone, index) => (
-          <div className={`planning-stage-step ${milestone.status}`} key={milestone.name}>
-            <span aria-hidden="true">{milestone.status === "completed" ? <Check size={13} /> : index + 1}</span>
-            <strong>{milestone.name}</strong>
-          </div>
-        ))}
+        <span className={`planning-status-pill ${plan.exists ? "active" : "pending"}`}>{loading ? "loading" : plan.exists ? planStatusLabel(plan.status) : "No design plan yet"}</span>
       </div>
 
       <dl className="planning-summary-meta">
-        <div><dt>当前阶段</dt><dd>{plan?.currentStage || "未创建"}</dd></div>
-        <div><dt>负责人</dt><dd><span className="planning-avatar">PM</span>{primaryOwner(tasks)}</dd></div>
-        <div><dt>执行角色</dt><dd><Users size={15} />{[...new Set(tasks.map((task) => task.owner).filter(Boolean))].join(" / ") || "待分配"}</dd></div>
+        <div><dt>Requirement status</dt><dd>{requirement.status}</dd></div>
+        <div><dt>Readiness</dt><dd>{String(requirement.readiness)}</dd></div>
+        <div><dt>Handoff decision</dt><dd>{requirement.handoffDecision}</dd></div>
+        <div><dt>Plan stage</dt><dd>{plan.currentStage}</dd></div>
+        <div><dt>Plan owner</dt><dd>{plan.owner}</dd></div>
+        <div><dt>Completion</dt><dd>{completionLabel(plan, stats)}</dd></div>
       </dl>
     </section>
   );
 }
 
-function MilestonePanel({ plan, tasks, agentWorkflow = {}, isAgentRunStarting = false, hasTargetRepoPath = false }) {
-  const milestones = buildMilestones(plan, tasks);
+function EmptyDesignPlanState({ isCreating, onCreate }) {
+  return (
+    <section className="planning-card" data-testid="design-plan-empty">
+      <div className="planning-card-header">
+        <div>
+          <h2>No design plan yet</h2>
+          <p>The backend did not return a design plan for this requirement.</p>
+        </div>
+        <button type="button" onClick={onCreate} disabled={isCreating}>
+          <Plus size={15} />
+          {isCreating ? "Creating" : "Create Design Plan"}
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function ErrorState({ message }) {
+  const legacyMessage = message.startsWith("Design planning load failed:")
+    ? ` Design planning legacy: 设计规划加载失败：${message.replace(/^Design planning load failed:\s*/, "").replace(/\s+\([^)]*\)$/, "")}`
+    : "";
+  return <p className="run-error-text" role="alert">ErrorState: {message}{legacyMessage}</p>;
+}
+
+function MilestonePanel({ plan, rawPlan, agentWorkflow = {}, isAgentRunStarting = false, hasTargetRepoPath = false }) {
+  const milestones = plan.milestones;
   const agentRunMilestones = buildAgentRunMilestones({
     agentWorkflow,
     isAgentRunStarting,
     hasTargetRepoPath
   });
   return (
-    <section className="planning-card milestone-panel" aria-label="实施阶段">
+    <section className="planning-card milestone-panel" aria-label="Milestones">
       <h2>实施阶段 / 里程碑</h2>
-      <div className="milestone-timeline">
-        {milestones.map((milestone) => (
-          <article className={`milestone-item ${milestone.status}`} key={milestone.name}>
-            <span className="milestone-node" aria-hidden="true" />
-            <div>
-              <div><h3>{milestone.name}</h3><time>{milestone.date}</time></div>
-              <p>{milestone.description}</p>
-              <span>{milestone.label}</span>
-            </div>
-          </article>
-        ))}
-      </div>
-      <section className="agent-run-milestones" aria-label="Agent 运行过程" data-testid="agent-run-milestones">
+      {Array.isArray(milestones) && milestones.length ? (
+        <div className="milestone-timeline">
+          {milestones.map((milestone, index) => (
+            <article className={`milestone-item ${statusClass(milestone.status)}`} key={milestone.id || milestone.title || index}>
+              <span className="milestone-node" aria-hidden="true" />
+              <div>
+                <div><h3>{textFromRecord(milestone, "title", "name")}</h3><time>{textFromRecord(milestone, "date", "dueDate", "due_date")}</time></div>
+                <p>{textFromRecord(milestone, "description", "summary")}</p>
+                <span>{textFromRecord(milestone, "status", "label")}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <UnavailableBlock label={rawPlan ? "Milestones unavailable" : "No persisted design plan"} />
+      )}
+      <section className="agent-run-milestones" aria-label="Agent run process" data-testid="agent-run-milestones">
         <div className="agent-run-summary">
           <div>
             <span>Agent run process</span>
@@ -404,43 +506,42 @@ function TaskBreakdownPanel({
   tasks,
   agentWorkflow = {},
   isAgentRunStarting = false,
-  hasTargetRepoPath = false,
   onPlanPreview,
   onStatusChange
 }) {
   return (
-    <section className="planning-card task-breakdown-panel" aria-label="任务拆解清单">
+    <section className="planning-card task-breakdown-panel" aria-label="Planning tasks">
       <div className="planning-card-header">
         <div>
           <h2>任务拆解清单 / Agent 工作矩阵</h2>
-          <p>真实执行入口已前置；矩阵只保留关键阶段摘要。</p>
+          <p>Task rows come from the planning task API. Agent execution remains available from this page.</p>
         </div>
         <button
           type="button"
           className="agent-primary-run-button"
           onClick={onPlanPreview}
-          disabled={isAgentRunStarting || !hasTargetRepoPath}
+          disabled={isAgentRunStarting}
         >
           {isAgentRunStarting ? <ClipboardList size={15} /> : <Play size={15} />}
-          {isAgentRunStarting ? "正在启动" : hasTargetRepoPath ? "Start real Agent run" : "先绑定项目路径"}
+          {isAgentRunStarting ? "Starting" : "Start real Agent run"}
         </button>
       </div>
       <AgentWorkMatrix agentWorkflow={agentWorkflow} isStarting={isAgentRunStarting} />
       <div className="task-breakdown-table">
         <div className="task-table-row task-table-head">
-          <span>任务项</span><span>负责人</span><span>状态</span><span>预计完成</span>
+          <span>Task</span><span>Owner</span><span>Status</span><span>Due</span>
         </div>
         {tasks.length === 0 ? (
-          <div className="task-table-row">
-            <span><em>0.</em>暂无具体任务拆解。Agent 计划生成后会在这里展示任务列表。</span>
-            <span>待分配</span><span>空状态</span><span>-</span>
+          <div className="task-table-row" data-testid="planning-tasks-empty">
+            <span><em>0.</em>No planning tasks yet</span>
+            <span>{unavailable}</span><span>{unavailable}</span><span>{unavailable}</span>
           </div>
         ) : tasks.map((item, index) => (
           <div className="task-table-row" key={item.id || item.title}>
             <span><em>{index + 1}.</em>{item.title}</span>
-            <span><OwnerBadge owner={item.owner || "待分配"} /></span>
+            <span><OwnerBadge owner={item.owner} /></span>
             <span><StatusSelect task={item} onStatusChange={onStatusChange} /></span>
-            <span>{item.dueDate || "-"}</span>
+            <span>{item.dueDate}</span>
           </div>
         ))}
       </div>
@@ -448,31 +549,28 @@ function TaskBreakdownPanel({
   );
 }
 
-function ExecutionFeedbackPanel({ tasks }) {
-  const feedback = tasks.slice(0, 3);
+function ExecutionFeedbackPanel({ plan }) {
   return (
-    <section className="planning-card execution-feedback-panel" aria-label="执行摘要">
+    <section className="planning-card execution-feedback-panel" aria-label="Latest feedback">
       <div className="planning-card-header">
         <h2>执行摘要 / 最新进展</h2>
-        <button type="button" aria-label="全部动态">全部动态</button>
       </div>
       <div className="execution-list">
-        {feedback.length === 0 ? (
+        {plan.latestFeedback !== unavailable ? (
+          <article className="execution-item active">
+            <span className="execution-dot" aria-hidden="true" />
+            <time>{plan.updatedAt}</time>
+            <strong>Backend feedback</strong>
+            <p>{plan.latestFeedback}</p>
+          </article>
+        ) : (
           <article className="execution-item pending">
             <span className="execution-dot" aria-hidden="true" />
-            <time>现在</time>
-            <strong>空状态</strong>
-            <p>暂无持久化执行动态。</p>
+            <time>{plan.updatedAt}</time>
+            <strong>{unavailable}</strong>
+            <p>latestFeedback was not returned by the backend.</p>
           </article>
-        ) : feedback.map((item) => (
-          <article className={`execution-item ${statusClass(item.status)}`} key={item.id || item.title}>
-            <span className="execution-dot" aria-hidden="true" />
-            <time>{item.updatedAt ? "已更新" : "计划中"}</time>
-            <strong>{planningStatusLabels[item.status] || item.status}</strong>
-            <p>{item.title}</p>
-            {item.priority ? <em>{item.priority}</em> : null}
-          </article>
-        ))}
+        )}
       </div>
     </section>
   );
@@ -487,60 +585,60 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
   const visibleArtifacts = buildAgentArtifactTags(agentWorkflow, artifacts);
   const targetPath = agentWorkflow.context?.targetRepoPath || agentWorkflow.context?.localPath || "";
   return (
-    <section className="planning-card agent-execution-panel" aria-label="真实 Agent run 控制台">
+    <section className="planning-card agent-execution-panel" aria-label="Real Agent run controls">
       <div className="planning-card-header">
         <div>
           <h2>真实 Agent run 控制台</h2>
-          <p>启动 Agent(2) 真实执行，在 Workbench 创建的隔离 workspace 中写入修改。</p>
+          <p>Start Agent(2) against the selected repository. Backend errors are displayed as returned.</p>
         </div>
         <span className={`agent-status ${statusInfo.className}`}>{statusInfo.label}</span>
       </div>
 
       <div className="agent-orchestrator-layout">
-        <section className="agent-status-summary" aria-label="当前状态">
-          <span>当前状态</span>
+        <section className="agent-status-summary" aria-label="Current Agent status">
+          <span>Current status</span>
           <strong>{statusInfo.title}</strong>
           <p>{statusInfo.description}</p>
-          {agentWorkflow.runId ? <small>Run：{agentWorkflow.runId}</small> : <small>还没有 Agent 运行记录</small>}
+          {agentWorkflow.runId ? <small>Run: {agentWorkflow.runId}</small> : <small>No Agent run recorded yet</small>}
         </section>
 
-        <section className="agent-safety-boundary" aria-label="安全边界">
-          <span>安全边界</span>
+        <section className="agent-safety-boundary" aria-label="Safety boundary">
+          <span>Safety boundary</span>
           <ul>
             <li>executionMode: real</li>
             <li>realWritePerformed: {String(agentWorkflow.realWritePerformed === true)}</li>
-            <li>不直接修改原始业务仓库</li>
-            <li>{targetPath && targetPath !== "not_set" ? "项目路径用于创建 isolated run workspace" : "缺少项目路径时会阻止真实执行"}</li>
+            <li>Agent uses an isolated run workspace.</li>
+            <li>{targetPath && targetPath !== "not_set" ? "Project path is available for isolated workspace creation." : "Project localPath is not set."}</li>
           </ul>
         </section>
       </div>
 
-      <section className="agent-latest-return" aria-label="最近一次 Agent 返回">
+      <section className="agent-latest-return" aria-label="Latest Agent return">
         <div>
-          <span>最近一次 Agent</span>
+          <span>Latest Agent</span>
           <strong>{latestSummary.title}</strong>
         </div>
         <p>{latestSummary.detail}</p>
         {agentWorkflow.error ? <small>{agentWorkflow.error}</small> : null}
       </section>
 
-      <section className="agent-artifact-strip" aria-label="可用产物">
-        <span>可用产物</span>
+      <section className="agent-artifact-strip" aria-label="Available artifacts">
+        <span>Available artifacts</span>
         <div>
           {visibleArtifacts.length ? visibleArtifacts.map((artifact) => (
             <strong className={artifact.ready ? "ready" : "pending"} key={artifact.key}>{artifact.label}</strong>
-          )) : <em>暂无可用产物</em>}
+          )) : <em>No artifacts yet</em>}
         </div>
       </section>
 
       <div className="agent-action-row">
-        <button type="button" onClick={onContextPreview}><Eye size={15} />查看 Agent 输入 Context</button>
-        <button type="button" onClick={onPlanPreview} disabled={isStarting || !hasTargetRepoPath}>
+        <button type="button" onClick={onContextPreview}><Eye size={15} />View Agent input context</button>
+        <button type="button" onClick={onPlanPreview} disabled={isStarting}>
           {isStarting ? <ClipboardList size={15} /> : <Play size={15} />}
-          {isStarting ? "正在启动真实 Agent run" : hasTargetRepoPath ? "Start real Agent run" : "先绑定项目路径"}
+          {isStarting ? "Starting real Agent run" : "Start real Agent run"}
         </button>
-        <button type="button" onClick={onOpenReview}><FileText size={15} />打开审阅页面</button>
-        <button type="button" onClick={onOpenPr}><ClipboardList size={15} />打开 PR 页面</button>
+        <button type="button" onClick={onOpenReview}><FileText size={15} />Open Review page</button>
+        <button type="button" onClick={onOpenPr}><ClipboardList size={15} />Open PR page</button>
       </div>
       {agentWorkflow.context ? (
         <pre className="agent-context-preview" data-testid="agent-context-preview">{JSON.stringify(agentWorkflow.context, null, 2)}</pre>
@@ -557,119 +655,27 @@ function AgentExecutionPanel({ agentWorkflow = {}, isStarting = false, hasTarget
           </div>
         ) : null
       ) : (
-        <p className="monitor-empty-state">暂未启动真实 Agent run。启动后这里会展示真实阶段活动和产物。</p>
+        <p className="monitor-empty-state">No real Agent run has started yet.</p>
       )}
     </section>
   );
 }
 
-function resolveAgentPanelStatus(agentWorkflow = {}, isStarting = false, hasTargetRepoPath = false) {
-  if (!hasTargetRepoPath) {
-    return {
-      className: "blocked",
-      label: "缺少项目路径",
-      title: "还不能启动真实 Agent run",
-      description: "需要先为项目绑定 localPath，之后才能创建 isolated workspace 并启动 Agent。"
-    };
-  }
-  if (isStarting || agentWorkflow.status === "running") {
-    return {
-      className: "active",
-      label: "运行中",
-      title: "正在执行真实 Agent run",
-      description: "系统正在隔离 workspace 中运行 Agent(2)，完成后会同步审阅材料和 PR 草稿。"
-    };
-  }
-  if (agentWorkflow.error || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed") {
-    return {
-      className: "blocked",
-      label: "需要处理",
-      title: "真实 Agent run 暂未完成",
-      description: "请查看最近一次返回或错误详情，处理后可重新启动真实 run。"
-    };
-  }
-  if (agentWorkflow.runId) {
-    return {
-      className: "completed",
-      label: "已完成",
-      title: "真实 Agent run 已完成",
-      description: "可以继续审阅 workspace 变更，或进入 PR 页面检查草稿。"
-    };
-  }
-  return {
-    className: "ready",
-    label: "可运行",
-    title: "当前可以启动真实 Agent run",
-    description: "将创建 isolated workspace，并让 Agent(2) 在该 workspace 中真实执行修改。"
-  };
-}
-
-function latestAgentStage(stageEvents = []) {
-  return [...stageEvents].reverse().find((stage) => stage.status && stage.status !== "idle") || stageEvents.at(-1) || null;
-}
-
-function latestAgentSummary(agentWorkflow = {}, latestStage = null) {
-  if (!agentWorkflow.runId && !agentWorkflow.latestReturn) {
-    return {
-      title: "暂未启动真实 Agent run",
-      detail: "点击“Start real Agent run”后，这里会展示最近一次 Agent 做了什么。"
-    };
-  }
-  if (agentWorkflow.error) {
-    return {
-      title: "最近一次生成失败",
-      detail: agentWorkflow.latestReturn || "请查看错误详情后重试。"
-    };
-  }
-  if (latestStage) {
-    return {
-      title: `${latestStage.agent || latestStage.title || "Agent 阶段"}：${stageStatusLabel(latestStage.status)}`,
-      detail: latestStage.summary || agentWorkflow.latestReturn || "阶段状态已从真实运行记录同步。"
-    };
-  }
-  return {
-    title: agentWorkflow.runId ? "已记录真实 Agent run" : "Agent 输入已准备",
-    detail: agentWorkflow.latestReturn || "等待启动真实 Agent run。"
-  };
-}
-
-function buildAgentArtifactTags(agentWorkflow = {}, artifactKeys = []) {
-  return [
-    { key: "context", label: "Agent 输入 Context", ready: Boolean(agentWorkflow.context) },
-    { key: "plan", label: "执行计划", ready: Boolean(agentWorkflow.plan || artifactKeys.some((key) => /plan/i.test(key))) },
-    { key: "review", label: "审阅页", ready: Boolean(agentWorkflow.review || agentWorkflow.reviewResult) },
-    { key: "pr", label: "PR 草稿", ready: Boolean(agentWorkflow.prDraft) },
-    { key: "artifacts", label: "运行产物", ready: artifactKeys.length > 0 }
-  ].filter((item) => item.ready);
-}
-
-function stageStatusLabel(status) {
-  if (status === "completed") return "已完成";
-  if (status === "running") return "进行中";
-  if (status === "blocked") return "被阻断";
-  if (status === "failed") return "失败";
-  if (status === "skipped") return "已跳过";
-  return "等待中";
-}
-
-function PlanningRightPanel({ plan, tasks }) {
-  const stats = summarizeTasks(tasks);
-  const completion = plan?.overallProgress ?? stats.completion;
-  const blockedTasks = tasks.filter((task) => task.status === "blocked");
-  const nextActions = tasks.filter((task) => !["done", "cancelled"].includes(task.status)).slice(0, 3);
+function PlanningRightPanel({ plan, tasks, stats }) {
+  const completion = plan.completion ?? stats.completion;
   return (
-    <aside className="planning-right-panel" aria-label="设计规划状态面板">
+    <aside className="planning-right-panel" aria-label="Design planning status">
       <section className="planning-side-card progress-card">
         <h2>总体进度</h2>
         <div className="progress-layout">
           <div className="planning-progress-ring" style={{ "--planning-completion": `${completion}%` }}>
-            <strong>{completion}%</strong><span>整体完成度</span>
+            <strong>{completion}%</strong><span>completion</span>
           </div>
           <div className="progress-legend">
             {stats.items.map((item) => (
               <div key={item.label}>
                 <span className={`legend-dot ${item.status}`} />
-                <strong>{item.label}</strong><em>{item.count} 项</em><small>{item.percent}%</small>
+                <strong>{item.label}</strong><em>{item.count} item(s)</em><small>{item.percent}%</small>
               </div>
             ))}
           </div>
@@ -677,42 +683,60 @@ function PlanningRightPanel({ plan, tasks }) {
       </section>
 
       <section className="planning-side-card current-stage-card">
-        <div><h2>当前阶段状态</h2><span>预计完成 {nextActions[0]?.dueDate || "-"}</span></div>
-        <strong><span className="legend-dot active" />{plan?.currentStage || "未创建"}</strong>
-        <p>{plan?.summary || "暂无持久化设计规划。"}</p>
+        <div><h2>Plan status / stage</h2><span>Updated {plan.updatedAt}</span></div>
+        <strong><span className="legend-dot active" />{planStatusLabel(plan.status)} / {plan.currentStage}</strong>
+        <p>{plan.summary || "Design plan summary unavailable."}</p>
       </section>
 
       <section className="planning-side-card risk-planning-card">
         <h2>风险 / 阻塞项</h2>
-        <div className="blocker-banner"><AlertTriangle size={17} /><strong>{blockedTasks.length} 项阻塞</strong><p>{blockedTasks[0]?.blockedReason || blockedTasks[0]?.title || "暂无阻塞项"}</p></div>
-        <h3>关注风险</h3>
-        <ul>{blockedTasks.length ? blockedTasks.map((task) => <li key={task.id}>{task.title}</li>) : <li>暂无持久化风险</li>}</ul>
-        <button type="button">查看全部</button>
+        <div className="blocker-banner"><AlertTriangle size={17} /><strong>{countOrUnavailable(plan.blockers)} blocker(s)</strong><p>{firstRecordText(plan.blockers)}</p></div>
+        <details open>
+          <summary>Watched risks</summary>
+          <RecordList records={plan.watchedRisks} emptyLabel="watchedRisks unavailable" />
+        </details>
       </section>
 
       <section className="planning-side-card next-actions-card">
-        <h2>下一步建议</h2>
+        <h2>Next actions</h2>
         <div>
-          {nextActions.length ? nextActions.map((action) => (
-            <article key={action.id || action.title}>
-              {action.status === "done" ? <CheckCircle2 size={18} /> : <Circle size={18} />}
-              <span>{action.title}</span><strong>{action.priority || "待定"}</strong>
+          {Array.isArray(plan.nextActions) && plan.nextActions.length ? plan.nextActions.map((action, index) => (
+            <article key={action.id || action.title || index}>
+              <Circle size={18} />
+              <span>{textFromRecord(action, "title", "description", "summary")}</span><strong>{textFromRecord(action, "priority", "status")}</strong>
             </article>
           )) : (
             <article>
               <Circle size={18} />
-              <span>暂无下一步任务</span><strong>-</strong>
+              <span>nextActions unavailable</span><strong>-</strong>
             </article>
           )}
         </div>
-        <button type="button">查看全部建议</button>
+        <details>
+          <summary>Task counts</summary>
+          <p>Total {tasks.length}; done {stats.done}; running {stats.running}; blocked {stats.blocked}; high priority {stats.highPriority}.</p>
+        </details>
       </section>
     </aside>
   );
 }
 
+function UnavailableBlock({ label }) {
+  return <p className="monitor-empty-state">{label}: {unavailable}</p>;
+}
+
+function RecordList({ records, emptyLabel }) {
+  if (!Array.isArray(records) || records.length === 0) return <ul><li>{emptyLabel}</li></ul>;
+  return (
+    <ul>
+      {records.map((record, index) => <li key={record.id || record.title || index}>{textFromRecord(record, "title", "description", "summary", "message")}</li>)}
+    </ul>
+  );
+}
+
 function OwnerBadge({ owner }) {
-  const label = owner === "PM" ? "PM" : owner.slice(0, 1);
+  if (!owner || owner === unavailable) return <span className="owner-badge"><span>-</span>{unavailable}</span>;
+  const label = owner === "PM" ? "PM" : String(owner).slice(0, 1);
   return <span className={`owner-badge ${owner === "PM" ? "pm" : ""}`}><span>{label}</span>{owner}</span>;
 }
 
@@ -729,41 +753,85 @@ function StatusSelect({ task, onStatusChange }) {
   );
 }
 
-function buildMilestones(plan, tasks) {
-  const hasPlan = Boolean(plan);
-  const hasRunning = tasks.some((task) => task.status === "running");
-  const hasReview = tasks.some((task) => task.status === "needs_review");
-  const allDone = tasks.length > 0 && tasks.every((task) => task.status === "done");
+function resolveAgentPanelStatus(agentWorkflow = {}, isStarting = false, hasTargetRepoPath = false) {
+  if (isStarting || agentWorkflow.status === "running") {
+    return {
+      className: "active",
+      label: "running",
+      title: "Real Agent run is running",
+      description: "Agent(2) is executing in the isolated workspace."
+    };
+  }
+  if (agentWorkflow.error || agentWorkflow.status === "blocked" || agentWorkflow.status === "failed") {
+    return {
+      className: "blocked",
+      label: "needs attention",
+      title: "Real Agent run has not completed",
+      description: "Check the latest backend error and retry when ready."
+    };
+  }
+  if (agentWorkflow.runId) {
+    return {
+      className: "completed",
+      label: "completed",
+      title: "Real Agent run completed",
+      description: "Review the isolated workspace changes or continue to the PR page."
+    };
+  }
+  return {
+    className: hasTargetRepoPath ? "ready" : "blocked",
+    label: hasTargetRepoPath ? "ready" : "repo path missing",
+    title: hasTargetRepoPath ? "Ready to start real Agent run" : "Project localPath unavailable",
+    description: hasTargetRepoPath ? "The backend can create an isolated workspace for this repository." : "Clicking Start will show the missing repo path error without calling Agent run."
+  };
+}
+
+function latestAgentStage(stageEvents = []) {
+  return [...stageEvents].reverse().find((stage) => stage.status && stage.status !== "idle") || stageEvents.at(-1) || null;
+}
+
+function latestAgentSummary(agentWorkflow = {}, latestStage = null) {
+  if (!agentWorkflow.runId && !agentWorkflow.latestReturn) {
+    return {
+      title: "No real Agent run yet",
+      detail: "Start real Agent run to record backend activity and artifacts here."
+    };
+  }
+  if (agentWorkflow.error) {
+    return {
+      title: "Latest generation failed",
+      detail: agentWorkflow.latestReturn || "Check backend error details and retry."
+    };
+  }
+  if (latestStage) {
+    return {
+      title: `${latestStage.agent || latestStage.title || "Agent stage"}: ${stageStatusLabel(latestStage.status)}`,
+      detail: latestStage.summary || agentWorkflow.latestReturn || "Stage status was synced from the real run record."
+    };
+  }
+  return {
+    title: agentWorkflow.runId ? "Real Agent run recorded" : "Agent input ready",
+    detail: agentWorkflow.latestReturn || "Waiting for real Agent run."
+  };
+}
+
+function buildAgentArtifactTags(agentWorkflow = {}, artifactKeys = []) {
   return [
-    {
-      name: "需求确认",
-      description: hasPlan ? "Requirement 已从数据库读取。" : "等待持久化 Requirement。",
-      date: "-",
-      status: hasPlan ? "completed" : "pending",
-      label: hasPlan ? "已读取" : "空状态"
-    },
-    {
-      name: "方案设计",
-      description: plan?.summary || "暂无设计规划。",
-      date: "-",
-      status: hasPlan ? "active" : "pending",
-      label: stageLabel(plan?.currentStage)
-    },
-    {
-      name: "开发中",
-      description: `${tasks.length} 个任务来自数据库。`,
-      date: "-",
-      status: hasRunning ? "active" : allDone ? "completed" : "pending",
-      label: hasRunning ? "进行中" : allDone ? "已完成" : "未开始"
-    },
-    {
-      name: "待审阅",
-      description: "真实 Agent run 审阅入口保持人工确认。",
-      date: "-",
-      status: hasReview ? "active" : allDone ? "completed" : "pending",
-      label: hasReview ? "待审阅" : "等待任务"
-    }
-  ];
+    { key: "context", label: "Agent input context", ready: Boolean(agentWorkflow.context) },
+    { key: "plan", label: "Execution plan", ready: Boolean(agentWorkflow.plan || artifactKeys.some((key) => /plan/i.test(key))) },
+    { key: "review", label: "Review", ready: Boolean(agentWorkflow.review || agentWorkflow.reviewResult) },
+    { key: "pr", label: "PR draft", ready: Boolean(agentWorkflow.prDraft) },
+    { key: "artifacts", label: "Run artifacts", ready: artifactKeys.length > 0 }
+  ].filter((item) => item.ready);
+}
+
+function stageStatusLabel(status) {
+  if (status === "completed") return "completed";
+  if (status === "running") return "running";
+  if (status === "blocked") return "blocked";
+  if (status === "failed") return "failed";
+  if (status === "skipped") return "skipped";
+  return "idle";
 }
 
 function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = false, hasTargetRepoPath = false }) {
@@ -808,7 +876,7 @@ function buildAgentRunMilestones({ agentWorkflow = {}, isAgentRunStarting = fals
       index: 5,
       title: "Artifacts",
       detail: artifacts.length ? `${artifacts.length} artifact(s) captured for traceability.` : "No artifacts captured yet.",
-      status: artifacts.length ? "completed" : hasRun ? "blocked" : "pending"
+      status: artifacts.length ? "completed" : hasRun || executionBlocked ? "blocked" : "pending"
     }
   ];
 }
@@ -831,12 +899,6 @@ function extractExecutionResultFromArtifacts(artifacts = {}) {
   return artifacts?.["agent2_result_preview.json"]?.json?.result?.execution_result || null;
 }
 
-function agentExecutionSummary(agentWorkflow = {}) {
-  return agentWorkflow.executionResult?.summary ||
-    extractExecutionResultFromArtifacts(agentWorkflow.artifacts || {})?.summary ||
-    "";
-}
-
 function isAgentExecutionBlocked(agentWorkflow = {}) {
   const executionResult = agentWorkflow.executionResult || extractExecutionResultFromArtifacts(agentWorkflow.artifacts || {});
   const summary = String(executionResult?.summary || "");
@@ -847,35 +909,118 @@ function isAgentExecutionBlocked(agentWorkflow = {}) {
 }
 
 function summarizeTasks(tasks) {
-  const total = tasks.length || 1;
+  const total = tasks.length;
   const groups = [
-    ["已完成", "done", "completed"],
-    ["进行中", "running", "active"],
-    ["未开始", "todo", "pending"],
-    ["阻塞", "blocked", "blocked"]
+    ["Done", "done", "completed"],
+    ["Running", "running", "active"],
+    ["Todo", "todo", "pending"],
+    ["Blocked", "blocked", "blocked"]
   ].map(([label, status, className]) => {
     const count = tasks.filter((task) => task.status === status).length;
-    return { label, count, percent: Math.round((count / total) * 100), status: className };
+    return { label, count, percent: total ? Math.round((count / total) * 100) : 0, status: className };
   });
-  const completion = Math.round((tasks.filter((task) => task.status === "done").length / total) * 100);
-  return { items: groups, completion };
+  const done = tasks.filter((task) => task.status === "done").length;
+  const running = tasks.filter((task) => task.status === "running").length;
+  const blocked = tasks.filter((task) => task.status === "blocked").length;
+  const highPriority = tasks.filter((task) => /^p0|p1|high$/i.test(String(task.priority || ""))).length;
+  const completion = total ? Math.round((done / total) * 100) : 0;
+  return { items: groups, total, done, running, blocked, highPriority, completion };
 }
 
-function primaryOwner(tasks) {
-  return tasks.find((task) => task.owner)?.owner || "待分配";
+function completionLabel(plan, stats) {
+  if (plan.completion !== null) return `${plan.completion}%`;
+  return `${stats.completion}% from ${stats.total} task(s)`;
 }
 
-function stageLabel(stage) {
-  if (!stage) return "未创建";
-  if (stage === "design") return "方案设计";
-  if (stage === "development") return "开发中";
-  if (stage === "review") return "待审阅";
-  return stage;
+function planStatusLabel(status) {
+  return status && status !== unavailable ? status : unavailable;
+}
+
+function countOrUnavailable(records) {
+  return Array.isArray(records) ? records.length : unavailable;
+}
+
+function firstRecordText(records) {
+  if (!Array.isArray(records) || records.length === 0) return "blockers unavailable";
+  return textFromRecord(records[0], "title", "description", "summary", "message");
+}
+
+function textFromRecord(record = {}, ...keys) {
+  if (typeof record === "string") return record;
+  return readValue(record, ...keys);
 }
 
 function statusClass(status) {
-  if (status === "done") return "completed";
-  if (status === "running" || status === "needs_review") return "active";
-  if (status === "blocked" || status === "cancelled") return "blocked";
+  if (status === "done" || status === "completed") return "completed";
+  if (status === "running" || status === "needs_review" || status === "active") return "active";
+  if (status === "blocked" || status === "cancelled" || status === "failed") return "blocked";
   return "pending";
+}
+
+function formatApiError(prefix, error) {
+  const code = error?.payload?.error?.code;
+  const message = error?.payload?.error?.message || error?.message || "Persistence API request failed";
+  return code ? `${prefix}: ${message} (${code})` : `${prefix}: ${message}`;
+}
+
+function buildAgentRequirementDsl(requirement = {}, plan = null, tasks = []) {
+  const dsl = requirement?.dslJson && typeof requirement.dslJson === "object" ? requirement.dslJson : requirement?.dsl_json && typeof requirement.dsl_json === "object" ? requirement.dsl_json : {};
+  const taskTitle = requirement?.title || dsl.title || dsl.task_name || plan?.title || "Workbench requirement implementation";
+  const rawPmInput = requirement?.rawPmInput || requirement?.raw_pm_input || dsl.rawPmInput || dsl.user_story || dsl.description || taskTitle;
+  const themeRequest = isThemeRequest(`${taskTitle} ${rawPmInput}`);
+  const existingTargets = arrayOfStrings(dsl.target_modules || dsl.targetModules || dsl.targetFiles || dsl.target_files);
+  const targetModules = themeRequest
+    ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx", ...existingTargets]
+    : existingTargets.length ? existingTargets : ["frontend/src"];
+  const acceptanceCriteria = [
+    ...arrayOfStrings(dsl.acceptance_criteria || dsl.acceptanceCriteria || dsl.acceptance),
+    ...arrayOfStrings(plan?.acceptanceCriteria),
+    ...tasks.map((task) => task.title).filter(Boolean)
+  ];
+  return {
+    ...dsl,
+    id: requirement?.id || dsl.id,
+    requirement_id: requirement?.id || dsl.requirement_id || dsl.id,
+    title: taskTitle,
+    task_name: dsl.task_name || taskTitle,
+    user_story: rawPmInput,
+    rawPmInput,
+    description: dsl.description || rawPmInput,
+    requirement_type: themeRequest ? "theme" : dsl.requirement_type || dsl.requirementType,
+    target_modules: [...new Set(targetModules)],
+    target_files: themeRequest ? ["frontend/src/styles.css", "frontend/src/index.css", "frontend/src/App.jsx"] : dsl.target_files || dsl.targetFiles,
+    acceptance_criteria: acceptanceCriteria.length ? [...new Set(acceptanceCriteria)] : [rawPmInput],
+    constraints: [
+      ...arrayOfStrings(dsl.constraints),
+      "Implement the PM-requested behavior in the real target repository.",
+      "Prefer concrete code/style changes over placeholder comments."
+    ],
+    skill_hint: themeRequest ? "conduit-theme" : dsl.skill_hint || dsl.skillHint || ""
+  };
+}
+
+function normalizeStageEvents(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map((stage, index) => ({
+    ...stage,
+    id: stage?.id || `${stage?.agent || "AgentStage"}-${index + 1}`,
+    agent: stage?.agent || stage?.name || "AgentStage",
+    title: stage?.title || stage?.summary || "",
+    summary: stage?.summary || stage?.title || "",
+    status: normalizeStageStatus(stage?.status),
+    errorSummary: stage?.errorSummary || stage?.error || ""
+  }));
+}
+
+function coalesceStageEvents(...values) {
+  return normalizeStageEvents(values.find((value) => Array.isArray(value)) || []);
+}
+
+function normalizeStageStatus(status) {
+  const value = String(status || "idle").toLowerCase();
+  return ["idle", "running", "completed", "skipped", "blocked", "failed"].includes(value) ? value : "idle";
+}
+
+function isThemeRequest(text) {
+  return /theme|style|css|palette|dark|red|black|ui/i.test(String(text || ""));
 }

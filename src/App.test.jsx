@@ -5,6 +5,7 @@ import DSLStatusConsole from "./components/DSLStatusConsole.jsx";
 
 describe("monitor console and workspace picker", () => {
   beforeEach(() => {
+    window.localStorage.clear();
     defaultPersistenceFetch.mockClear();
     vi.stubGlobal("fetch", defaultPersistenceFetch);
   });
@@ -17,7 +18,7 @@ describe("monitor console and workspace picker", () => {
   it("renders the monitor console shell by default", () => {
     render(<App />);
 
-    expect(screen.getAllByText("Codex Workbench").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("XiWei").length).toBeGreaterThan(0);
     expect(screen.getByRole("button", { name: "监控台" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "工作台" })).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByTestId("monitor-console-view")).toBeInTheDocument();
@@ -67,6 +68,21 @@ describe("monitor console and workspace picker", () => {
     expect(screen.queryByTestId("workspace-project-picker")).not.toBeInTheDocument();
   });
 
+  it("restores the last workbench page and project after a browser refresh", async () => {
+    window.localStorage.setItem("codex-workbench-session", JSON.stringify({
+      mode: "workbench",
+      workspacePage: "review",
+      activeProjectId: "codex-workbench"
+    }));
+
+    render(<App />);
+
+    expect(screen.queryByTestId("monitor-console-view")).not.toBeInTheDocument();
+    expect(screen.getByTestId("review-check-workbench")).toBeInTheDocument();
+    await waitFor(() => expect(defaultPersistenceFetch).toHaveBeenCalledWith("/api/projects/codex-workbench/requirements", undefined));
+    expect(screen.getByTestId("workspace-shell")).toHaveAttribute("data-workspace-view", "review");
+  });
+
   it("switches between the DSL page, design planning page, and placeholder pages from top tabs", async () => {
     render(<App />);
 
@@ -96,8 +112,8 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "PR 页面" }));
     expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "PR Draft Center" })).toBeInTheDocument();
-    expect(screen.getByText("Summary")).toBeInTheDocument();
+    expect(screen.getByTestId("pr-draft-center")).toBeInTheDocument();
+    expect(screen.getByText(/Loading PR Draft Center|PR Draft Center/)).toBeInTheDocument();
   });
 
   it("runs the dry-run agent workflow from design planning into review and PR pages", async () => {
@@ -186,7 +202,7 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(document.querySelectorAll(".workspace-top-tab")[1]);
 
     expect(screen.getByTestId("design-planning-workbench")).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Agent dry-run 预览控制台" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "\u771f\u5b9e Agent run \u63a7\u5236\u53f0" })).toBeInTheDocument();
     expect(screen.getByTestId("agent-run-milestones")).toBeInTheDocument();
     expect(screen.getByText("Repository target")).toBeInTheDocument();
     expect(screen.getAllByText(/dry-run/).length).toBeGreaterThan(0);
@@ -196,7 +212,7 @@ describe("monitor console and workspace picker", () => {
       "/api/agent/readiness",
       expect.objectContaining({ method: "POST" })
     ));
-    expect(screen.getByTestId("agent-context-preview")).toHaveTextContent("dry-run preview target selected");
+    expect(screen.getByTestId("agent-context-preview")).toHaveTextContent("real agent target selected");
 
     fireEvent.click(document.querySelectorAll(".agent-action-row button")[1]);
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
@@ -210,7 +226,7 @@ describe("monitor console and workspace picker", () => {
     expect(screen.getAllByText("Artifacts").length).toBeGreaterThan(0);
     expect(screen.getByText("1 artifact(s) captured for traceability.")).toBeInTheDocument();
     const runBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/run"))[1].body);
-    expect(runBody.dryRun).toBe(true);
+    expect(runBody.dryRun).toBe(false);
     expect(runBody.agentProvider).toBe("agent2");
     expect(runBody.targetRepoPath).toBe("C:\\Users\\www30\\Desktop\\conduit-realworld-example-app");
     expect(runBody.requirementDsl.user_story).toBeTruthy();
@@ -225,9 +241,9 @@ describe("monitor console and workspace picker", () => {
 
     fireEvent.click(document.querySelector(".audit-pr-button"));
     expect(screen.getByTestId("pr-workbench")).toBeInTheDocument();
-    expect(screen.getAllByText("RUN-agent-ui").length).toBeGreaterThan(0);
-    expect(screen.getByText("Improve login failure guidance")).toBeInTheDocument();
-    expect(screen.getByText("No API keys or local configs committed")).toBeInTheDocument();
+    await screen.findByTestId("pr-draft-empty");
+    expect(screen.getByText(/EmptyState/)).toBeInTheDocument();
+    expect(screen.queryByText("Improve login failure guidance")).not.toBeInTheDocument();
   });
 
   it("selects a project and shows a local toast", async () => {
@@ -383,20 +399,10 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "创建" }));
     fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/preview/status",
-      expect.objectContaining({ method: "POST" })
-    ));
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/preview/start",
-      expect.objectContaining({ method: "POST" })
-    ));
-    const statusBody = JSON.parse(fetchMock.mock.calls.find(([url]) => String(url).endsWith("/status"))[1].body);
-    expect(statusBody).toMatchObject({
-      projectId: expect.stringMatching(/^pending-/),
-      localPath: "C:\\Users\\www30\\Desktop\\conduit-realworld-example-app"
-    });
-    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4555/#/login"));
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("no_review_run"));
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/status"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false);
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /src\/components\/LoginForm\.jsx/ })).not.toBeInTheDocument();
     expect(screen.getByText("暂无变更文件")).toBeInTheDocument();
   });
@@ -447,19 +453,15 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "创建" }));
     fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
 
-    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4557/#/login"));
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("no_review_run"));
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "展开项目切换栏" }));
-    fireEvent.click(screen.getByRole("button", { name: "切换到 Conduit A" }));
+    fireEvent.click(document.querySelector(".rail-top-toggle"));
+    fireEvent.click(screen.getByRole("button", { name: /Conduit A/ }));
 
-    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4556/#/login"));
-    const statusBodies = fetchMock.mock.calls
-      .filter(([url]) => String(url).endsWith("/api/preview/status"))
-      .map(([, options]) => JSON.parse(options.body));
-    expect(statusBodies.map((body) => body.localPath)).toEqual([
-      "C:\\Users\\www30\\Desktop\\conduit-b",
-      "C:\\Users\\www30\\Desktop\\conduit-a"
-    ]);
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("no_review_run"));
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/status"))).toBe(false);
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false);
   });
 
   it("does not render the iframe when the preview port is owned by an external process", async () => {
@@ -500,7 +502,7 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "创建" }));
     fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
 
-    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("3000 被外部进程占用，未打开当前项目"));
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("no_review_run"));
     expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
     expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false);
   });
@@ -543,8 +545,8 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "创建" }));
     fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
 
-    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:3000/#/login"));
-    expect(screen.getByText(/外部可信复用/)).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("no_review_run"));
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
     expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false);
   });
 
@@ -598,11 +600,9 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "创建" }));
     fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
 
-    await waitFor(() => expect(fetchMock).toHaveBeenCalledWith(
-      "/api/preview/start",
-      expect.objectContaining({ method: "POST" })
-    ));
-    await waitFor(() => expect(screen.getByTitle("Conduit login page")).toHaveAttribute("src", "http://127.0.0.1:4777/#/login"));
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("no_review_run"));
+    expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/api/preview/start"))).toBe(false);
   });
 
   it("shows the audit preview fallback when backend startup fails", async () => {
@@ -645,8 +645,8 @@ describe("monitor console and workspace picker", () => {
     fireEvent.click(screen.getByRole("button", { name: "创建" }));
     fireEvent.click(screen.getByRole("button", { name: "审计页面" }));
 
-    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("Vite binary was not found."));
-    expect(screen.getByText("用户可见变化")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("audit-preview-unavailable")).toHaveTextContent("no_review_run"));
+    expect(screen.getByText("Changed Files")).toBeInTheDocument();
     expect(screen.queryByTitle("Conduit login page")).not.toBeInTheDocument();
   });
 

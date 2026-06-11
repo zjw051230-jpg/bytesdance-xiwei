@@ -5,7 +5,7 @@
   "baseURL": "https://ark.cn-beijing.volces.com/api/v3",
   "model": "ep-20260514110933-mzh58",
   "apiKeyPresent": true,
-  "latencyMs": 7823,
+  "latencyMs": 3453,
   "errorCode": "",
   "error": null
 }
